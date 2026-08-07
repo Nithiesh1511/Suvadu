@@ -1,0 +1,11 @@
+# SUVADU Notebooks — robots.txt (brief §11)
+User-agent: *
+Allow: /
+
+# Keep private / transactional routes out of the index
+Disallow: /admin
+Disallow: /checkout
+Disallow: /cart
+Disallow: /account
+
+Sitemap: https://suvadu.example.com/sitemap.xml

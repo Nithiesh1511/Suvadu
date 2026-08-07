@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   SUVADU NOTEBOOKS — Design Tokens
+   Brand: Royal Purple #613092 · Pale Lilac #F3E8FF · Deep Plum #2C1A3E
+   Type:  DM Serif Display (display) · DM Sans (body/UI)
+   ============================================================ */
+:root {
+  /* Brand */
+  --color-royal: #613092;
+  --color-lilac: #f3e8ff;
+  --color-plum: #2c1a3e;
+
+  /* shadcn-style semantic tokens — space-separated RGB channels so
+     Tailwind can apply opacity modifiers via rgb(var(--x) / <alpha-value>) */
+  --background: 255 253 251;
+  --foreground: 44 26 62;
+  --card: 255 255 255;
+  --muted: 247 242 251;
+  --muted-foreground: 107 91 126;
+  --primary: 97 48 146;
+  --primary-foreground: 255 255 255;
+  --border: 236 227 245;
+  --input: 236 227 245;
+  --ring: 97 48 146;
+  --radius: 0.875rem;
+
+  /* Typography */
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    font-family: var(--font-body);
+    font-weight: var(--font-weight-light);
+    line-height: 1.7; /* breathing room — brief rule */
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--color-plum);
+  }
+
+  /* Minimum mobile font size guard — never below 13px */
+  @media (max-width: 480px) {
+    body { font-size: 15px; }
+    small, .caption { font-size: 13px; }
+  }
+
+  ::selection {
+    background: var(--color-royal);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-royal);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .container-suvadu {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+
+  /* Buttons — DM Sans 500, uppercase, 0.06em tracking (brief rule) */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-body font-medium uppercase
+           transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+    letter-spacing: 0.06em;
+    font-size: 0.8125rem;
+    padding: 0.75rem 1.6rem;
+  }
+  .btn-primary {
+    @apply btn bg-royal text-white shadow-soft hover:bg-royal-700 hover:shadow-lift active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply btn border border-royal/40 bg-transparent text-royal hover:border-royal hover:bg-royal hover:text-white;
+  }
+  .btn-ghost {
+    @apply btn text-royal hover:bg-lilac;
+  }
+  .btn-lg {
+    @apply px-8 py-3.5 text-sm;
+  }
+  .btn-sm {
+    @apply px-4 py-2 text-xs;
+  }
+
+  .link-underline {
+    @apply relative font-medium text-royal;
+  }
+  .link-underline::after {
+    content: '';
+    @apply absolute -bottom-0.5 left-0 h-px w-0 bg-royal transition-all duration-300;
+  }
+  .link-underline:hover::after {
+    @apply w-full;
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-border bg-card shadow-card;
+  }
+
+  .eyebrow {
+    @apply font-body text-xs font-medium uppercase tracking-[0.22em] text-royal;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-border bg-white px-4 py-3 font-body text-sm text-plum
+           placeholder:text-muted-foreground/70 transition focus:border-royal focus:ring-2 focus:ring-royal/20;
+    outline: none;
+  }
+
+  .badge-soft {
+    @apply inline-flex items-center rounded-full bg-lilac px-3 py-1 font-body text-xs font-medium text-royal-700;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .bg-grain {
+    background-image: radial-gradient(rgba(97, 48, 146, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .gradient-hero {
+    background:
+      radial-gradient(120% 90% at 100% 0%, #f3e8ff 0%, transparent 55%),
+      radial-gradient(110% 90% at 0% 100%, #ede0fb 0%, transparent 50%),
+      linear-gradient(180deg, #fffdfb 0%, #faf5ff 100%);
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ============================================================
+   Ambient background FX — drifting aurora orbs + twinkling
+   sparkles. Pure transform/opacity (GPU friendly), sits behind
+   all content, and is fully disabled for reduced-motion users.
+   ============================================================ */
+.bg-fx {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  /* gentle living wash beneath the orbs */
+  background:
+    radial-gradient(60% 50% at 18% 12%, rgba(243, 232, 255, 0.55) 0%, transparent 60%),
+    radial-gradient(55% 55% at 85% 88%, rgba(237, 224, 251, 0.5) 0%, transparent 60%);
+}
+
+.bg-fx__orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  will-change: transform;
+}
+
+.bg-fx__grain {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(97, 48, 146, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.6;
+  mask-image: radial-gradient(120% 120% at 50% 20%, #000 40%, transparent 100%);
+}
+
+.bg-fx__spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(97, 48, 146, 0.9) 0%, rgba(97, 48, 146, 0) 70%);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+@keyframes bgfx-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(48px, -36px, 0) scale(1.1); }
+}
+@keyframes bgfx-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  50%      { transform: translate3d(-56px, 44px, 0) scale(0.92); }
+}
+@keyframes bgfx-drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.95); }
+  50%      { transform: translate3d(40px, 52px, 0) scale(1.12); }
+}
+@keyframes bgfx-drift-d {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-44px, -48px, 0) scale(1.08); }
+}
+@keyframes bgfx-twinkle {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.4); }
+  50%      { opacity: 0.85; transform: translateY(-18px) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-fx__orb,
+  .bg-fx__spark { animation: none !important; }
+  .bg-fx__spark { opacity: 0.3; }
+}
