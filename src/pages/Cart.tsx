@@ -7,16 +7,12 @@ import PageHeader from '@/components/PageHeader'
 import { Plus, Minus, Trash, ArrowRight, Check, Close } from '@/components/Icons'
 import { formatINR } from '@/lib/utils'
 
-const FREE_SHIP_THRESHOLD = 999
-const SHIP_FEE = 60
-
 export default function Cart() {
   const { cart, updateQty, removeFromCart, subtotal, discount, total, coupon, applyCoupon, removeCoupon } = useStore()
   const { notify } = useToast()
   const [code, setCode] = useState('')
 
-  const shipping = total >= FREE_SHIP_THRESHOLD || cart.length === 0 ? 0 : SHIP_FEE
-  const grandTotal = total + shipping
+  const grandTotal = total
 
   function onApply(e: React.FormEvent) {
     e.preventDefault()
@@ -67,7 +63,7 @@ export default function Cart() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <Link to={`/products/${item.product.slug}`} className="font-display text-lg leading-snug text-plum hover:text-royal">{item.product.name}</Link>
-                    <p className="font-body text-xs font-light text-muted-foreground">{item.product.collectionName} · Size {item.size}{item.pages ? ` · ${item.pages} pages` : ''}</p>
+                    <p className="font-body text-xs font-light text-muted-foreground">{item.product.collectionName} · Size {item.size}{item.pages ? ` · ${item.pages} pages` : ''}{item.ruling ? ` · ${item.ruling}` : ''}</p>
                     {item.customization && (
                       <ul className="mt-1.5 space-y-0.5 font-body text-xs font-light text-royal">
                         {item.customization.name && <li>Name: “{item.customization.name}”</li>}
@@ -126,12 +122,6 @@ export default function Cart() {
             <dl className="mt-6 space-y-3 border-t border-border pt-5 font-body text-sm">
               <Row label="Subtotal" value={formatINR(subtotal)} />
               {discount > 0 && <Row label={`Discount (${coupon})`} value={`– ${formatINR(discount)}`} accent />}
-              <Row label="Shipping" value={shipping === 0 ? 'Free' : formatINR(shipping)} />
-              {shipping > 0 && (
-                <p className="font-body text-xs font-light text-muted-foreground">
-                  Add {formatINR(FREE_SHIP_THRESHOLD - total)} more for free shipping.
-                </p>
-              )}
             </dl>
 
             <div className="mt-5 flex items-center justify-between border-t border-border pt-5">

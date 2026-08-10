@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   COLOURS,
@@ -6,6 +6,7 @@ import {
   PAGE_OPTIONS,
   DEFAULT_PAGES,
   SIZE_INFO,
+  priceForPages,
   type SizeKey,
   type ColourOption,
 } from '@/data/products'
@@ -15,6 +16,7 @@ import { useToast } from '@/components/Toast'
 import NotebookCover from '@/components/NotebookCover'
 import ProductImage from '@/components/ProductImage'
 import ProductCard from '@/components/ProductCard'
+import ProductReviews from '@/components/ProductReviews'
 import PageHeader from '@/components/PageHeader'
 import JsonLd from '@/components/JsonLd'
 import { Heart, Share, Zoom, Plus, Minus, Check, Close, Truck, Leaf, Pen } from '@/components/Icons'
@@ -30,7 +32,7 @@ const TRUST = [
 
 export default function ProductDetail() {
   const { slug = '' } = useParams()
-  const { getProductBySlug, products } = useCatalog()
+  const { getProductBySlug, products, colours, loading } = useCatalog()
   const product = getProductBySlug(slug)
   const navigate = useNavigate()
   const { addToCart, toggleWishlist, isWished, user } = useStore()
@@ -38,14 +40,19 @@ export default function ProductDetail() {
 
   const isCustom = product?.type === 'customized'
 
-  const [size, setSize] = useState<SizeKey>('A5')
+  const size: SizeKey = 'A5' // A5 is the only offered size
   const [colour, setColour] = useState<ColourOption>(product?.colour ?? COLOURS[0])
   const [pages, setPages] = useState<number>(DEFAULT_PAGES)
+  const [ruling, setRuling] = useState<'Ruled' | 'Unruled'>('Ruled')
   const [qty, setQty] = useState(1)
   const [thumb, setThumb] = useState(0)
   const [zoom, setZoom] = useState(false)
   // Personalise your cover: open by default for custom products, also revealed when the user picks the Custom size
   const [showPersonalise, setShowPersonalise] = useState(isCustom)
+
+  // The product loads async from the DB, so isCustom is false on first render —
+  // open the personalise panel once we know it's a customized product.
+  useEffect(() => { if (isCustom) setShowPersonalise(true) }, [isCustom])
 
   // Customization state (only relevant for customized products)
   const [cName, setCName] = useState('')
@@ -61,19 +68,21 @@ export default function ProductDetail() {
   // SEO meta (brief §11) — unique title + description per product.
   useSeo(product?.name ?? 'Product', product?.description)
 
+  if (loading && !product) {
+    return (
+      <div className="container-suvadu py-24 text-center font-body text-sm font-light text-muted-foreground">
+        Loading…
+      </div>
+    )
+  }
   if (!product) return <NotFound />
   const prod = product // narrowed (non-undefined) — safe to capture in closures below
 
   const wished = isWished(prod.id)
-  const unitPrice = product.prices[size]
-  const onRequest = unitPrice == null
-
-  // Size availability per product type (brief §4.1)
-  const sizeAvailable: Record<SizeKey, boolean> = {
-    A5: true,
-    A4: true,
-    Custom: product.type !== 'set', // Matching Set: Custom N/A
-  }
+  const basePrice = product.prices.A5
+  const onRequest = basePrice == null
+  // Page count scales the price (listed price is for 160 pages).
+  const unitPrice = basePrice == null ? null : priceForPages(basePrice, pages)
 
   const previewText = cName || cText
   const thumbs = buildThumbs(colour, product.pattern)
@@ -108,7 +117,7 @@ export default function ProductDetail() {
     const customization: Customization | undefined = isCustom
       ? { name: cName.trim() || undefined, text: cText.trim() || undefined, font: cFont, colour: colour.name }
       : undefined
-    addToCart({ product: prod, size, unitPrice: unitPrice as number, pages, customization, qty })
+    addToCart({ product: prod, size, unitPrice: unitPrice as number, pages, ruling, customization, qty })
     notify(`Added ${qty} × ${prod.name} to cart`)
     if (redirect) navigate('/checkout')
   }
@@ -200,40 +209,21 @@ export default function ProductDetail() {
 
           <p className="mt-5 font-body text-base font-light leading-relaxed text-muted-foreground">{product.description}</p>
 
-          {/* Size selector */}
+          {/* Size — A5 only */}
           <div className="mt-8">
             <div className="flex items-center justify-between">
               <h3 className="font-body text-sm font-medium uppercase tracking-wide text-plum">Size</h3>
-              <span className="font-body text-xs font-light text-muted-foreground">{SIZE_INFO[size].dims}</span>
+              <span className="font-body text-xs font-light text-muted-foreground">{SIZE_INFO.A5.dims}</span>
             </div>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {(['A5', 'A4', 'Custom'] as SizeKey[]).map((s) => (
-                <button
-                  key={s}
-                  disabled={!sizeAvailable[s]}
-                  onClick={() => {
-                    setSize(s)
-                    // Picking "Custom" opens the Personalise your cover tab
-                    if (s === 'Custom') setShowPersonalise(true)
-                  }}
-                  className={cn(
-                    'min-w-[84px] rounded-xl border px-4 py-2.5 font-body text-sm transition',
-                    size === s ? 'border-royal bg-royal text-white shadow-soft' : 'border-border bg-white text-plum hover:border-royal',
-                    !sizeAvailable[s] && 'cursor-not-allowed opacity-40 hover:border-border',
-                  )}
-                >
-                  {s}
-                  {s === 'Custom' && sizeAvailable[s] && <span className="ml-1 text-[10px] opacity-70">on req.</span>}
-                </button>
-              ))}
+            <div className="mt-3">
+              <span className="inline-flex min-w-[84px] items-center justify-center rounded-xl border border-royal bg-royal px-4 py-2.5 font-body text-sm text-white shadow-soft">A5</span>
             </div>
-            <p className="mt-2 font-body text-xs font-light text-muted-foreground">{SIZE_INFO[size].note}</p>
           </div>
 
           {/* Page-count selector */}
           <div className="mt-7">
             <div className="flex items-center justify-between">
-              <h3 className="font-body text-sm font-medium uppercase tracking-wide text-plum">How many pages do you need?</h3>
+              <h3 className="font-body text-sm font-medium uppercase tracking-wide text-plum">Pages</h3>
               <span className="font-body text-xs font-light text-muted-foreground">{pages} pages</span>
             </div>
             <div className="mt-3 flex flex-wrap gap-3">
@@ -247,6 +237,25 @@ export default function ProductDetail() {
                   )}
                 >
                   {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Ruled / Unruled */}
+          <div className="mt-7">
+            <h3 className="font-body text-sm font-medium uppercase tracking-wide text-plum">Pages style</h3>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {(['Ruled', 'Unruled'] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRuling(r)}
+                  className={cn(
+                    'min-w-[110px] rounded-xl border px-4 py-2.5 font-body text-sm transition',
+                    ruling === r ? 'border-royal bg-royal text-white shadow-soft' : 'border-border bg-white text-plum hover:border-royal',
+                  )}
+                >
+                  {r}
                 </button>
               ))}
             </div>
@@ -274,6 +283,30 @@ export default function ProductDetail() {
                   <input value={cText} onChange={(e) => setCText(e.target.value)} maxLength={32} placeholder="A short line, quote or date" className="field" />
                 </label>
               </div>
+
+              {/* Cover colour — circular swatches (brief §7.2 / §5) */}
+              <div className="mt-4">
+                <span className="mb-2 block font-body text-xs font-medium uppercase tracking-wide text-plum">Cover colour</span>
+                <div className="flex flex-wrap gap-2.5">
+                  {colours.map((c) => (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => setColour(c)}
+                      aria-label={c.name}
+                      aria-pressed={colour.name === c.name}
+                      title={c.name}
+                      className={cn(
+                        'h-8 w-8 rounded-full border border-border transition',
+                        colour.name === c.name ? 'ring-2 ring-royal ring-offset-2' : 'hover:scale-110',
+                      )}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 font-body text-xs font-light text-muted-foreground">Selected colour: {colour.name}</p>
+              </div>
+
               <p className="mt-3 font-body text-xs font-light text-muted-foreground">Your cover preview updates live on the left.</p>
             </div>
           )}
@@ -318,38 +351,8 @@ export default function ProductDetail() {
         </div>
       </section>
 
-      {/* Specifications */}
-      <section className="border-t border-border bg-lilac/20 py-14">
-        <div className="container-suvadu grid gap-10 lg:grid-cols-2">
-          <div>
-            <h2 className="font-display text-3xl text-plum">Specifications</h2>
-            <ul className="mt-6 space-y-3">
-              {product.specs.map((s) => (
-                <li key={s} className="flex items-center gap-3 font-body text-sm font-light text-plum/80">
-                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-royal text-white"><Check width={12} /></span>
-                  {s}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="font-display text-3xl text-plum">Sizes & pricing</h2>
-            <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-white">
-              {(['A5', 'A4', 'Custom'] as SizeKey[]).map((s) => (
-                <div key={s} className="flex items-center justify-between border-b border-border px-5 py-3.5 last:border-0">
-                  <div>
-                    <p className="font-body text-sm font-medium text-plum">{s}</p>
-                    <p className="font-body text-xs font-light text-muted-foreground">{SIZE_INFO[s].dims}</p>
-                  </div>
-                  <p className="font-body text-sm font-medium text-royal">
-                    {!sizeAvailable[s] ? 'N/A' : product.prices[s] != null ? formatINR(product.prices[s] as number) : 'On request'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Customer reviews */}
+      <ProductReviews productId={prod.id} />
 
       {/* Related products */}
       <section className="container-suvadu py-16">

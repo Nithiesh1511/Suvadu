@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import PageHeader from '@/components/PageHeader'
 import NotebookCover from '@/components/NotebookCover'
-import { COLOURS } from '@/data/products'
 import { Leaf, Pen, Sparkle, Truck, Check, ArrowRight } from '@/components/Icons'
 
 const VALUES = [
@@ -60,32 +59,6 @@ export default function About() {
                   <p className="mt-1.5 font-body text-sm font-light leading-relaxed text-muted-foreground">{d}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Colour story */}
-      <section className="container-suvadu py-16">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div className="order-2 lg:order-1">
-            <p className="eyebrow mb-3">Our palette</p>
-            <h2 className="font-display text-4xl leading-tight text-plum">Ten colours, endless pages</h2>
-            <p className="mt-5 font-body text-base font-light leading-relaxed text-muted-foreground">
-              Our Calm Collection palette is built from soft neutrals and quiet accents — from Ivory White to Muted Terracotta — so there’s a cover for every mood and every desk.
-            </p>
-            <ul className="mt-6 grid grid-cols-2 gap-2.5 font-body text-sm font-light text-plum/80">
-              {COLOURS.map((c) => (
-                <li key={c.name} className="flex items-center gap-2.5">
-                  <span className="h-4 w-4 rounded-full border border-border" style={{ backgroundColor: c.hex }} />
-                  {c.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="order-1 grid grid-cols-5 gap-2.5 lg:order-2">
-            {COLOURS.map((c) => (
-              <div key={c.name} className="aspect-square rounded-xl border border-border shadow-card" style={{ backgroundColor: c.hex }} title={c.name} />
             ))}
           </div>
         </div>

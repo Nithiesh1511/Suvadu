@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Product, SizeKey } from '@/data/products'
-import { COUPONS } from '@/data/products'
+import { DEFAULT_PAGES, priceForPages } from '@/data/products'
+import { useAuth } from '@/context/AuthContext'
+import { useCatalog } from '@/context/CatalogContext'
+import { supabase } from '@/lib/supabase'
+import { trackEvent } from '@/lib/analytics'
 
 export interface Customization {
   name?: string
@@ -16,6 +20,7 @@ export interface CartItem {
   qty: number
   unitPrice: number
   pages?: number
+  ruling?: string // 'Ruled' | 'Unruled'
   customization?: Customization
 }
 
@@ -28,7 +33,7 @@ interface User {
 interface StoreState {
   cart: CartItem[]
   wishlist: string[] // product ids
-  user: User | null
+  user: User | null // derived from the authenticated Supabase profile
   coupon: string | null
   addToCart: (item: Omit<CartItem, 'key' | 'qty'> & { qty?: number }) => void
   removeFromCart: (key: string) => void
@@ -38,8 +43,6 @@ interface StoreState {
   isWished: (productId: string) => boolean
   applyCoupon: (code: string) => { ok: boolean; message: string }
   removeCoupon: () => void
-  login: (user: User) => void
-  logout: () => void
   cartCount: number
   subtotal: number
   discount: number
@@ -58,25 +61,78 @@ function load<T>(key: string, fallback: T): T {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const { profile } = useAuth()
+  const { allProducts, loading: catalogLoading } = useCatalog()
   const [cart, setCart] = useState<CartItem[]>(() => load('suvadu_cart', []))
   const [wishlist, setWishlist] = useState<string[]>(() => load('suvadu_wishlist', []))
-  const [user, setUser] = useState<User | null>(() => load('suvadu_user', null))
   const [coupon, setCoupon] = useState<string | null>(() => load('suvadu_coupon', null))
+  // Valid coupon rates (code → fraction), loaded from the DB (admin-managed).
+  const [couponRates, setCouponRates] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    supabase.from('coupons').select('code, discount_pct, expires_at').then(({ data }) => {
+      if (!data) return
+      const now = Date.now()
+      const map: Record<string, number> = {}
+      for (const c of data as { code: string; discount_pct: number; expires_at: string | null }[]) {
+        if (c.expires_at && new Date(c.expires_at).getTime() < now) continue
+        map[c.code] = Number(c.discount_pct) / 100
+      }
+      setCouponRates(map)
+    })
+  }, [])
+
+  // User identity is owned by AuthContext; expose a lightweight view for the
+  // storefront (prefilling checkout, wishlist gating, greeting).
+  const user = useMemo<User | null>(
+    () =>
+      profile
+        ? { name: profile.name ?? '', email: profile.email ?? '', mobile: profile.mobile ?? '' }
+        : null,
+    [profile],
+  )
 
   useEffect(() => { localStorage.setItem('suvadu_cart', JSON.stringify(cart)) }, [cart])
   useEffect(() => { localStorage.setItem('suvadu_wishlist', JSON.stringify(wishlist)) }, [wishlist])
-  useEffect(() => { localStorage.setItem('suvadu_user', JSON.stringify(user)) }, [user])
   useEffect(() => { localStorage.setItem('suvadu_coupon', JSON.stringify(coupon)) }, [coupon])
+
+  // Reconcile cart items with the live catalogue once it has loaded: refresh the
+  // unit price (and product snapshot) so a price the admin changed after an item
+  // was added can't linger in someone's cart. Only rewrites when the price moved.
+  useEffect(() => {
+    if (catalogLoading) return
+    setCart((prev) => {
+      let changed = false
+      const next = prev.map((item) => {
+        const p = allProducts.find((x) => x.id === item.product.id)
+        if (!p) return item
+        const base = p.prices[item.size]
+        if (base == null) return item
+        const fresh = priceForPages(base, item.pages ?? DEFAULT_PAGES)
+        if (fresh !== item.unitPrice) {
+          changed = true
+          return { ...item, unitPrice: fresh, product: p }
+        }
+        return item
+      })
+      return changed ? next : prev
+    })
+  }, [allProducts, catalogLoading])
 
   function addToCart(item: Omit<CartItem, 'key' | 'qty'> & { qty?: number }) {
     const custKey = item.customization ? JSON.stringify(item.customization) : ''
-    const key = `${item.product.id}-${item.size}-${item.pages ?? ''}-${custKey}`
+    const key = `${item.product.id}-${item.size}-${item.pages ?? ''}-${item.ruling ?? ''}-${custKey}`
     setCart((prev) => {
       const existing = prev.find((c) => c.key === key)
       if (existing) {
         return prev.map((c) => (c.key === key ? { ...c, qty: c.qty + (item.qty ?? 1) } : c))
       }
       return [...prev, { ...item, key, qty: item.qty ?? 1 }]
+    })
+    trackEvent('add_to_cart', {
+      currency: 'INR',
+      value: item.unitPrice * (item.qty ?? 1),
+      items: [{ item_id: item.product.id, item_name: item.product.name, quantity: item.qty ?? 1, price: item.unitPrice }],
     })
   }
 
@@ -92,31 +148,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   function applyCoupon(code: string) {
     const normalized = code.trim().toUpperCase()
     if (!normalized) return { ok: false, message: 'Enter a coupon code.' }
-    if (COUPONS[normalized] != null) {
+    if (couponRates[normalized] != null) {
       setCoupon(normalized)
-      return { ok: true, message: `Coupon ${normalized} applied — ${Math.round(COUPONS[normalized] * 100)}% off!` }
+      return { ok: true, message: `Coupon ${normalized} applied — ${Math.round(couponRates[normalized] * 100)}% off!` }
     }
     return { ok: false, message: 'That coupon code isn’t valid.' }
   }
   const removeCoupon = () => setCoupon(null)
 
-  const login = (u: User) => setUser(u)
-  const logout = () => setUser(null)
-
   const { cartCount, subtotal, discount, total } = useMemo(() => {
     const count = cart.reduce((s, c) => s + c.qty, 0)
     const sub = cart.reduce((s, c) => s + c.unitPrice * c.qty, 0)
-    const rate = coupon ? COUPONS[coupon] ?? 0 : 0
+    const rate = coupon ? couponRates[coupon] ?? 0 : 0
     const disc = Math.round(sub * rate)
     return { cartCount: count, subtotal: sub, discount: disc, total: sub - disc }
-  }, [cart, coupon])
+  }, [cart, coupon, couponRates])
 
   const value: StoreState = {
     cart, wishlist, user, coupon,
     addToCart, removeFromCart, updateQty, clearCart,
     toggleWishlist, isWished,
     applyCoupon, removeCoupon,
-    login, logout,
     cartCount, subtotal, discount, total,
   }
 

@@ -1,28 +1,41 @@
 import { useState } from 'react'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/components/Toast'
+import { supabase } from '@/lib/supabase'
+import { isEmail } from '@/lib/utils'
 import { Whatsapp, Mail, Instagram, Facebook, Pinterest, ArrowRight } from '@/components/Icons'
 
 const PHONE = '919876543210' // demo WhatsApp number
-const EMAIL = 'hello@suvadu.example.com'
+const EMAIL = 'suvadu.notebooks@gmail.com'
 
 const CHANNELS = [
   { Icon: Whatsapp, label: 'WhatsApp', value: 'Chat with us', href: `https://wa.me/${PHONE}`, external: true },
   { Icon: Mail, label: 'Email', value: EMAIL, href: `mailto:${EMAIL}`, external: false },
-  { Icon: Instagram, label: 'Instagram', value: '@suvadu.notebooks', href: 'https://instagram.com', external: true },
-  { Icon: Facebook, label: 'Facebook', value: 'SUVADU Notebooks', href: 'https://facebook.com', external: true },
-  { Icon: Pinterest, label: 'Pinterest', value: 'SUVADU', href: 'https://pinterest.com', external: true },
+  { Icon: Instagram, label: 'Instagram', value: '@suvadu.notebooks', href: 'https://www.instagram.com/suvadu.notebooks/', external: true },
+  { Icon: Facebook, label: 'Facebook', value: 'SUVADU Notebooks', href: 'https://www.facebook.com/profile.php?id=61587945124861', external: true },
+  { Icon: Pinterest, label: 'Pinterest', value: 'Suvadunotebooks', href: 'https://in.pinterest.com/Suvadunotebooks/', external: true },
 ]
 
 export default function Contact() {
   const { notify } = useToast()
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' })
   const [sent, setSent] = useState(false)
+  const [busy, setBusy] = useState(false)
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name || !form.email || !form.message) { notify('Please fill in your name, email and message.'); return }
-    // In production this posts to the admin "Contact Requests" module.
+    if (!form.name || !form.message) { notify('Please fill in your name and message.'); return }
+    if (!isEmail(form.email)) { notify('Please enter a valid email address.'); return }
+    setBusy(true)
+    // Posts to the admin "Contact Requests" module (contact_requests table).
+    const { error } = await supabase.from('contact_requests').insert({
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim() || null,
+      message: form.message.trim(),
+    })
+    setBusy(false)
+    if (error) { notify('Could not send your message — please try again.'); return }
     setSent(true)
     notify('Message sent — we’ll be in touch soon!')
     setForm({ name: '', email: '', phone: '', message: '' })
@@ -85,7 +98,7 @@ export default function Contact() {
               />
             </label>
             <div className="sm:col-span-2">
-              <button type="submit" className="btn-primary btn-lg w-full sm:w-auto">Submit</button>
+              <button type="submit" disabled={busy} className="btn-primary btn-lg w-full sm:w-auto">{busy ? 'Sending…' : 'Submit'}</button>
               {sent && <p className="mt-3 font-body text-sm font-light text-royal">Thanks — your message is on its way. ✦</p>}
             </div>
           </form>

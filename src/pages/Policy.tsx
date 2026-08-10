@@ -35,7 +35,7 @@ const POLICIES: Record<Kind, PolicyDoc> = {
     sections: [
       { h: 'Processing time', p: ['Ready-to-ship products are dispatched within 1–2 business days.', 'Personalised and made-to-order items take 3–5 business days to craft before dispatch.'] },
       { h: 'Delivery time', p: ['Metro cities: typically 2–4 business days after dispatch.', 'Other locations: typically 4–7 business days after dispatch.'] },
-      { h: 'Charges & tracking', p: ['Shipping is calculated at checkout based on your pincode. Orders above ₹999 ship free.', 'Once dispatched, you’ll receive a tracking link by SMS and email, also available under My Account → Order History.'] },
+      { h: 'Charges & tracking', p: ['We ship pan-India via Shiprocket. The amount shown at checkout is the final total — there are no separate shipping charges.', 'Once dispatched, you’ll receive a tracking link by SMS and email, also available under My Account → Order History.'] },
       { h: 'Delays', p: ['Occasionally, delivery may be affected by weather, festivals or courier disruptions. We’ll keep you informed if your order is impacted.'] },
     ],
   },
@@ -62,7 +62,7 @@ export default function Policy({ kind }: { kind: Kind }) {
     <div>
       <PageHeader eyebrow={doc.eyebrow} title={doc.title} crumbs={[{ label: CRUMBS[kind] }]} />
       <section className="container-suvadu py-12">
-        <div className="mx-auto max-w-3xl">
+        <div className="card-surface mx-auto max-w-3xl p-6 sm:p-10">
           <p className="font-body text-base font-light leading-relaxed text-muted-foreground">{doc.intro}</p>
           <p className="mt-4 font-body text-xs font-light text-muted-foreground">Last updated: June 2026</p>
 

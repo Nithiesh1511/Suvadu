@@ -1,15 +1,39 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { REVIEWS, COLOURS } from '@/data/products'
+import { REVIEWS } from '@/data/products'
 import { useCatalog } from '@/context/CatalogContext'
+import { supabase, type BannerRow, type ReviewRow } from '@/lib/supabase'
 import ProductCard from '@/components/ProductCard'
 import NotebookCover from '@/components/NotebookCover'
 import Stars from '@/components/Stars'
+import { ProductGridSkeleton, CollectionGridSkeleton } from '@/components/Skeleton'
 import { ArrowRight, Truck, Leaf, Sparkle, Pen, Instagram } from '@/components/Icons'
 
+// Lazy so three.js stays out of the initial bundle.
+const NotebookPreview3D = lazy(() => import('@/components/NotebookPreview3D'))
+
 export default function Home() {
-  const { collections, getBestSellers } = useCatalog()
+  const { collections, getBestSellers, loading } = useCatalog()
   const featured = collections.slice(0, 6)
   const bestSellers = getBestSellers()
+  const [banners, setBanners] = useState<BannerRow[]>([])
+  const [dbReviews, setDbReviews] = useState<ReviewRow[]>([])
+
+  useEffect(() => {
+    let active = true
+    supabase.from('banners').select('*').eq('active', true).order('sort_order').then(({ data }) => {
+      if (active) setBanners((data as BannerRow[]) ?? [])
+    })
+    supabase.from('reviews').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(8).then(({ data }) => {
+      if (active) setDbReviews((data as ReviewRow[]) ?? [])
+    })
+    return () => { active = false }
+  }, [])
+
+  // Prefer admin-approved reviews; fall back to the static seed if none yet.
+  const displayReviews = dbReviews.length
+    ? dbReviews.map((r) => ({ name: r.author_name, rating: r.rating, text: r.text, location: r.location ?? '' }))
+    : REVIEWS
 
   return (
     <div>
@@ -17,7 +41,7 @@ export default function Home() {
       <section className="gradient-hero relative overflow-hidden bg-grain">
         <div className="container-suvadu grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
           <div className="animate-fade-up">
-            <p className="eyebrow mb-5">Premium notebooks · Pan-India</p>
+            <p className="eyebrow mb-5">Suvadu Notebooks · Pan-India</p>
             <h1 className="text-balance font-display text-5xl leading-[1.05] text-plum sm:text-6xl lg:text-7xl">
               Make your <span className="italic text-royal">mark.</span>
             </h1>
@@ -29,9 +53,9 @@ export default function Home() {
               <Link to="/collections" className="btn-secondary btn-lg">Explore Collections</Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 font-body text-sm text-muted-foreground">
-              <span className="flex items-center gap-2"><Truck width={18} className="text-royal" /> Free shipping over ₹499</span>
-              <span className="flex items-center gap-2"><Pen width={18} className="text-royal" /> Personalisation available</span>
-              <span className="flex items-center gap-2"><Leaf width={18} className="text-royal" /> Premium 100 GSM paper</span>
+              <span className="flex items-center gap-2"><Truck width={18} className="shrink-0 text-royal" /> Pan-India delivery</span>
+              <span className="flex items-center gap-2"><Pen width={18} className="shrink-0 text-royal" /> Personalisation available</span>
+              <span className="flex items-center gap-2"><Leaf width={18} className="shrink-0 text-royal" /> 100 GSM premium paper</span>
             </div>
           </div>
 
@@ -66,6 +90,29 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Promotional banner (admin-managed) */}
+      {banners.length > 0 && (
+        <section className="container-suvadu pt-12">
+          {banners.slice(0, 1).map((b) => {
+            const Inner = (
+              <div
+                className="relative flex min-h-[180px] items-center overflow-hidden rounded-3xl border border-border bg-plum px-8 py-10 text-white shadow-card sm:px-12"
+                style={b.image_url ? { backgroundImage: `url(${b.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+              >
+                {b.image_url && <span className="absolute inset-0 bg-plum/45" />}
+                <div className="relative max-w-xl">
+                  {b.title && <h2 className="font-display text-3xl text-white sm:text-4xl">{b.title}</h2>}
+                  {b.subtitle && <p className="mt-2 font-body text-sm font-light text-white/80">{b.subtitle}</p>}
+                </div>
+              </div>
+            )
+            return b.link
+              ? <Link key={b.id} to={b.link} className="block transition hover:-translate-y-0.5">{Inner}</Link>
+              : <div key={b.id}>{Inner}</div>
+          })}
+        </section>
+      )}
+
       {/* 2. FEATURED COLLECTIONS */}
       <section className="container-suvadu py-20">
         <SectionHead
@@ -74,6 +121,9 @@ export default function Home() {
           subtitle="Seven worlds to write in — each with its own voice."
           link={{ to: '/collections', label: 'View all' }}
         />
+        {loading ? (
+          <div className="mt-10"><CollectionGridSkeleton count={6} /></div>
+        ) : (
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((col) => (
             <Link
@@ -99,14 +149,21 @@ export default function Home() {
             </Link>
           ))}
         </div>
+        )}
       </section>
 
       {/* 3. BEST SELLERS */}
       <section className="bg-lilac/40 py-20">
         <div className="container-suvadu">
           <SectionHead eyebrow="Loved most" title="Best Sellers" subtitle="The notebooks our customers keep coming back for." />
-          <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
-            {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
+          <div className="mt-10">
+            {loading ? (
+              <ProductGridSkeleton count={4} />
+            ) : (
+              <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+                {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+            )}
           </div>
           <div className="mt-10 text-center">
             <Link to="/collections?filter=bestseller" className="btn-primary btn-lg">Shop Best Sellers</Link>
@@ -117,10 +174,10 @@ export default function Home() {
       {/* 4. ABOUT SUVADU (short) */}
       <section className="container-suvadu py-20">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div className="order-2 grid grid-cols-3 gap-3 lg:order-1">
-            {COLOURS.slice(0, 9).map((c) => (
-              <div key={c.name} className="aspect-square rounded-xl border border-border shadow-card" style={{ backgroundColor: c.hex }} title={c.name} />
-            ))}
+          <div className="order-2 lg:order-1">
+            <Suspense fallback={<div className="grid min-h-[440px] place-items-center rounded-3xl bg-lilac/40 font-body text-sm font-light text-muted-foreground">Loading 3D preview…</div>}>
+              <NotebookPreview3D className="h-[440px]" />
+            </Suspense>
           </div>
           <div className="order-1 lg:order-2">
             <p className="eyebrow mb-4">Our story</p>
@@ -161,8 +218,8 @@ export default function Home() {
       <section className="container-suvadu py-20">
         <SectionHead eyebrow="Kind words" title="Loved by writers across India" />
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {REVIEWS.map((r) => (
-            <figure key={r.name} className="card-surface flex flex-col p-6">
+          {displayReviews.map((r, i) => (
+            <figure key={i} className="card-surface flex flex-col p-6">
               <Stars rating={r.rating} />
               <blockquote className="mt-4 flex-1 font-body text-sm font-light leading-relaxed text-plum/90">“{r.text}”</blockquote>
               <figcaption className="mt-5 border-t border-border pt-4">
@@ -181,12 +238,12 @@ export default function Home() {
 
       {/* 7. INSTAGRAM FEED */}
       <section className="container-suvadu pb-20">
-        <SectionHead eyebrow="@suvadu.notebooks" title="From the Suvadu journal" link={{ to: 'https://instagram.com', label: 'Follow us', external: true }} />
+        <SectionHead eyebrow="@suvadu.notebooks" title="From the Suvadu journal" link={{ to: 'https://www.instagram.com/suvadu.notebooks/', label: 'Follow us', external: true }} />
         <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {collections.concat(collections).slice(0, 6).map((c, i) => (
             <a
               key={i}
-              href="https://instagram.com"
+              href="https://www.instagram.com/suvadu.notebooks/"
               target="_blank"
               rel="noopener noreferrer"
               className="group relative aspect-square overflow-hidden rounded-xl"
@@ -242,7 +299,6 @@ function NewsletterBanner() {
   )
 }
 
-import { useState } from 'react'
 import { useToast } from '@/components/Toast'
 function NewsletterForm() {
   const { notify } = useToast()

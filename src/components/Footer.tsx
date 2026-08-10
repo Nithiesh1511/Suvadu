@@ -20,9 +20,9 @@ const LEGAL_LINKS = [
 ]
 
 const SOCIAL = [
-  { label: 'Instagram', href: 'https://instagram.com', Icon: Instagram },
-  { label: 'Facebook', href: 'https://facebook.com', Icon: Facebook },
-  { label: 'Pinterest', href: 'https://pinterest.com', Icon: Pinterest },
+  { label: 'Instagram', href: 'https://www.instagram.com/suvadu.notebooks/', Icon: Instagram },
+  { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61587945124861', Icon: Facebook },
+  { label: 'Pinterest', href: 'https://in.pinterest.com/Suvadunotebooks/', Icon: Pinterest },
 ]
 
 export default function Footer() {
@@ -45,7 +45,7 @@ export default function Footer() {
             <Link to="/" className="font-display text-3xl text-plum">SUVADU</Link>
             <p className="mt-4 font-display text-xl italic text-royal">Make your mark.</p>
             <p className="mt-3 max-w-xs font-body text-sm font-light leading-relaxed text-muted-foreground">
-              Premium notebooks for the thinking mind.
+              Suvadu notebooks for the thinking mind.
             </p>
             <div className="mt-6 flex gap-3">
               {SOCIAL.map(({ label, href, Icon }) => (

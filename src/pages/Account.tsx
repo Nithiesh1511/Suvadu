@@ -1,41 +1,66 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useStore } from '@/context/StoreContext'
+import { useStore, type Customization } from '@/context/StoreContext'
+import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/components/Toast'
 import PageHeader from '@/components/PageHeader'
 import NotebookCover from '@/components/NotebookCover'
 import ProductImage from '@/components/ProductImage'
 import { useCatalog } from '@/context/CatalogContext'
-import { type Product } from '@/data/products'
+import { supabase } from '@/lib/supabase'
+import { COLOURS, type Product, type SizeKey } from '@/data/products'
 import { User, Trash, Pen, Heart } from '@/components/Icons'
-import { formatINR, cn } from '@/lib/utils'
+import { formatINR, cn, isEmail, isMobile } from '@/lib/utils'
 
 type Tab = 'profile' | 'orders' | 'addresses' | 'customizations' | 'wishlist'
 
 interface Address { id: string; label: string; line: string; city: string; state: string; pincode: string }
-interface Order { id: string; date: string; status: 'Processing' | 'Shipped' | 'Delivered'; items: { name: string; qty: number }[]; total: number; productSlug: string }
 
-const DEMO_ORDERS: Order[] = [
-  { id: 'SUV480213', date: '12 Jun 2026', status: 'Delivered', total: 698, productSlug: 'calm-collection-1', items: [{ name: 'Serene Calm Notebook', qty: 1 }, { name: 'Bookmark — Design 2', qty: 1 }] },
-  { id: 'SUV479556', date: '03 Jun 2026', status: 'Shipped', total: 399, productSlug: 'her-journal-1', items: [{ name: 'Serene Her Notebook (A4)', qty: 1 }] },
-  { id: 'SUV477901', date: '21 May 2026', status: 'Processing', total: 399, productSlug: 'customized-notebook', items: [{ name: 'Customized Notebook — “Ananya”', qty: 1 }] },
-]
+type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+interface OrderItemRecord {
+  product_id: string
+  product_name: string
+  product_slug: string
+  size: string
+  qty: number
+  unit_price: number
+  pages: number | null
+  customization: Record<string, unknown> | null
+}
+interface OrderRecord {
+  id: string
+  order_number: string
+  status: OrderStatus
+  total: number
+  created_at: string
+  order_items: OrderItemRecord[]
+}
 
-const STATUS_STYLES: Record<Order['status'], string> = {
-  Delivered: 'bg-emerald-100 text-emerald-700',
-  Shipped: 'bg-sky-100 text-sky-700',
-  Processing: 'bg-amber-100 text-amber-700',
+const STATUS_STYLES: Record<OrderStatus, string> = {
+  pending: 'bg-amber-100 text-amber-700',
+  processing: 'bg-amber-100 text-amber-700',
+  shipped: 'bg-sky-100 text-sky-700',
+  delivered: 'bg-emerald-100 text-emerald-700',
+  cancelled: 'bg-rose-100 text-rose-600',
+}
+const STATUS_LABEL: Record<OrderStatus, string> = {
+  pending: 'Payment pending',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
 }
 
 export default function Account({ tab = 'profile' }: { tab?: Tab }) {
-  const { user, login, logout, wishlist, toggleWishlist, addToCart } = useStore()
+  const { user, wishlist, toggleWishlist, addToCart } = useStore()
+  const { signOut } = useAuth()
   const { allProducts: ALL_PRODUCTS } = useCatalog()
   const { notify } = useToast()
   const navigate = useNavigate()
   const [active, setActive] = useState<Tab>(tab)
   useEffect(() => setActive(tab), [tab])
 
-  if (!user) return <AuthGate onLogin={login} notify={notify} />
+  if (!user) return <AuthGate notify={notify} />
 
   const wished: Product[] = wishlist.map((id) => ALL_PRODUCTS.find((p) => p.id === id)).filter(Boolean) as Product[]
 
@@ -67,7 +92,7 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
                 {t.label}
               </button>
             ))}
-            <button onClick={() => { logout(); notify('Logged out'); navigate('/') }} className="whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50">
+            <button onClick={async () => { await signOut(); notify('Logged out'); navigate('/') }} className="whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50">
               Logout
             </button>
           </nav>
@@ -76,7 +101,7 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
         {/* Panel */}
         <div className="min-w-0">
           {active === 'profile' && <ProfilePanel />}
-          {active === 'orders' && <OrdersPanel onReorder={(o) => { const p = ALL_PRODUCTS.find((x) => x.slug === o.productSlug); if (p) { addToCart({ product: p, size: 'A5', unitPrice: p.prices.A5 }); notify('Order items added to cart') } }} />}
+          {active === 'orders' && <OrdersPanel />}
           {active === 'addresses' && <AddressesPanel notify={notify} />}
           {active === 'customizations' && <CustomizationsPanel />}
           {active === 'wishlist' && (
@@ -93,14 +118,33 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
 }
 
 /* ---------- Auth ---------- */
-function AuthGate({ onLogin, notify }: { onLogin: (u: { name: string; email: string; mobile: string }) => void; notify: (m: string) => void }) {
+function AuthGate({ notify }: { notify: (m: string) => void }) {
+  const { signIn, signUp } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [form, setForm] = useState({ name: '', email: '', mobile: '', password: '' })
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
-    onLogin({ name: form.name || form.email.split('@')[0] || 'Suvadu Friend', email: form.email, mobile: form.mobile || '—' })
-    notify(mode === 'login' ? 'Welcome back!' : 'Account created — welcome to Suvadu!')
+    setError('')
+    // Client-side guards for clearer feedback than the raw API error.
+    if (!isEmail(form.email)) { setError('Please enter a valid email address.'); return }
+    if (mode === 'register') {
+      if (form.mobile && !isMobile(form.mobile)) { setError('Please enter a valid 10-digit mobile number.'); return }
+      if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
+    }
+    setBusy(true)
+    const res =
+      mode === 'login'
+        ? await signIn(form.email.trim(), form.password)
+        : await signUp({ name: form.name.trim(), email: form.email.trim(), password: form.password, mobile: form.mobile.trim() })
+    setBusy(false)
+    if (!res.ok) { setError(res.message); return }
+    notify(res.message)
+    // On sign-up with email confirmation enabled there's no session yet — bounce
+    // the user back to the login tab to sign in after confirming.
+    if (res.needsConfirmation) setMode('login')
   }
 
   return (
@@ -120,15 +164,18 @@ function AuthGate({ onLogin, notify }: { onLogin: (u: { name: string; email: str
             )}
             <Input label="Email" type="email" value={form.email} onChange={(v) => setForm((f) => ({ ...f, email: v }))} required />
             {mode === 'register' && (
-              <Input label="Mobile Number" type="tel" value={form.mobile} onChange={(v) => setForm((f) => ({ ...f, mobile: v }))} />
+              <Input label="Mobile Number" type="tel" value={form.mobile} onChange={(v) => setForm((f) => ({ ...f, mobile: v.replace(/\D/g, '').slice(0, 10) }))} />
             )}
             <Input label="Password" type="password" value={form.password} onChange={(v) => setForm((f) => ({ ...f, password: v }))} required />
-            <button type="submit" className="btn-primary btn-lg w-full">{mode === 'login' ? 'Sign In' : 'Create Account'}</button>
+            {error && <p className="font-body text-sm font-medium text-rose-500">{error}</p>}
+            <button type="submit" disabled={busy} className="btn-primary btn-lg w-full">
+              {busy ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
+            </button>
           </form>
 
           <p className="mt-5 text-center font-body text-sm font-light text-muted-foreground">
             {mode === 'login' ? "Don't have an account? " : 'Already have one? '}
-            <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="font-medium text-royal hover:underline">
+            <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} className="font-medium text-royal hover:underline">
               {mode === 'login' ? 'Register' : 'Sign in'}
             </button>
           </p>
@@ -140,23 +187,30 @@ function AuthGate({ onLogin, notify }: { onLogin: (u: { name: string; email: str
 
 /* ---------- Panels ---------- */
 function ProfilePanel() {
-  const { user, login } = useStore()
+  const { user } = useStore()
+  const { updateProfile } = useAuth()
   const { notify } = useToast()
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: user!.name, email: user!.email, mobile: user!.mobile })
+  const [form, setForm] = useState({ name: user!.name, mobile: user!.mobile })
 
-  function save(e: React.FormEvent) { e.preventDefault(); login(form); setEditing(false); notify('Profile updated') }
+  async function save(e: React.FormEvent) {
+    e.preventDefault()
+    if (form.mobile && !isMobile(form.mobile)) { notify('Please enter a valid 10-digit mobile number.'); return }
+    const res = await updateProfile({ name: form.name, mobile: form.mobile })
+    notify(res.message)
+    if (res.ok) setEditing(false)
+  }
 
   return (
     <Card title="Profile" action={!editing ? { label: 'Edit Profile', icon: true, onClick: () => setEditing(true) } : undefined}>
       {editing ? (
         <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
           <Input label="Full Name" value={form.name} onChange={(v) => setForm((f) => ({ ...f, name: v }))} className="sm:col-span-2" />
-          <Input label="Email" type="email" value={form.email} onChange={(v) => setForm((f) => ({ ...f, email: v }))} />
-          <Input label="Mobile" type="tel" value={form.mobile} onChange={(v) => setForm((f) => ({ ...f, mobile: v }))} />
+          <Detail label="Email" value={user!.email} />
+          <Input label="Mobile" type="tel" value={form.mobile} onChange={(v) => setForm((f) => ({ ...f, mobile: v.replace(/\D/g, '').slice(0, 10) }))} />
           <div className="flex gap-3 sm:col-span-2">
             <button type="submit" className="btn-primary">Save Changes</button>
-            <button type="button" onClick={() => setEditing(false)} className="btn-ghost">Cancel</button>
+            <button type="button" onClick={() => { setForm({ name: user!.name, mobile: user!.mobile }); setEditing(false) }} className="btn-ghost">Cancel</button>
           </div>
         </form>
       ) : (
@@ -170,31 +224,90 @@ function ProfilePanel() {
   )
 }
 
-function OrdersPanel({ onReorder }: { onReorder: (o: Order) => void }) {
+function OrdersPanel() {
+  const { addToCart } = useStore()
+  const { allProducts } = useCatalog()
+  const { notify } = useToast()
+  const [orders, setOrders] = useState<OrderRecord[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    supabase
+      .from('orders')
+      .select('id, order_number, status, total, created_at, order_items(product_id, product_name, product_slug, size, qty, unit_price, pages, customization)')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (!active) return
+        setOrders((data as unknown as OrderRecord[]) ?? [])
+        setLoading(false)
+      })
+    return () => { active = false }
+  }, [])
+
+  function reorder(o: OrderRecord) {
+    let added = 0
+    o.order_items.forEach((it) => {
+      const p = allProducts.find((x) => x.id === it.product_id || x.slug === it.product_slug)
+      if (p) {
+        addToCart({
+          product: p,
+          size: it.size as SizeKey,
+          unitPrice: Number(it.unit_price),
+          qty: it.qty,
+          pages: it.pages ?? undefined,
+          customization: (it.customization as Customization) ?? undefined,
+        })
+        added++
+      }
+    })
+    notify(added ? 'Order items added to cart' : 'Those products are no longer available.')
+  }
+
+  if (loading) {
+    return <Card title="Order History"><p className="font-body text-sm font-light text-muted-foreground">Loading your orders…</p></Card>
+  }
+  if (orders.length === 0) {
+    return (
+      <Card title="Order History">
+        <div className="flex flex-col items-center py-10 text-center">
+          <p className="font-display text-xl text-plum">No orders yet</p>
+          <p className="mt-1 font-body text-sm font-light text-muted-foreground">When you place an order it’ll appear here.</p>
+          <Link to="/collections" className="btn-secondary mt-5">Start Shopping</Link>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card title="Order History">
       <div className="space-y-4">
-        {DEMO_ORDERS.map((o) => (
-          <div key={o.id} className="rounded-2xl border border-border p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="font-display text-lg text-plum">{o.id}</p>
-                <p className="font-body text-xs font-light text-muted-foreground">Placed {o.date}</p>
+        {orders.map((o) => {
+          const detailSlug = o.order_items[0]?.product_slug
+          return (
+            <div key={o.id} className="rounded-2xl border border-border p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-display text-lg text-plum">{o.order_number}</p>
+                  <p className="font-body text-xs font-light text-muted-foreground">
+                    Placed {new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+                <span className={cn('rounded-full px-3 py-1 font-body text-xs font-medium', STATUS_STYLES[o.status])}>{STATUS_LABEL[o.status]}</span>
               </div>
-              <span className={cn('rounded-full px-3 py-1 font-body text-xs font-medium', STATUS_STYLES[o.status])}>{o.status}</span>
-            </div>
-            <ul className="mt-3 space-y-1 font-body text-sm font-light text-plum/80">
-              {o.items.map((it, i) => <li key={i}>{it.qty} × {it.name}</li>)}
-            </ul>
-            <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-              <span className="font-body text-sm font-medium text-plum">{formatINR(o.total)}</span>
-              <div className="flex gap-3">
-                <Link to={`/products/${o.productSlug}`} className="font-body text-sm font-medium text-royal hover:underline">View Details</Link>
-                <button onClick={() => onReorder(o)} className="font-body text-sm font-medium text-royal hover:underline">Reorder</button>
+              <ul className="mt-3 space-y-1 font-body text-sm font-light text-plum/80">
+                {o.order_items.map((it, i) => <li key={i}>{it.qty} × {it.product_name} <span className="text-muted-foreground">({it.size})</span></li>)}
+              </ul>
+              <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                <span className="font-body text-sm font-medium text-plum">{formatINR(Number(o.total))}</span>
+                <div className="flex gap-3">
+                  {detailSlug && <Link to={`/products/${detailSlug}`} className="font-body text-sm font-medium text-royal hover:underline">View Details</Link>}
+                  <button onClick={() => reorder(o)} className="font-body text-sm font-medium text-royal hover:underline">Reorder</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </Card>
   )
@@ -261,24 +374,76 @@ function AddressesPanel({ notify }: { notify: (m: string) => void }) {
   )
 }
 
+interface SavedCustomization { label: string; font?: string; colour?: string }
+type CustomItemRow = { customization: { name?: string; text?: string; font?: string; colour?: string } | null }
+
 function CustomizationsPanel() {
-  const saved = [
-    { name: 'Ananya', font: 'Elegant Italic', colour: '#E6E6FA', pattern: 'plain' as const },
-    { name: 'Make your mark', font: 'DM Serif Display', colour: '#613092', pattern: 'mono' as const },
-  ]
+  const { session } = useAuth()
+  const [items, setItems] = useState<SavedCustomization[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    if (!session) { setLoading(false); return }
+    // Personalized items from the user's own orders (RLS + inner join scope it
+    // to them). Replaces the old hardcoded demo list.
+    supabase
+      .from('order_items')
+      .select('customization, orders!inner(user_id)')
+      .eq('orders.user_id', session.user.id)
+      .not('customization', 'is', null)
+      .then(({ data }) => {
+        if (!active) return
+        const rows = (data as unknown as CustomItemRow[]) ?? []
+        const seen = new Set<string>()
+        const list: SavedCustomization[] = []
+        for (const r of rows) {
+          const c = r.customization
+          const label = c?.name || c?.text
+          if (!label) continue
+          const key = `${label}|${c?.font ?? ''}`
+          if (seen.has(key)) continue
+          seen.add(key)
+          list.push({ label, font: c?.font, colour: c?.colour })
+        }
+        setItems(list)
+        setLoading(false)
+      })
+    return () => { active = false }
+  }, [session])
+
+  if (loading) {
+    return <Card title="Saved Customizations"><p className="font-body text-sm font-light text-muted-foreground">Loading…</p></Card>
+  }
+  if (items.length === 0) {
+    return (
+      <Card title="Saved Customizations">
+        <div className="flex flex-col items-center py-10 text-center">
+          <p className="font-display text-xl text-plum">No customizations yet</p>
+          <p className="mt-1 font-body text-sm font-light text-muted-foreground">Personalise a notebook and it’ll be saved here for easy reordering.</p>
+          <Link to="/special-collections/made-for-you" className="btn-secondary mt-5">Personalise One</Link>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card title="Saved Customizations">
       <div className="grid gap-5 sm:grid-cols-2">
-        {saved.map((s, i) => (
-          <div key={i} className="flex gap-4 rounded-2xl border border-border p-4">
-            <div className="w-16 shrink-0"><NotebookCover colour={s.colour} pattern={s.pattern} customText={s.name} customFont={s.font} /></div>
-            <div className="flex flex-col">
-              <p className="font-display text-lg text-plum">“{s.name}”</p>
-              <p className="font-body text-xs font-light text-muted-foreground">Font: {s.font}</p>
-              <Link to="/special-collections/made-for-you" className="mt-auto font-body text-sm font-medium text-royal hover:underline">Order again →</Link>
+        {items.map((s, i) => {
+          const hex = COLOURS.find((c) => c.name === s.colour)?.hex ?? '#E6E6FA'
+          return (
+            <div key={i} className="flex gap-4 rounded-2xl border border-border p-4">
+              <div className="w-16 shrink-0"><NotebookCover colour={hex} pattern="plain" customText={s.label} customFont={s.font} /></div>
+              <div className="flex flex-col">
+                <p className="font-display text-lg text-plum">“{s.label}”</p>
+                {s.font && <p className="font-body text-xs font-light text-muted-foreground">Font: {s.font}</p>}
+                {s.colour && <p className="font-body text-xs font-light text-muted-foreground">Colour: {s.colour}</p>}
+                <Link to="/special-collections/made-for-you" className="mt-auto font-body text-sm font-medium text-royal hover:underline">Order again →</Link>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </Card>
   )

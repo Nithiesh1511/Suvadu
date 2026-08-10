@@ -252,8 +252,22 @@ export function getBestSellers(): Product[] {
 export const FONT_OPTIONS = ['DM Serif Display', 'DM Sans', 'Classic Script', 'Modern Mono', 'Elegant Italic']
 
 // ---- Page-count options (number of inner pages) ----
-export const PAGE_OPTIONS = [80, 120, 160, 200] as const
+export const PAGE_OPTIONS = [120, 160] as const
 export const DEFAULT_PAGES = 160
+
+// Listed prices are for the 160-page notebook. Fewer/more pages scale the price
+// so the page selector actually changes what you pay.
+export const PAGE_PRICE_FACTOR: Record<number, number> = {
+  80: 0.85,
+  120: 0.92,
+  160: 1,
+  200: 1.12,
+}
+
+/** Unit price for a given base (per-size) price and page count, rounded to ₹. */
+export function priceForPages(basePrice: number, pages: number): number {
+  return Math.round(basePrice * (PAGE_PRICE_FACTOR[pages] ?? 1))
+}
 
 export const SIZE_INFO: Record<SizeKey, { dims: string; note: string }> = {
   A5: { dims: '148 × 210 mm', note: 'Standard size — all products' },

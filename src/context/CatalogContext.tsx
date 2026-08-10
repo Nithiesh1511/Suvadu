@@ -1,20 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
-  PRODUCTS,
-  ALL_PRODUCTS,
-  COLLECTIONS,
   COLOURS,
   type Collection,
+  type ColourOption,
+  type Pattern,
   type Product,
   type ProductType,
 } from '@/data/products'
+import { supabase, type CollectionRow, type ColourRow, type ProductRow } from '@/lib/supabase'
+import { logAdmin } from '@/lib/adminLog'
 
-// ── Admin catalogue layer ──────────────────────────────────────────────────
-// Admin-added products are persisted in localStorage and merged into the live
-// catalogue so they appear in Collections, Product pages, search, etc.
-// (Brief §9 — Products / Collections modules. Backend-free for this prototype.)
+// ── Catalogue layer (Supabase-backed) ───────────────────────────────────────
+// Collections + products are read from the database, so admin-added products
+// are visible to every visitor (not just the browser that created them, as in
+// the old localStorage prototype). Admin writes go straight to the `products`
+// table; product cover images go to the `product-images` Storage bucket.
 
-const STORAGE_KEY = 'suvadu_admin_products'
+const BUCKET = 'product-images'
 
 export interface ProductInput {
   name: string
@@ -22,34 +24,43 @@ export interface ProductInput {
   type: ProductType
   priceA5: number
   priceA4: number | null
+  priceCustom: number | null
   description: string
-  image: string // admin-uploaded cover image (data URL)
+  image: string // data URL (admin picker), an existing URL, or '' for none
   bestseller: boolean
   isNew: boolean
 }
 
+export interface CollectionInput {
+  displayName: string
+  internalName?: string
+  description: string
+  accent: string
+  pattern: Pattern
+}
+
+type Result = { ok: boolean; message: string }
+
 interface CatalogState {
-  products: Product[] // base basics + admin products (shoppable grid catalogue)
-  allProducts: Product[] // products + special products (search / slug lookup)
-  collections: Collection[] // with counts reflecting admin products
+  loading: boolean
+  error: string | null
+  products: Product[] // shoppable grid catalogue (main collections only)
+  allProducts: Product[] // everything (search / slug lookup)
+  collections: Collection[] // main collections with live counts
+  colours: ColourOption[] // active colour options (admin-managed, falls back to static)
   customProducts: Product[] // admin-added only (for the admin list)
   getProductBySlug: (slug: string) => Product | undefined
   getProductsByCollection: (slug: string) => Product[]
   getBestSellers: () => Product[]
-  addProduct: (input: ProductInput) => { ok: boolean; message: string; product?: Product }
-  deleteProduct: (id: string) => void
+  addProduct: (input: ProductInput) => Promise<{ ok: boolean; message: string; product?: Product }>
+  updateProduct: (id: string, input: ProductInput) => Promise<Result>
+  deleteProduct: (id: string) => Promise<boolean>
+  addCollection: (input: CollectionInput) => Promise<Result>
+  updateCollection: (slug: string, input: CollectionInput) => Promise<Result>
+  refresh: () => Promise<void>
 }
 
 const CatalogContext = createContext<CatalogState | null>(null)
-
-function load(): Product[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as Product[]) : []
-  } catch {
-    return []
-  }
-}
 
 export function slugify(name: string): string {
   return name
@@ -59,24 +70,123 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+function mapCollection(r: CollectionRow, count: number): Collection {
+  return {
+    slug: r.slug,
+    displayName: r.display_name,
+    internalName: r.internal_name,
+    description: r.description,
+    count,
+    accent: r.accent,
+    pattern: r.pattern as Pattern,
+  }
+}
+
+function mapProduct(r: ProductRow, collectionName: string): Product {
+  return {
+    id: r.id,
+    slug: r.slug,
+    name: r.name,
+    type: r.type as ProductType,
+    collectionSlug: r.collection_slug,
+    collectionName,
+    prices: {
+      A5: Number(r.price_a5),
+      A4: r.price_a4 == null ? null : Number(r.price_a4),
+      Custom: r.price_custom == null ? null : Number(r.price_custom),
+    },
+    customPriceOnRequest: r.custom_price_on_request,
+    description: r.description,
+    specs: r.specs ?? [],
+    colour: { name: r.colour_name, hex: r.colour_hex },
+    pattern: r.pattern as Pattern,
+    image: r.image ?? undefined,
+    rating: Number(r.rating),
+    reviews: r.reviews,
+    bestseller: r.bestseller,
+    isNew: r.is_new,
+  }
+}
+
+async function uploadProductImage(id: string, dataUrl: string): Promise<string> {
+  const blob = await (await fetch(dataUrl)).blob()
+  const ext = (blob.type.split('/')[1] || 'png').split('+')[0]
+  const path = `${id}.${ext}`
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { upsert: true, contentType: blob.type })
+  if (error) throw error
+  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
+}
+
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const [customProducts, setCustomProducts] = useState<Product[]>(() => load())
+  const [collectionRows, setCollectionRows] = useState<CollectionRow[]>([])
+  const [productRows, setProductRows] = useState<ProductRow[]>([])
+  const [colourRows, setColourRows] = useState<ColourRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    const [cols, prods, cls] = await Promise.all([
+      supabase.from('collections').select('*').order('sort_order', { ascending: true }),
+      supabase.from('products').select('*').order('created_at', { ascending: true }),
+      supabase.from('colours').select('*').order('sort_order', { ascending: true }),
+    ])
+    if (cols.error || prods.error) {
+      setError((cols.error ?? prods.error)?.message ?? 'Failed to load catalogue.')
+      setLoading(false)
+      return
+    }
+    setCollectionRows((cols.data as CollectionRow[]) ?? [])
+    setProductRows((prods.data as ProductRow[]) ?? [])
+    setColourRows((cls.data as ColourRow[]) ?? [])
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customProducts))
-  }, [customProducts])
+    refresh()
+  }, [refresh])
 
-  const products = useMemo(() => [...PRODUCTS, ...customProducts], [customProducts])
-  const allProducts = useMemo(() => [...ALL_PRODUCTS, ...customProducts], [customProducts])
+  const collectionNameBySlug = useMemo(() => {
+    const m = new Map<string, string>()
+    collectionRows.forEach((c) => m.set(c.slug, c.display_name))
+    return m
+  }, [collectionRows])
 
-  // Collection counts reflect both seeded and admin-added products.
+  const mainSlugs = useMemo(
+    () => new Set(collectionRows.filter((c) => !c.is_special).map((c) => c.slug)),
+    [collectionRows],
+  )
+
+  const allProducts = useMemo<Product[]>(
+    () => productRows.map((r) => mapProduct(r, collectionNameBySlug.get(r.collection_slug) ?? r.collection_slug)),
+    [productRows, collectionNameBySlug],
+  )
+
+  const products = useMemo<Product[]>(
+    () => allProducts.filter((p) => mainSlugs.has(p.collectionSlug)),
+    [allProducts, mainSlugs],
+  )
+
+  const customProducts = useMemo<Product[]>(() => {
+    const ids = new Set(productRows.filter((r) => r.is_custom).map((r) => r.id))
+    return allProducts.filter((p) => ids.has(p.id))
+  }, [allProducts, productRows])
+
   const collections = useMemo<Collection[]>(
     () =>
-      COLLECTIONS.map((c) => ({
-        ...c,
-        count: products.filter((p) => p.collectionSlug === c.slug).length,
-      })),
-    [products],
+      collectionRows
+        .filter((c) => !c.is_special)
+        .map((c) => mapCollection(c, products.filter((p) => p.collectionSlug === c.slug).length)),
+    [collectionRows, products],
+  )
+
+  // Active colours from the DB; fall back to the static list if none loaded.
+  const colours = useMemo<ColourOption[]>(
+    () => (colourRows.length ? colourRows.filter((c) => c.active).map((c) => ({ name: c.name, hex: c.hex })) : COLOURS),
+    [colourRows],
   )
 
   const getProductBySlug = useCallback(
@@ -93,62 +203,192 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   )
 
   const addProduct = useCallback(
-    (input: ProductInput): { ok: boolean; message: string; product?: Product } => {
+    async (input: ProductInput): Promise<{ ok: boolean; message: string; product?: Product }> => {
       const name = input.name.trim()
       if (!name) return { ok: false, message: 'Product name is required.' }
-      const collection = COLLECTIONS.find((c) => c.slug === input.collectionSlug)
+      const collection = collectionRows.find((c) => c.slug === input.collectionSlug && !c.is_special)
       if (!collection) return { ok: false, message: 'Pick a valid collection.' }
       if (!input.priceA5 || input.priceA5 <= 0) return { ok: false, message: 'Enter a valid A5 price.' }
 
       // Unique slug across the whole catalogue.
       const base = slugify(name) || 'product'
-      const existing = new Set(allProducts.map((p) => p.slug))
+      const existing = new Set(productRows.map((r) => r.slug))
       let slug = base
       let n = 2
       while (existing.has(slug)) slug = `${base}-${n++}`
 
-      const product: Product = {
-        id: `PA-${Date.now()}`,
+      const id = `PA-${Date.now()}`
+
+      let imageUrl: string | null = null
+      try {
+        if (input.image && input.image.startsWith('data:')) {
+          imageUrl = await uploadProductImage(id, input.image)
+        } else if (input.image.trim()) {
+          imageUrl = input.image.trim()
+        }
+      } catch (e) {
+        return { ok: false, message: `Image upload failed: ${(e as Error).message}` }
+      }
+
+      const row = {
+        id,
         slug,
         name,
         type: input.type,
-        collectionSlug: collection.slug,
-        collectionName: collection.displayName,
-        prices: { A5: input.priceA5, A4: input.priceA4, Custom: null },
-        customPriceOnRequest: input.type === 'customized',
-        description: input.description.trim() || `${name} — part of the ${collection.displayName}.`,
+        collection_slug: collection.slug,
+        price_a5: input.priceA5,
+        price_a4: input.priceA4,
+        price_custom: input.priceCustom ?? null,
+        custom_price_on_request: input.type === 'customized' && input.priceCustom == null,
+        description: input.description.trim() || `${name} — part of the ${collection.display_name}.`,
         specs: ['100 GSM premium paper', '160 pages', 'Lay-flat binding'],
-        // Cover colour/pattern are no longer entered in admin; defaults keep the
-        // generated cover working anywhere the uploaded image isn't shown.
-        colour: COLOURS[0],
+        colour_name: COLOURS[0].name,
+        colour_hex: COLOURS[0].hex,
         pattern: collection.pattern,
-        image: input.image.trim() || undefined,
+        image: imageUrl,
         rating: 5,
         reviews: 0,
         bestseller: input.bestseller,
-        isNew: input.isNew,
+        is_new: input.isNew,
+        is_custom: true,
       }
-      setCustomProducts((prev) => [...prev, product])
-      return { ok: true, message: `“${name}” added to ${collection.displayName}.`, product }
+
+      const { data, error: insErr } = await supabase.from('products').insert(row).select().single()
+      if (insErr) {
+        return {
+          ok: false,
+          message: insErr.message.includes('row-level security')
+            ? 'You need admin access to add products.'
+            : insErr.message,
+        }
+      }
+      setProductRows((prev) => [...prev, data as ProductRow])
+      logAdmin('product.create', (data as ProductRow).id, { name, price_a5: input.priceA5 })
+      return {
+        ok: true,
+        message: `“${name}” added to ${collection.display_name}.`,
+        product: mapProduct(data as ProductRow, collection.display_name),
+      }
     },
-    [allProducts],
+    [collectionRows, productRows],
   )
 
-  const deleteProduct = useCallback(
-    (id: string) => setCustomProducts((prev) => prev.filter((p) => p.id !== id)),
-    [],
+  const updateProduct = useCallback(
+    async (id: string, input: ProductInput): Promise<Result> => {
+      const name = input.name.trim()
+      if (!name) return { ok: false, message: 'Product name is required.' }
+      const collection = collectionRows.find((c) => c.slug === input.collectionSlug)
+      if (!collection) return { ok: false, message: 'Pick a valid collection.' }
+      if (!input.priceA5 || input.priceA5 <= 0) return { ok: false, message: 'Enter a valid A5 price.' }
+
+      let imageUrl: string | null = input.image || null
+      try {
+        if (input.image && input.image.startsWith('data:')) imageUrl = await uploadProductImage(id, input.image)
+      } catch (e) {
+        return { ok: false, message: `Image upload failed: ${(e as Error).message}` }
+      }
+
+      const patch = {
+        name,
+        type: input.type,
+        collection_slug: collection.slug,
+        price_a5: input.priceA5,
+        price_a4: input.priceA4,
+        price_custom: input.priceCustom ?? null,
+        custom_price_on_request: input.type === 'customized' && input.priceCustom == null,
+        description: input.description.trim(),
+        image: imageUrl,
+        bestseller: input.bestseller,
+        is_new: input.isNew,
+      }
+      const { data, error: updErr } = await supabase.from('products').update(patch).eq('id', id).select().single()
+      if (updErr) {
+        return {
+          ok: false,
+          message: updErr.message.includes('row-level security') ? 'You need admin access to edit products.' : updErr.message,
+        }
+      }
+      setProductRows((prev) => prev.map((r) => (r.id === id ? (data as ProductRow) : r)))
+      logAdmin('product.update', id, { name, price_a5: input.priceA5, price_a4: input.priceA4 })
+      return { ok: true, message: `“${name}” updated.` }
+    },
+    [collectionRows],
   )
+
+  const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
+    const { error: delErr } = await supabase.from('products').delete().eq('id', id)
+    if (delErr) return false
+    setProductRows((prev) => prev.filter((r) => r.id !== id))
+    logAdmin('product.delete', id)
+    return true
+  }, [])
+
+  const addCollection = useCallback(
+    async (input: CollectionInput): Promise<Result> => {
+      const name = input.displayName.trim()
+      if (!name) return { ok: false, message: 'Collection name is required.' }
+      const base = slugify(name) || 'collection'
+      const existing = new Set(collectionRows.map((c) => c.slug))
+      let slug = base
+      let n = 2
+      while (existing.has(slug)) slug = `${base}-${n++}`
+      const row = {
+        slug,
+        display_name: name,
+        internal_name: input.internalName?.trim() || name,
+        description: input.description.trim(),
+        accent: input.accent,
+        pattern: input.pattern,
+        sort_order: collectionRows.length,
+        is_special: false,
+      }
+      const { data, error } = await supabase.from('collections').insert(row).select().single()
+      if (error) {
+        return { ok: false, message: error.message.includes('row-level security') ? 'You need admin access.' : error.message }
+      }
+      setCollectionRows((prev) => [...prev, data as CollectionRow])
+      logAdmin('collection.create', (data as CollectionRow).slug, { name })
+      return { ok: true, message: `Collection “${name}” created.` }
+    },
+    [collectionRows],
+  )
+
+  const updateCollection = useCallback(async (slug: string, input: CollectionInput): Promise<Result> => {
+    const name = input.displayName.trim()
+    if (!name) return { ok: false, message: 'Collection name is required.' }
+    const patch = {
+      display_name: name,
+      internal_name: input.internalName?.trim() || name,
+      description: input.description.trim(),
+      accent: input.accent,
+      pattern: input.pattern,
+    }
+    const { data, error } = await supabase.from('collections').update(patch).eq('slug', slug).select().single()
+    if (error) {
+      return { ok: false, message: error.message.includes('row-level security') ? 'You need admin access.' : error.message }
+    }
+    setCollectionRows((prev) => prev.map((c) => (c.slug === slug ? (data as CollectionRow) : c)))
+    logAdmin('collection.update', slug, { name })
+    return { ok: true, message: `Collection “${name}” updated.` }
+  }, [])
 
   const value: CatalogState = {
+    loading,
+    error,
     products,
     allProducts,
     collections,
+    colours,
     customProducts,
     getProductBySlug,
     getProductsByCollection,
     getBestSellers,
     addProduct,
+    updateProduct,
     deleteProduct,
+    addCollection,
+    updateCollection,
+    refresh,
   }
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>

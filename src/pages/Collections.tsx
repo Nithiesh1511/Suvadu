@@ -1,11 +1,13 @@
 
-import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { type Product } from '@/data/products'
 import { useCatalog } from '@/context/CatalogContext'
+import { supabase, type ReviewRow } from '@/lib/supabase'
 import ProductCard from '@/components/ProductCard'
 import PageHeader from '@/components/PageHeader'
-import NotebookCover from '@/components/NotebookCover'
+import Stars from '@/components/Stars'
+import { ProductGridSkeleton } from '@/components/Skeleton'
 import { ChevronDown, Close, Search } from '@/components/Icons'
 import { cn } from '@/lib/utils'
 
@@ -18,13 +20,22 @@ const SORTS: { key: SortKey; label: string }[] = [
 ]
 
 export default function Collections() {
-  const { products: catalog, collections: COLLECTIONS } = useCatalog()
+  const { products: catalog, collections: COLLECTIONS, loading } = useCatalog()
   const [params, setParams] = useSearchParams()
   const bestsellerOnly = params.get('filter') === 'bestseller'
 
   const [category, setCategory] = useState<string>('all')
   const [sort, setSort] = useState<SortKey>('newest')
   const [query, setQuery] = useState('')
+  const [reviews, setReviews] = useState<ReviewRow[]>([])
+
+  useEffect(() => {
+    let active = true
+    supabase.from('reviews').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(6).then(({ data }) => {
+      if (active) setReviews((data as ReviewRow[]) ?? [])
+    })
+    return () => { active = false }
+  }, [])
 
   const products = useMemo(() => {
     let list: Product[] = [...catalog]
@@ -129,7 +140,9 @@ export default function Collections() {
 
       {/* Grid */}
       <section className="container-suvadu py-12">
-        {products.length > 0 ? (
+        {loading ? (
+          <ProductGridSkeleton count={8} />
+        ) : products.length > 0 ? (
           <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
             {products.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
@@ -138,26 +151,24 @@ export default function Collections() {
         )}
       </section>
 
-      {/* Browse by collection cards */}
-      {!bestsellerOnly && category === 'all' && !query && (
-        <section className="container-suvadu pb-20">
-          <h2 className="font-display text-3xl text-plum">Browse by collection</h2>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {COLLECTIONS.map((c) => (
-              <Link
-                key={c.slug}
-                to={`/collections/${c.slug}`}
-                className="group flex items-center gap-4 rounded-2xl border border-border bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:shadow-lift"
-              >
-                <div className="w-16 shrink-0">
-                  <NotebookCover colour={c.accent} pattern={c.pattern} />
-                </div>
-                <div>
-                  <h3 className="font-display text-xl text-plum">{c.displayName}</h3>
-                  <p className="font-body text-xs font-light text-muted-foreground">{c.count} designs</p>
-                </div>
-              </Link>
-            ))}
+      {/* Customer reviews */}
+      {!bestsellerOnly && category === 'all' && !query && reviews.length > 0 && (
+        <section className="border-t border-border bg-lilac/20 py-16">
+          <div className="container-suvadu">
+            <p className="eyebrow mb-3">Kind words</p>
+            <h2 className="font-display text-3xl text-plum">Loved by writers across India</h2>
+            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {reviews.map((r) => (
+                <figure key={r.id} className="card-surface flex flex-col p-6">
+                  <Stars rating={r.rating} />
+                  <blockquote className="mt-4 flex-1 font-body text-sm font-light leading-relaxed text-plum/90">“{r.text}”</blockquote>
+                  <figcaption className="mt-5 border-t border-border pt-4">
+                    <span className="block font-display text-base text-plum">{r.author_name}</span>
+                    {r.location && <span className="block font-body text-xs text-muted-foreground">{r.location}</span>}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
           </div>
         </section>
       )}

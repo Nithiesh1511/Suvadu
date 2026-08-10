@@ -9,6 +9,7 @@ import {
 import { useCatalog } from '@/context/CatalogContext'
 import ProductCard from '@/components/ProductCard'
 import PageHeader from '@/components/PageHeader'
+import { ProductGridSkeleton } from '@/components/Skeleton'
 import { ChevronDown } from '@/components/Icons'
 import { useSeo } from '@/lib/seo'
 import NotFound from './NotFound'
@@ -17,7 +18,7 @@ type SortKey = 'newest' | 'price-asc' | 'price-desc'
 
 export default function CollectionDetail({ special }: { special?: boolean }) {
   const { slug = '' } = useParams()
-  const { collections, getProductsByCollection, products: catalog } = useCatalog()
+  const { collections, getProductsByCollection, products: catalog, loading } = useCatalog()
   const [sort, setSort] = useState<SortKey>('newest')
 
   const meta = special
@@ -46,6 +47,14 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
   const metaDesc = meta ? ('details' in meta ? meta.details : meta.description) : undefined
   useSeo(meta?.displayName ?? 'Collection', metaDesc)
 
+  if (!special && loading && !meta) {
+    return (
+      <div>
+        <PageHeader title="Loading…" crumbs={[{ label: 'Collections', to: '/collections' }, { label: '…' }]} />
+        <section className="container-suvadu py-12"><ProductGridSkeleton count={8} /></section>
+      </div>
+    )
+  }
   if (!meta) return <NotFound />
 
   const title = meta.displayName

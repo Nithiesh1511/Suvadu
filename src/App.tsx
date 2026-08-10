@@ -13,7 +13,20 @@ import Checkout from '@/pages/Checkout'
 import Account from '@/pages/Account'
 import ProductDetail from '@/pages/ProductDetail'
 import Policy from '@/pages/Policy'
-import Admin from '@/pages/Admin'
+import AdminLayout from '@/pages/admin/AdminLayout'
+import AdminDashboard from '@/pages/admin/Dashboard'
+import AdminProducts from '@/pages/admin/Products'
+import AdminProductForm from '@/pages/admin/ProductForm'
+import AdminCollections from '@/pages/admin/Collections'
+import AdminOrders from '@/pages/admin/Orders'
+import AdminCoupons from '@/pages/admin/Coupons'
+import AdminColours from '@/pages/admin/Colours'
+import AdminBanners from '@/pages/admin/Banners'
+import AdminFaqs from '@/pages/admin/Faqs'
+import AdminReviews from '@/pages/admin/Reviews'
+import AdminCustomers from '@/pages/admin/Customers'
+import AdminLogs from '@/pages/admin/Logs'
+import AdminContactRequests from '@/pages/admin/ContactRequests'
 import NotFound from '@/pages/NotFound'
 
 export default function App() {
@@ -34,7 +47,22 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/account" element={<Account />} />
         <Route path="/account/wishlist" element={<Account tab="wishlist" />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="products/new" element={<AdminProductForm />} />
+          <Route path="products/:id/edit" element={<AdminProductForm />} />
+          <Route path="collections" element={<AdminCollections />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="coupons" element={<AdminCoupons />} />
+          <Route path="colours" element={<AdminColours />} />
+          <Route path="banners" element={<AdminBanners />} />
+          <Route path="faqs" element={<AdminFaqs />} />
+          <Route path="reviews" element={<AdminReviews />} />
+          <Route path="customers" element={<AdminCustomers />} />
+          <Route path="logs" element={<AdminLogs />} />
+          <Route path="contact-requests" element={<AdminContactRequests />} />
+        </Route>
         <Route path="/privacy-policy" element={<Policy kind="privacy" />} />
         <Route path="/terms" element={<Policy kind="terms" />} />
         <Route path="/shipping-policy" element={<Policy kind="shipping" />} />

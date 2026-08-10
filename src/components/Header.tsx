@@ -45,7 +45,7 @@ export default function Header() {
       {/* Announcement bar */}
       <div className="bg-plum text-center text-white">
         <div className="container-suvadu flex items-center justify-center gap-2 py-2 text-[11px] font-light tracking-[0.18em]">
-          <span className="uppercase">Free shipping above ₹499  ·  Pan India delivery via Shiprocket</span>
+          <span className="uppercase">Pan-India delivery via Shiprocket  ·  Crafted in India</span>
         </div>
       </div>
 

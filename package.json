@@ -8,22 +8,28 @@
     "dev": "vite",
     "tunnel": "powershell -ExecutionPolicy Bypass -File scripts/dev-tunnel.ps1",
     "gen:sitemap": "node scripts/generate-sitemap.mjs",
+    "seed:supabase": "tsx scripts/seed-supabase.ts",
     "build": "npm run gen:sitemap && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2"
+    "react-router-dom": "^6.26.2",
+    "three": "^0.160.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.160.0",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
+    "supabase": "^2.112.0",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.23.11",
     "typescript": "^5.6.2",
     "vite": "^5.4.8"
   }

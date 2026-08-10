@@ -1,61 +1,151 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '@/context/StoreContext'
+import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
+import { loadRazorpay, createRazorpayOrder, verifyRazorpayPayment } from '@/lib/razorpay'
+import { trackEvent } from '@/lib/analytics'
 import { useToast } from '@/components/Toast'
 import PageHeader from '@/components/PageHeader'
 import ProductImage from '@/components/ProductImage'
 import { Check, ArrowRight, Pen } from '@/components/Icons'
-import { formatINR, cn } from '@/lib/utils'
-
-type Pay = 'UPI' | 'Debit Card' | 'Credit Card' | 'Net Banking'
-const PAY_METHODS: { key: Pay; hint: string }[] = [
-  { key: 'UPI', hint: 'GPay, PhonePe, Paytm & more' },
-  { key: 'Credit Card', hint: 'Visa, Mastercard, Amex, RuPay' },
-  { key: 'Debit Card', hint: 'All major banks' },
-  { key: 'Net Banking', hint: '50+ banks supported' },
-]
-
-const FREE_SHIP_THRESHOLD = 999
-const SHIP_FEE = 60
+import { formatINR, cn, isEmail, isMobile } from '@/lib/utils'
 
 export default function Checkout() {
   const { cart, subtotal, discount, total, coupon, clearCart, user } = useStore()
+  const { session } = useAuth()
+  const navigate = useNavigate()
   const { notify } = useToast()
 
   const [form, setForm] = useState({
     name: user?.name ?? '', email: user?.email ?? '', mobile: user?.mobile ?? '',
     address: '', city: '', state: '', pincode: '',
   })
-  const [pay, setPay] = useState<Pay>('UPI')
+  // Actual method (UPI/card/net-banking) is chosen inside the Razorpay modal.
+  const paymentMethod = 'Razorpay'
   const [editing, setEditing] = useState(true)
   const [placing, setPlacing] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
 
-  const shipping = total >= FREE_SHIP_THRESHOLD ? 0 : SHIP_FEE
-  const grandTotal = total + shipping
+  const grandTotal = total
 
   function set<K extends keyof typeof form>(k: K, v: string) { setForm((f) => ({ ...f, [k]: v })) }
 
-  const addressComplete = form.name && form.email && form.mobile && form.address && form.city && form.state && /^\d{6}$/.test(form.pincode)
+  const addressComplete = Boolean(
+    form.name && isEmail(form.email) && isMobile(form.mobile) &&
+    form.address && form.city && form.state && /^\d{6}$/.test(form.pincode),
+  )
 
   function saveAddress(e: React.FormEvent) {
     e.preventDefault()
-    if (!addressComplete) { notify('Please complete all address fields (6-digit pincode).'); return }
+    if (!addressComplete) { notify('Please enter your name, a valid email, a 10-digit mobile, full address and a 6-digit pincode.'); return }
     setEditing(false)
     notify('Delivery address saved')
   }
 
-  function placeOrder() {
+  function completeOrder(orderNumber: string) {
+    trackEvent('purchase', { transaction_id: orderNumber, value: grandTotal, currency: 'INR' })
+    setOrderId(orderNumber)
+    clearCart()
+    window.scrollTo({ top: 0 })
+  }
+
+  async function placeOrder() {
     if (!addressComplete) { notify('Please complete your delivery address.'); setEditing(true); return }
+    if (!session) { notify('Please sign in to place your order.'); navigate('/account'); return }
     setPlacing(true)
-    // Simulated Razorpay payment flow
-    setTimeout(() => {
-      const id = 'SUV' + Math.floor(100000 + (Date.now() % 900000))
-      setOrderId(id)
+
+    // 1. Persist the order as 'pending' along with its line items.
+    const orderNumber = 'SUV' + Math.floor(100000 + (Date.now() % 900000))
+    const { data: order, error } = await supabase
+      .from('orders')
+      .insert({
+        order_number: orderNumber,
+        user_id: session.user.id,
+        status: 'pending',
+        subtotal,
+        discount,
+        shipping: 0,
+        total: grandTotal,
+        coupon,
+        payment_method: paymentMethod,
+        address: form,
+      })
+      .select()
+      .single()
+
+    if (error || !order) {
       setPlacing(false)
-      clearCart()
-      window.scrollTo({ top: 0 })
-    }, 1600)
+      notify(`Could not place order: ${error?.message ?? 'unknown error'}`)
+      return
+    }
+
+    const items = cart.map((c) => ({
+      order_id: order.id,
+      product_id: c.product.id,
+      product_name: c.product.name,
+      product_slug: c.product.slug,
+      size: c.size,
+      qty: c.qty,
+      unit_price: c.unitPrice,
+      pages: c.pages ?? null,
+      customization:
+        c.customization || c.ruling
+          ? { ...(c.customization ?? {}), ...(c.ruling ? { ruling: c.ruling } : {}) }
+          : null,
+    }))
+    const { error: itemsError } = await supabase.from('order_items').insert(items)
+    if (itemsError) notify(`Order saved but items failed to record: ${itemsError.message}`)
+
+    // 2. Create the Razorpay order (server-side) and open the checkout modal.
+    const loaded = await loadRazorpay()
+    if (!loaded || !window.Razorpay) {
+      setPlacing(false)
+      notify('Could not load the payment gateway. Please check your connection and retry.')
+      return
+    }
+
+    let created
+    try {
+      created = await createRazorpayOrder(order.id)
+    } catch (e) {
+      setPlacing(false)
+      notify(`Payment setup failed: ${(e as Error).message}`)
+      return
+    }
+
+    const rzp = new window.Razorpay({
+      key: created.keyId,
+      amount: created.amount,
+      currency: created.currency,
+      name: 'SUVADU Notebooks',
+      description: `Order ${created.orderNumber}`,
+      order_id: created.razorpayOrderId,
+      prefill: { name: form.name, email: form.email, contact: form.mobile },
+      theme: { color: '#613092' },
+      handler: async (resp) => {
+        // 3. Verify the signature server-side, then confirm.
+        try {
+          await verifyRazorpayPayment(resp)
+          completeOrder(created!.orderNumber)
+        } catch (e) {
+          notify(`Payment verification failed: ${(e as Error).message}`)
+        } finally {
+          setPlacing(false)
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          setPlacing(false)
+          notify('Payment cancelled — your order is saved as pending.')
+        },
+      },
+    })
+    rzp.on('payment.failed', (r) => {
+      setPlacing(false)
+      notify(`Payment failed: ${r.error?.description ?? 'please try again.'}`)
+    })
+    rzp.open()
   }
 
   // ---- Order confirmation ----
@@ -115,7 +205,7 @@ export default function Checkout() {
               <form onSubmit={saveAddress} className="mt-5 grid gap-4 sm:grid-cols-2">
                 <Field label="Full Name" value={form.name} onChange={(v) => set('name', v)} className="sm:col-span-2" />
                 <Field label="Email" type="email" value={form.email} onChange={(v) => set('email', v)} />
-                <Field label="Mobile Number" type="tel" value={form.mobile} onChange={(v) => set('mobile', v)} />
+                <Field label="Mobile Number" type="tel" value={form.mobile} onChange={(v) => set('mobile', v.replace(/\D/g, '').slice(0, 10))} />
                 <Field label="Address" value={form.address} onChange={(v) => set('address', v)} className="sm:col-span-2" />
                 <Field label="City" value={form.city} onChange={(v) => set('city', v)} />
                 <Field label="State" value={form.state} onChange={(v) => set('state', v)} />
@@ -135,26 +225,20 @@ export default function Checkout() {
 
           {/* Payment */}
           <div className="card-surface p-6">
-            <h2 className="font-display text-2xl text-plum">Payment Method</h2>
+            <h2 className="font-display text-2xl text-plum">Payment</h2>
             <p className="mt-1 font-body text-xs font-light text-muted-foreground">Secured by Razorpay · PCI-DSS compliant</p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {PAY_METHODS.map((m) => (
-                <label
-                  key={m.key}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition',
-                    pay === m.key ? 'border-royal bg-lilac/50 shadow-soft' : 'border-border hover:border-royal/50',
-                  )}
-                >
-                  <input type="radio" name="pay" checked={pay === m.key} onChange={() => setPay(m.key)} className="sr-only" />
-                  <span className={cn('grid h-5 w-5 place-items-center rounded-full border', pay === m.key ? 'border-royal bg-royal text-white' : 'border-border')}>
-                    {pay === m.key && <Check width={12} />}
-                  </span>
-                  <span>
-                    <span className="block font-body text-sm font-medium text-plum">{m.key}</span>
-                    <span className="block font-body text-xs font-light text-muted-foreground">{m.hint}</span>
-                  </span>
-                </label>
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-royal/20 bg-lilac/40 p-4">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-royal text-white"><Check width={16} /></span>
+              <div>
+                <p className="font-body text-sm font-medium text-plum">Pay securely with Razorpay</p>
+                <p className="mt-0.5 font-body text-xs font-light text-muted-foreground">
+                  Choose UPI, Credit/Debit Card or Net Banking on the next step — the secure Razorpay window opens when you place your order.
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 font-body text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              {['UPI', 'Cards', 'Net Banking', 'Wallets'].map((m) => (
+                <span key={m} className="rounded-full border border-border px-3 py-1">{m}</span>
               ))}
             </div>
           </div>
@@ -171,7 +255,7 @@ export default function Checkout() {
                   <div className="flex flex-1 items-start justify-between gap-2">
                     <div>
                       <p className="font-body text-sm font-medium text-plum">{item.product.name}</p>
-                      <p className="font-body text-xs font-light text-muted-foreground">{item.size} · Qty {item.qty}</p>
+                      <p className="font-body text-xs font-light text-muted-foreground">{item.size}{item.pages ? ` · ${item.pages}p` : ''}{item.ruling ? ` · ${item.ruling}` : ''} · Qty {item.qty}</p>
                       {item.customization && (item.customization.name || item.customization.text) && (
                         <p className="font-body text-xs font-light text-royal">“{item.customization.name || item.customization.text}”</p>
                       )}
@@ -184,7 +268,6 @@ export default function Checkout() {
             <dl className="mt-5 space-y-3 font-body text-sm">
               <div className="flex justify-between"><dt className="font-light text-muted-foreground">Subtotal</dt><dd className="font-medium text-plum">{formatINR(subtotal)}</dd></div>
               {discount > 0 && <div className="flex justify-between"><dt className="font-light text-muted-foreground">Discount ({coupon})</dt><dd className="font-medium text-royal">– {formatINR(discount)}</dd></div>}
-              <div className="flex justify-between"><dt className="font-light text-muted-foreground">Shipping</dt><dd className="font-medium text-plum">{shipping === 0 ? 'Free' : formatINR(shipping)}</dd></div>
             </dl>
             <div className="mt-5 flex items-center justify-between border-t border-border pt-5">
               <span className="font-display text-lg text-plum">Total</span>
