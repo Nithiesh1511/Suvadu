@@ -100,10 +100,6 @@ export const ROUTE_META: Record<string, { title: string; description: string }> 
     description:
       'The SUVADU story — premium notebooks crafted for the thinking mind, made to help you make your mark.',
   },
-  '/contact': {
-    title: 'Contact',
-    description: 'Get in touch with SUVADU — WhatsApp, email and social. We usually reply within a day.',
-  },
   '/faq': {
     title: 'FAQ',
     description: 'Answers on shipping, customization, returns, payments and orders for SUVADU Notebooks.',

@@ -27,21 +27,21 @@ export default function PageHeader({ title, subtitle, eyebrow, crumbs }: {
   return (
     <section className="gradient-hero border-b border-border">
       {breadcrumbLd && <JsonLd data={breadcrumbLd} />}
-      <div className="container-suvadu py-12 sm:py-16">
+      <div className="container-suvadu py-10 sm:py-16">
         {crumbs && crumbs.length > 0 && (
-          <nav className="mb-5 flex items-center gap-1.5 font-body text-xs text-muted-foreground" aria-label="Breadcrumb">
+          <nav className="mb-5 flex flex-wrap items-center gap-x-1.5 gap-y-1 font-body text-xs text-muted-foreground" aria-label="Breadcrumb">
             <Link to="/" className="hover:text-royal">Home</Link>
             {crumbs.map((c, i) => (
-              <span key={i} className="flex items-center gap-1.5">
-                <ChevronRight width={13} height={13} className="text-muted-foreground/60" />
-                {c.to ? <Link to={c.to} className="hover:text-royal">{c.label}</Link> : <span className="text-plum">{c.label}</span>}
+              <span key={i} className="flex min-w-0 items-center gap-1.5">
+                <ChevronRight width={13} height={13} className="shrink-0 text-muted-foreground/60" />
+                {c.to ? <Link to={c.to} className="hover:text-royal">{c.label}</Link> : <span className="truncate text-plum">{c.label}</span>}
               </span>
             ))}
           </nav>
         )}
         {eyebrow && <p className="eyebrow mb-3">{eyebrow}</p>}
-        <h1 className="max-w-3xl text-balance font-display text-4xl leading-tight text-plum sm:text-5xl">{title}</h1>
-        {subtitle && <p className="mt-4 max-w-2xl font-body text-base font-light leading-relaxed text-muted-foreground">{subtitle}</p>}
+        <h1 className="max-w-3xl text-balance font-display text-3xl leading-tight text-plum sm:text-4xl lg:text-5xl">{title}</h1>
+        {subtitle && <p className="mt-4 max-w-2xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">{subtitle}</p>}
       </div>
     </section>
   )

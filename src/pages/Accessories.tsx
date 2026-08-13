@@ -52,7 +52,7 @@ export default function Accessories() {
       />
 
       <section className="container-suvadu py-12">
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {BOOKMARKS.map((b) => {
             const wished = isWished(b.id)
             return (

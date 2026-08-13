@@ -47,8 +47,8 @@ export default function Cart() {
         {/* Items */}
         <div className="space-y-5">
           {cart.map((item) => (
-            <div key={item.key} className="flex gap-4 rounded-2xl border border-border bg-white p-4 shadow-card sm:gap-5">
-              <Link to={`/products/${item.product.slug}`} className="w-20 shrink-0 sm:w-24">
+            <div key={item.key} className="flex gap-3 rounded-2xl border border-border bg-white p-3 shadow-card sm:gap-5 sm:p-4">
+              <Link to={`/products/${item.product.slug}`} className="w-16 shrink-0 xs:w-20 sm:w-24">
                 <ProductImage
                   image={item.product.image}
                   alt={item.product.name}
@@ -59,10 +59,10 @@ export default function Cart() {
                 />
               </Link>
 
-              <div className="flex flex-1 flex-col">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Link to={`/products/${item.product.slug}`} className="font-display text-lg leading-snug text-plum hover:text-royal">{item.product.name}</Link>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <div className="flex items-start justify-between gap-2 sm:gap-3">
+                  <div className="min-w-0">
+                    <Link to={`/products/${item.product.slug}`} className="font-display text-base leading-snug text-plum hover:text-royal sm:text-lg">{item.product.name}</Link>
                     <p className="font-body text-xs font-light text-muted-foreground">{item.product.collectionName} · Size {item.size}{item.pages ? ` · ${item.pages} pages` : ''}{item.ruling ? ` · ${item.ruling}` : ''}</p>
                     {item.customization && (
                       <ul className="mt-1.5 space-y-0.5 font-body text-xs font-light text-royal">
@@ -78,7 +78,7 @@ export default function Cart() {
                   </button>
                 </div>
 
-                <div className="mt-auto flex items-center justify-between pt-3">
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
                   <div className="flex items-center rounded-full border border-border">
                     <button onClick={() => updateQty(item.key, item.qty - 1)} aria-label="Decrease" className="grid h-9 w-9 place-items-center text-plum hover:text-royal"><Minus width={14} /></button>
                     <span className="w-7 text-center font-body text-sm font-medium text-plum">{item.qty}</span>
@@ -111,7 +111,7 @@ export default function Cart() {
                   <button type="button" onClick={() => { removeCoupon(); notify('Coupon removed') }} aria-label="Remove coupon" className="text-muted-foreground hover:text-royal"><Close width={15} /></button>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 xs:flex-row">
                   <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Coupon code" className="field uppercase" />
                   <button type="submit" className="btn-secondary shrink-0">Apply</button>
                 </div>

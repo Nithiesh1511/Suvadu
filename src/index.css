@@ -83,16 +83,20 @@
 
 @layer components {
   .container-suvadu {
-    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10;
   }
 
-  /* Buttons — DM Sans 500, uppercase, 0.06em tracking (brief rule) */
+  /* Buttons — DM Sans 500, uppercase, 0.06em tracking (brief rule).
+     min-height keeps every button at the 44px touch target on phones, and
+     max-width stops a long label from pushing a narrow card sideways. */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-full font-body font-medium uppercase
            transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50;
     letter-spacing: 0.06em;
     font-size: 0.8125rem;
     padding: 0.75rem 1.6rem;
+    min-height: 2.75rem;
+    max-width: 100%;
   }
   .btn-primary {
     @apply btn bg-royal text-white shadow-soft hover:bg-royal-700 hover:shadow-lift active:scale-[0.98];
@@ -108,6 +112,7 @@
   }
   .btn-sm {
     @apply px-4 py-2 text-xs;
+    min-height: 2.25rem;
   }
 
   .link-underline {
@@ -129,9 +134,11 @@
     @apply font-body text-xs font-medium uppercase tracking-[0.22em] text-royal;
   }
 
+  /* text-base below sm is deliberate: iOS Safari force-zooms the viewport when a
+     focused input's font-size is under 16px, which breaks every mobile form. */
   .field {
-    @apply w-full rounded-xl border border-border bg-white px-4 py-3 font-body text-sm text-plum
-           placeholder:text-muted-foreground/70 transition focus:border-royal focus:ring-2 focus:ring-royal/20;
+    @apply w-full min-w-0 rounded-xl border border-border bg-white px-4 py-3 font-body text-base text-plum
+           placeholder:text-muted-foreground/70 transition focus:border-royal focus:ring-2 focus:ring-royal/20 sm:text-sm;
     outline: none;
   }
 
@@ -142,6 +149,11 @@
 
 @layer utilities {
   .text-balance { text-wrap: balance; }
+  /* For user-supplied strings (emails, URLs, order refs) that have no spaces to
+     break on and would otherwise push a card wider than the viewport. */
+  .break-anywhere { overflow-wrap: anywhere; word-break: break-word; }
+  /* A table inside overflow-x-auto only scrolls if it refuses to shrink. */
+  .table-scroll { min-width: 40rem; }
   .bg-grain {
     background-image: radial-gradient(rgba(97, 48, 146, 0.05) 1px, transparent 1px);
     background-size: 22px 22px;
@@ -233,7 +245,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 440px;
+  min-height: clamp(300px, 62vw, 440px);
   border-radius: 1.5rem;
   overflow: hidden;
   background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #F3E8FF 100%);
@@ -282,11 +294,15 @@
   width: 34%; max-width: 360px;
 }
 .nb3d--showcase .nb3d__line { font-size: clamp(20px, 2.4vw, 30px); }
-/* Too narrow for a hint and a button side by side — keep the button, centred. */
+/* Too narrow for a hint and a button side by side — keep the button, centred.
+   The handwriting overlay also needs a bigger share of a phone-width frame,
+   and the close button pulls in so it clears the rounded corner. */
 @media (max-width: 560px) {
   .nb3d--showcase .nb3d__hint { display: none; }
   .nb3d--showcase .nb3d__open { left: 50%; right: auto; transform: translateX(-50%); }
   .nb3d--showcase .nb3d__open:hover { transform: translateX(-50%) translateY(-2px); }
+  .nb3d--showcase .nb3d__overlay { width: 62%; max-width: none; }
+  .nb3d--showcase .nb3d__close { top: 14px; right: 14px; width: 34px; height: 34px; }
 }
 .nb3d__tag {
   position: absolute; top: 20px; left: 22px;

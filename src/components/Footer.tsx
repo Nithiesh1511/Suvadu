@@ -10,7 +10,6 @@ const SHOP_LINKS = [
   { label: 'Special Collections', to: '/special-collections' },
   { label: 'Accessories', to: '/accessories' },
   { label: 'About', to: '/about' },
-  { label: 'Contact', to: '/contact' },
   { label: 'FAQ', to: '/faq' },
 ]
 
@@ -46,9 +45,9 @@ export default function Footer() {
   }
 
   return (
-    <footer className="mt-24 border-t border-border bg-gradient-to-b from-lilac/40 to-white">
-      <div className="container-suvadu py-16">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
+    <footer className="mt-16 border-t border-border bg-gradient-to-b from-lilac/40 to-white sm:mt-24">
+      <div className="container-suvadu py-12 sm:py-16">
+        <div className="grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
           {/* Brand */}
           <div>
             <Link to="/" className="font-display text-3xl text-plum">SUVADU</Link>
@@ -96,8 +95,8 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* Newsletter */}
-          <div>
+          {/* Newsletter — spans both columns at sm so the field keeps its width */}
+          <div className="sm:col-span-2 lg:col-span-1">
             <h4 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-plum">Stay in the loop</h4>
             <p className="mt-5 font-body text-sm font-light leading-relaxed text-muted-foreground">
               New collections, restocks and the occasional poem. No spam.
@@ -111,7 +110,7 @@ export default function Footer() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email"
-                className="w-full bg-transparent px-4 font-body text-sm text-plum outline-none placeholder:text-muted-foreground/60"
+                className="w-full min-w-0 bg-transparent px-4 font-body text-base text-plum outline-none placeholder:text-muted-foreground/60 sm:text-sm"
               />
               <button type="submit" disabled={busy} aria-label="Subscribe" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-royal text-white transition hover:bg-royal-700 disabled:opacity-50">
                 <ArrowRight width={18} height={18} />

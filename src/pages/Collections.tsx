@@ -75,7 +75,9 @@ export default function Collections() {
 
       {/* Collection chips */}
       <section className="container-suvadu pt-12">
-        <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto pb-1">
+        {/* Bleeds into the gutter on phones so the chip row scrolls edge to edge,
+            while the first chip still lines up with the page content. */}
+        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           <Chip active={category === 'all'} onClick={() => setCategory('all')}>All</Chip>
           {COLLECTIONS.map((c) => (
             <Chip key={c.slug} active={category === c.slug} onClick={() => setCategory(c.slug)}>
@@ -107,15 +109,15 @@ export default function Collections() {
           )}
         </label>
 
-        <div className="flex items-center justify-between gap-4">
-          <p className="font-body text-sm font-light text-muted-foreground">
+        <div className="flex items-center justify-between gap-3">
+          <p className="shrink-0 font-body text-sm font-light text-muted-foreground">
             {products.length} {products.length === 1 ? 'product' : 'products'}
           </p>
-          <label className="relative">
+          <label className="relative min-w-0">
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="field cursor-pointer appearance-none pr-10"
+              className="field cursor-pointer appearance-none truncate pr-10"
               aria-label="Sort by"
             >
               {SORTS.map((s) => (
@@ -143,7 +145,7 @@ export default function Collections() {
         {loading ? (
           <ProductGridSkeleton count={8} />
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         ) : (

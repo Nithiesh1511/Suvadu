@@ -113,7 +113,7 @@ export default function AdminBanners() {
           </div>
           <AdminInput label="Subtitle" value={form.subtitle} onChange={(v) => setForm((f) => ({ ...f, subtitle: v }))} />
           <AdminField label="Image">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="h-16 w-28 shrink-0 overflow-hidden rounded-lg border border-border bg-cream/40">
                 {preview ? <img src={preview} alt="Preview" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center font-body text-[10px] uppercase text-muted-foreground">No image</div>}
               </div>
@@ -135,18 +135,22 @@ export default function AdminBanners() {
       ) : (
         <div className="space-y-3">
           {banners.map((b) => (
-            <div key={b.id} className="flex items-center gap-4 rounded-2xl border border-border p-3">
+            <div key={b.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-border p-3">
               <div className="h-14 w-24 shrink-0 overflow-hidden rounded-lg bg-lilac/40">
                 {b.image_url && <img src={b.image_url} alt="" className="h-full w-full object-cover" />}
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 basis-40">
                 <p className="truncate font-body text-sm font-medium text-plum">{b.title || '(untitled)'}</p>
                 <p className="truncate font-body text-xs font-light text-muted-foreground">{b.subtitle}</p>
               </div>
-              <StatusBadge status={b.active ? 'active' : 'inactive'} />
-              <button onClick={() => toggle(b)} className="font-body text-xs font-medium text-royal hover:underline">{b.active ? 'Hide' : 'Show'}</button>
-              <button onClick={() => openEdit(b)} aria-label="Edit" className="text-muted-foreground hover:text-royal"><Pen width={15} /></button>
-              <button onClick={() => remove(b.id)} aria-label="Delete" className="text-muted-foreground hover:text-rose-500"><Trash width={15} /></button>
+              {/* The controls travel together to the next line rather than
+                  wrapping one at a time and leaving orphaned icons. */}
+              <div className="flex items-center gap-4">
+                <StatusBadge status={b.active ? 'active' : 'inactive'} />
+                <button onClick={() => toggle(b)} className="font-body text-xs font-medium text-royal hover:underline">{b.active ? 'Hide' : 'Show'}</button>
+                <button onClick={() => openEdit(b)} aria-label="Edit" className="text-muted-foreground hover:text-royal"><Pen width={15} /></button>
+                <button onClick={() => remove(b.id)} aria-label="Delete" className="text-muted-foreground hover:text-rose-500"><Trash width={15} /></button>
+              </div>
             </div>
           ))}
         </div>

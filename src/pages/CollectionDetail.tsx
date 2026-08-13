@@ -103,7 +103,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
             <Link to="/collections" className="btn-secondary mt-6">Browse all collections</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         )}

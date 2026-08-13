@@ -39,10 +39,10 @@ export default function ProductReviews({ productId }: { productId: string }) {
   }
 
   return (
-    <section className="border-t border-border bg-lilac/20 py-14">
+    <section className="border-t border-border bg-lilac/20 py-12 sm:py-14">
       <div className="container-suvadu grid gap-10 lg:grid-cols-[1.4fr_1fr]">
         <div>
-          <h2 className="font-display text-3xl text-plum">Customer reviews</h2>
+          <h2 className="font-display text-2xl text-plum sm:text-3xl">Customer reviews</h2>
           {loading ? (
             <p className="mt-4 font-body text-sm font-light text-muted-foreground">Loading…</p>
           ) : reviews.length === 0 ? (
@@ -50,12 +50,12 @@ export default function ProductReviews({ productId }: { productId: string }) {
           ) : (
             <div className="mt-6 space-y-4">
               {reviews.map((r) => (
-                <figure key={r.id} className="card-surface p-5">
-                  <div className="flex items-center gap-3">
+                <figure key={r.id} className="card-surface p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="font-display text-base text-plum">{r.author_name}</span>
                     <Stars rating={r.rating} />
                   </div>
-                  <blockquote className="mt-2 font-body text-sm font-light leading-relaxed text-plum/80">“{r.text}”</blockquote>
+                  <blockquote className="mt-2 break-anywhere font-body text-sm font-light leading-relaxed text-plum/80">“{r.text}”</blockquote>
                 </figure>
               ))}
             </div>

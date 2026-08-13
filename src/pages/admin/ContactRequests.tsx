@@ -34,7 +34,7 @@ export default function AdminContactRequests() {
     <AdminCard
       title={`Contact Requests (${rows.length})`}
       action={
-        <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'new' | 'resolved')} className="field cursor-pointer py-1.5 text-sm">
+        <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'new' | 'resolved')} className="field w-auto cursor-pointer py-1.5">
           <option value="all">All</option>
           <option value="new">New</option>
           <option value="resolved">Resolved</option>
@@ -56,10 +56,10 @@ export default function AdminContactRequests() {
                 </div>
                 <StatusBadge status={r.status} />
               </div>
-              <p className="mt-1 font-body text-xs text-muted-foreground">
+              <p className="mt-1 break-anywhere font-body text-xs text-muted-foreground">
                 <a href={`mailto:${r.email}`} className="text-royal hover:underline">{r.email}</a>{r.phone ? ` · ${r.phone}` : ''}
               </p>
-              <p className="mt-2 font-body text-sm font-light leading-relaxed text-plum/80">{r.message}</p>
+              <p className="mt-2 break-anywhere font-body text-sm font-light leading-relaxed text-plum/80">{r.message}</p>
               <div className="mt-3 border-t border-border pt-3">
                 {r.status === 'new' ? (
                   <button onClick={() => setStatus(r.id, 'resolved')} className="font-body text-sm font-medium text-royal hover:underline">Mark resolved</button>

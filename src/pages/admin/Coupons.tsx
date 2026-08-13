@@ -61,7 +61,7 @@ export default function AdminCoupons() {
   return (
     <div className="space-y-6">
       <AdminCard title="Create coupon">
-        <form onSubmit={create} className="grid gap-4 sm:grid-cols-4">
+        <form onSubmit={create} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <AdminInput label="Code" value={form.code} onChange={(v) => setForm((f) => ({ ...f, code: v.toUpperCase() }))} placeholder="SUVADU10" />
           <AdminInput label="Discount %" type="number" value={form.discount} onChange={(v) => setForm((f) => ({ ...f, discount: v }))} />
           <AdminField label="Expires (optional)">
@@ -70,7 +70,7 @@ export default function AdminCoupons() {
           <div className="flex items-end gap-4">
             <AdminToggle checked={form.active} onChange={(v) => setForm((f) => ({ ...f, active: v }))} label="Active" />
           </div>
-          <div className="sm:col-span-4">
+          <div className="sm:col-span-2 lg:col-span-4">
             <button type="submit" disabled={saving} className="btn-primary btn-sm"><Plus width={15} /> {saving ? 'Saving…' : 'Add coupon'}</button>
           </div>
         </form>
@@ -83,7 +83,7 @@ export default function AdminCoupons() {
           <p className="font-body text-sm font-light text-muted-foreground">No coupons yet.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-body text-sm">
+            <table className="table-scroll w-full text-left font-body text-sm">
               <thead>
                 <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="py-2 pr-4 font-medium">Code</th>

@@ -31,7 +31,7 @@ const SUPA_KEY = process.env.VITE_SUPABASE_ANON_KEY
 // Public, indexable static pages (transactional routes excluded — see robots.txt).
 const STATIC = [
   '/', '/collections', '/special-collections', '/accessories',
-  '/about', '/contact', '/faq',
+  '/about', '/faq',
   '/privacy-policy', '/terms', '/shipping-policy', '/refund-policy',
 ]
 

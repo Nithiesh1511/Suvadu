@@ -51,11 +51,11 @@ export default function AdminCustomers() {
             const orders = ordersByUser[p.id]
             return (
               <div key={p.id} className="rounded-2xl border border-border">
-                <button onClick={() => expand(p.id)} className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 text-left">
-                  <div>
+                <button onClick={() => expand(p.id)} className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-left">
+                  <div className="min-w-0">
                     <span className="font-body text-sm font-medium text-plum">{p.name || '(no name)'}</span>
                     {p.is_admin && <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 font-body text-[10px] font-medium uppercase text-royal">Admin</span>}
-                    <span className="ml-2 font-body text-xs font-light text-muted-foreground">{p.email}</span>
+                    <span className="ml-2 break-anywhere font-body text-xs font-light text-muted-foreground">{p.email}</span>
                   </div>
                   <span className="font-body text-xs font-light text-muted-foreground">{p.mobile || '—'}</span>
                 </button>
@@ -69,9 +69,9 @@ export default function AdminCustomers() {
                     ) : (
                       <ul className="space-y-1.5">
                         {orders.map((o) => (
-                          <li key={o.id} className="flex items-center justify-between gap-3 font-body text-sm">
+                          <li key={o.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 font-body text-sm">
                             <span className="text-plum">{o.order_number} <span className="text-muted-foreground">· {new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></span>
-                            <span className="flex items-center gap-3"><span className="font-medium text-plum">{formatINR(Number(o.total))}</span><StatusBadge status={o.status} /></span>
+                            <span className="flex shrink-0 items-center gap-3"><span className="font-medium text-plum">{formatINR(Number(o.total))}</span><StatusBadge status={o.status} /></span>
                           </li>
                         ))}
                       </ul>

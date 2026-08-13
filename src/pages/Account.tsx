@@ -104,20 +104,20 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
       <section className="container-suvadu grid gap-10 py-12 lg:grid-cols-[240px_1fr]">
         {/* Sidebar */}
         <aside className="h-fit">
-          <nav className="flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col">
+          <nav className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col">
             {TABS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setActive(t.key)}
                 className={cn(
-                  'whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm transition',
+                  'shrink-0 whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm transition',
                   active === t.key ? 'bg-royal text-white' : 'text-plum/80 hover:bg-lilac',
                 )}
               >
                 {t.label}
               </button>
             ))}
-            <button onClick={async () => { const r = await signOut(); notify(r.ok ? 'Logged out' : r.message); if (r.ok) navigate('/') }} className="whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50">
+            <button onClick={async () => { const r = await signOut(); notify(r.ok ? 'Logged out' : r.message); if (r.ok) navigate('/') }} className="shrink-0 whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50">
               Logout
             </button>
           </nav>
@@ -341,10 +341,10 @@ function OrdersPanel() {
         {orders.map((o) => {
           const detailSlug = o.order_items[0]?.product_slug
           return (
-            <div key={o.id} className="rounded-2xl border border-border p-5">
+            <div key={o.id} className="rounded-2xl border border-border p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="font-display text-lg text-plum">{o.order_number}</p>
+                <div className="min-w-0">
+                  <p className="break-anywhere font-display text-lg text-plum">{o.order_number}</p>
                   <p className="font-body text-xs font-light text-muted-foreground">
                     Placed {new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </p>
@@ -354,7 +354,7 @@ function OrdersPanel() {
               <ul className="mt-3 space-y-1 font-body text-sm font-light text-plum/80">
                 {o.order_items.map((it, i) => <li key={i}>{it.qty} × {it.product_name} <span className="text-muted-foreground">({it.size})</span></li>)}
               </ul>
-              <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
                 <span className="font-body text-sm font-medium text-plum">{formatINR(Number(o.total))}</span>
                 <div className="flex gap-3">
                   {detailSlug && <Link to={`/products/${detailSlug}`} className="font-body text-sm font-medium text-royal hover:underline">View Details</Link>}
@@ -441,10 +441,10 @@ function AddressesPanel({ notify }: { notify: (m: string) => void }) {
       )}
       <div className="space-y-4">
         {addresses.map((a) => (
-          <div key={a.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border p-5">
-            <div>
+          <div key={a.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border p-4 sm:p-5">
+            <div className="min-w-0">
               <span className="badge-soft">{a.label || 'Address'}</span>
-              <p className="mt-2 font-body text-sm font-light text-plum/80">{a.line}, {a.city}, {a.state} — {a.pincode}</p>
+              <p className="mt-2 break-anywhere font-body text-sm font-light text-plum/80">{a.line}, {a.city}, {a.state} — {a.pincode}</p>
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <button onClick={() => openEdit(a)} aria-label="Edit address" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-lilac hover:text-royal"><Pen width={15} /></button>
@@ -537,7 +537,7 @@ function CustomizationsPanel() {
           return (
             <div key={i} className="flex gap-4 rounded-2xl border border-border p-4">
               <div className="w-16 shrink-0"><NotebookCover colour={hex} pattern="plain" customText={s.label} customFont={s.font} /></div>
-              <div className="flex flex-col">
+              <div className="flex min-w-0 flex-col">
                 <p className="font-display text-lg text-plum">“{s.label}”</p>
                 {s.font && <p className="font-body text-xs font-light text-muted-foreground">Font: {s.font}</p>}
                 {s.colour && <p className="font-body text-xs font-light text-muted-foreground">Colour: {s.colour}</p>}
@@ -570,10 +570,10 @@ function WishlistPanel({ items, onRemove, onAdd }: { items: Product[]; onRemove:
         {items.map((p) => (
           <div key={p.id} className="flex gap-4 rounded-2xl border border-border p-4">
             <Link to={`/products/${p.slug}`} className="w-16 shrink-0"><ProductImage image={p.image} alt={p.name} colour={p.colour.hex} pattern={p.pattern} /></Link>
-            <div className="flex flex-1 flex-col">
+            <div className="flex min-w-0 flex-1 flex-col">
               <Link to={`/products/${p.slug}`} className="font-display text-lg leading-snug text-plum hover:text-royal">{p.name}</Link>
               <p className="font-body text-sm font-medium text-plum">{formatINR(p.prices.A5)}</p>
-              <div className="mt-auto flex items-center gap-3 pt-2">
+              <div className="mt-auto flex flex-wrap items-center gap-3 pt-2">
                 <button onClick={() => onAdd(p)} className="btn-primary btn-sm">Add to Cart</button>
                 <button onClick={() => onRemove(p.id)} className="font-body text-xs font-medium text-muted-foreground hover:text-rose-500">Remove</button>
               </div>
@@ -588,9 +588,9 @@ function WishlistPanel({ items, onRemove, onAdd }: { items: Product[]; onRemove:
 /* ---------- Small UI helpers ---------- */
 function Card({ title, action, children }: { title: string; action?: { label: string; onClick: () => void; icon?: boolean }; children: React.ReactNode }) {
   return (
-    <div className="card-surface p-6 sm:p-7">
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="font-display text-2xl text-plum">{title}</h2>
+    <div className="card-surface p-5 sm:p-7">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-xl text-plum sm:text-2xl">{title}</h2>
         {action && (
           <button onClick={action.onClick} className="inline-flex items-center gap-1.5 font-body text-sm font-medium text-royal hover:underline">
             {action.icon && <Pen width={14} />}{action.label}
@@ -606,7 +606,7 @@ function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="font-body text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-1 font-body text-base text-plum">{value}</dd>
+      <dd className="mt-1 break-anywhere font-body text-base text-plum">{value}</dd>
     </div>
   )
 }

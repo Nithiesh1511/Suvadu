@@ -46,7 +46,7 @@ export default function AdminOrders() {
     <AdminCard
       title={`Orders (${orders.length})`}
       action={
-        <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | OrderStatus)} className="field cursor-pointer py-1.5 text-sm">
+        <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | OrderStatus)} className="field w-auto cursor-pointer py-1.5">
           <option value="all">All statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
@@ -62,8 +62,8 @@ export default function AdminOrders() {
             const isOpen = open === o.id
             return (
               <div key={o.id} className="rounded-2xl border border-border">
-                <button onClick={() => setOpen(isOpen ? null : o.id)} className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 text-left">
-                  <div>
+                <button onClick={() => setOpen(isOpen ? null : o.id)} className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 text-left">
+                  <div className="min-w-0">
                     <span className="font-display text-base text-plum">{o.order_number}</span>
                     <span className="ml-2 font-body text-xs font-light text-muted-foreground">{new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                     <span className="ml-2 font-body text-xs font-light text-muted-foreground">· {o.address?.name}</span>
@@ -87,7 +87,7 @@ export default function AdminOrders() {
                       </div>
                       <div>
                         <p className="font-body text-xs font-medium uppercase tracking-wide text-muted-foreground">Deliver to</p>
-                        <p className="mt-2 font-body text-sm font-light text-plum/80">
+                        <p className="mt-2 break-anywhere font-body text-sm font-light text-plum/80">
                           {o.address?.name}<br />
                           {o.address?.address}, {o.address?.city}, {o.address?.state} — {o.address?.pincode}<br />
                           {o.address?.mobile} · {o.address?.email}
