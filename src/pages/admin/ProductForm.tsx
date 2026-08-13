@@ -139,7 +139,7 @@ export default function ProductForm() {
           </AdminField>
 
           <AdminField label="Product image" className="sm:col-span-2">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="h-24 w-[72px] shrink-0 overflow-hidden rounded-xl border border-border bg-cream/40">
                 {form.image ? <img src={form.image} alt="Preview" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center font-body text-[10px] uppercase text-muted-foreground">No image</div>}
               </div>

@@ -11,7 +11,6 @@ const NAV = [
   { label: 'Special Collections', to: '/special-collections' },
   { label: 'Accessories', to: '/accessories' },
   { label: 'About Us', to: '/about' },
-  { label: 'Contact', to: '/contact' },
 ]
 
 export default function Header() {
@@ -55,7 +54,7 @@ export default function Header() {
     <>
       {/* Announcement bar */}
       <div className="bg-plum text-center text-white">
-        <div className="container-suvadu flex items-center justify-center gap-2 py-2 text-[11px] font-light tracking-[0.18em]">
+        <div className="container-suvadu flex items-center justify-center gap-2 py-2 text-[10px] font-light tracking-[0.1em] sm:text-[11px] sm:tracking-[0.18em]">
           <span className="uppercase">Pan-India delivery via Shiprocket  ·  Crafted in India</span>
         </div>
       </div>
@@ -66,9 +65,9 @@ export default function Header() {
           scrolled ? 'border-border bg-white/85 backdrop-blur-lg shadow-card' : 'border-transparent bg-background',
         )}
       >
-        <div className="container-suvadu flex h-16 items-center justify-between gap-4 lg:h-[72px]">
+        <div className="container-suvadu flex h-16 items-center justify-between gap-2 sm:gap-4 lg:h-[72px]">
           {/* Logo */}
-          <Link to="/" className="shrink-0 font-display text-2xl tracking-wide text-plum">
+          <Link to="/" className="shrink-0 font-display text-xl tracking-wide text-plum sm:text-2xl">
             SUVADU
             <span className="ml-1 align-top text-royal">·</span>
           </Link>
@@ -97,14 +96,16 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Right icons */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          {/* Right icons — Wishlist and Account fold away on small phones (five
+              40px targets plus the wordmark don't fit a 360px viewport); both
+              are reachable from the drawer below. */}
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
             <IconBtn label="Search" onClick={() => setSearch(true)}><Search /></IconBtn>
-            <IconBtn label="Wishlist" to="/account/wishlist" badge={wishlist.length}><Heart /></IconBtn>
+            <IconBtn label="Wishlist" to="/account/wishlist" badge={wishlist.length} className="hidden xs:block"><Heart /></IconBtn>
             <IconBtn label="Cart" to="/cart" badge={cartCount}><Cart /></IconBtn>
-            <IconBtn label="Account" to="/account"><User /></IconBtn>
+            <IconBtn label="Account" to="/account" className="hidden sm:block"><User /></IconBtn>
             <button
-              className="ml-1 grid h-10 w-10 place-items-center rounded-full text-plum transition hover:bg-lilac lg:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full text-plum transition hover:bg-lilac sm:ml-1 lg:hidden"
               aria-label="Open menu"
               onClick={() => setDrawer(true)}
             >
@@ -116,8 +117,8 @@ export default function Header() {
 
       {/* Search overlay */}
       {search && (
-        <div className="fixed inset-0 z-[70] flex flex-col bg-plum/40 backdrop-blur-sm animate-fade-in" onClick={() => setSearch(false)}>
-          <div className="bg-white p-5 shadow-lift sm:p-8 animate-fade-up" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[70] flex flex-col overflow-y-auto bg-plum/40 backdrop-blur-sm animate-fade-in" onClick={() => setSearch(false)}>
+          <div className="bg-white p-4 shadow-lift sm:p-8 animate-fade-up" onClick={(e) => e.stopPropagation()}>
             <div className="container-suvadu">
               <form
                 onSubmit={(e) => { e.preventDefault(); if (results[0]) { navigate(`/products/${results[0].slug}`); setSearch(false) } }}
@@ -128,10 +129,10 @@ export default function Header() {
                   autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search notebooks, collections…"
-                  className="w-full bg-transparent font-display text-xl text-plum outline-none placeholder:text-muted-foreground/60 sm:text-2xl"
+                  placeholder="Search notebooks…"
+                  className="w-full min-w-0 bg-transparent font-display text-lg text-plum outline-none placeholder:text-muted-foreground/60 sm:text-2xl"
                 />
-                <button type="button" aria-label="Close search" onClick={() => setSearch(false)} className="text-muted-foreground hover:text-royal"><Close /></button>
+                <button type="button" aria-label="Close search" onClick={() => setSearch(false)} className="shrink-0 text-muted-foreground hover:text-royal"><Close /></button>
               </form>
 
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -141,10 +142,10 @@ export default function Header() {
                     onClick={() => { navigate(`/products/${p.slug}`); setSearch(false) }}
                     className="flex items-center gap-3 rounded-xl p-2 text-left transition hover:bg-lilac"
                   >
-                    <span className="h-10 w-8 rounded-md" style={{ backgroundColor: p.colour.hex }} />
-                    <span>
-                      <span className="block font-display text-sm text-plum">{p.name}</span>
-                      <span className="block font-body text-xs text-muted-foreground">{p.collectionName}</span>
+                    <span className="h-10 w-8 shrink-0 rounded-md" style={{ backgroundColor: p.colour.hex }} />
+                    <span className="min-w-0">
+                      <span className="block truncate font-display text-sm text-plum">{p.name}</span>
+                      <span className="block truncate font-body text-xs text-muted-foreground">{p.collectionName}</span>
                     </span>
                   </button>
                 ))}
@@ -182,7 +183,8 @@ export default function Header() {
             ))}
           </nav>
           <div className="mt-auto grid grid-cols-2 gap-2 border-t border-border p-4">
-            <Link to="/account/wishlist" onClick={() => setDrawer(false)} className="btn-secondary">Wishlist</Link>
+            <Link to="/account" onClick={() => setDrawer(false)} className="btn-secondary col-span-2">My Account</Link>
+            <Link to="/account/wishlist" onClick={() => setDrawer(false)} className="btn-secondary">Wishlist ({wishlist.length})</Link>
             <Link to="/cart" onClick={() => setDrawer(false)} className="btn-primary">Cart ({cartCount})</Link>
           </div>
         </aside>
@@ -191,12 +193,13 @@ export default function Header() {
   )
 }
 
-function IconBtn({ children, label, to, onClick, badge }: {
+function IconBtn({ children, label, to, onClick, badge, className }: {
   children: React.ReactNode
   label: string
   to?: string
   onClick?: () => void
   badge?: number
+  className?: string
 }) {
   const inner = (
     <span className="relative grid h-10 w-10 place-items-center rounded-full text-plum transition hover:bg-lilac hover:text-royal">
@@ -208,6 +211,6 @@ function IconBtn({ children, label, to, onClick, badge }: {
       ) : null}
     </span>
   )
-  if (to) return <Link to={to} aria-label={label}>{inner}</Link>
-  return <button type="button" aria-label={label} onClick={onClick}>{inner}</button>
+  if (to) return <Link to={to} aria-label={label} className={className}>{inner}</Link>
+  return <button type="button" aria-label={label} onClick={onClick} className={className}>{inner}</button>
 }

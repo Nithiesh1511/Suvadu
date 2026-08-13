@@ -193,15 +193,15 @@ export default function Checkout() {
       <div>
         <PageHeader title="Order Confirmed" crumbs={[{ label: 'Checkout', to: '/cart' }, { label: 'Confirmation' }]} />
         <section className="container-suvadu py-16">
-          <div className="card-surface mx-auto flex max-w-xl flex-col items-center px-6 py-14 text-center">
-            <span className="grid h-20 w-20 place-items-center rounded-full bg-royal text-white shadow-lift animate-fade-up"><Check width={40} /></span>
-            <h2 className="mt-7 font-display text-4xl text-plum">Thank you!</h2>
+          <div className="card-surface mx-auto flex max-w-xl flex-col items-center px-5 py-12 text-center sm:px-6 sm:py-14">
+            <span className="grid h-16 w-16 place-items-center rounded-full bg-royal text-white shadow-lift animate-fade-up sm:h-20 sm:w-20"><Check width={40} /></span>
+            <h2 className="mt-7 font-display text-3xl text-plum sm:text-4xl">Thank you!</h2>
             <p className="mt-3 max-w-md font-body text-base font-light text-muted-foreground">
               Your payment was successful and your order is being prepared. You can track it any time under My Orders.
             </p>
-            <div className="mt-6 rounded-2xl bg-lilac/60 px-8 py-4">
+            <div className="mt-6 max-w-full rounded-2xl bg-lilac/60 px-6 py-4 sm:px-8">
               <p className="font-body text-xs uppercase tracking-wide text-muted-foreground">Order ID</p>
-              <p className="font-display text-2xl text-royal">{orderId}</p>
+              <p className="break-anywhere font-display text-xl text-royal sm:text-2xl">{orderId}</p>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link to="/account" className="btn-primary">View My Orders</Link>
@@ -252,9 +252,9 @@ export default function Checkout() {
       <section className="container-suvadu grid gap-10 py-12 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-8">
           {/* Address */}
-          <div className="card-surface p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl text-plum">Delivery Address</h2>
+          <div className="card-surface p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-xl text-plum sm:text-2xl">Delivery Address</h2>
               {!editing && <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 font-body text-sm font-medium text-royal hover:underline"><Pen width={14} /> Edit Address</button>}
             </div>
 
@@ -272,7 +272,7 @@ export default function Checkout() {
                 </div>
               </form>
             ) : (
-              <div className="mt-4 font-body text-sm font-light leading-relaxed text-plum/80">
+              <div className="mt-4 break-anywhere font-body text-sm font-light leading-relaxed text-plum/80">
                 <p className="font-medium text-plum">{form.name}</p>
                 <p>{form.address}, {form.city}, {form.state} — {form.pincode}</p>
                 <p>{form.mobile} · {form.email}</p>
@@ -281,8 +281,8 @@ export default function Checkout() {
           </div>
 
           {/* Payment */}
-          <div className="card-surface p-6">
-            <h2 className="font-display text-2xl text-plum">Payment</h2>
+          <div className="card-surface p-5 sm:p-6">
+            <h2 className="font-display text-xl text-plum sm:text-2xl">Payment</h2>
             <p className="mt-1 font-body text-xs font-light text-muted-foreground">Secured by Razorpay · PCI-DSS compliant</p>
             <div className="mt-5 flex items-start gap-3 rounded-xl border border-royal/20 bg-lilac/40 p-4">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-royal text-white"><Check width={16} /></span>
@@ -309,15 +309,15 @@ export default function Checkout() {
               {cart.map((item) => (
                 <li key={item.key} className="flex gap-3">
                   <div className="w-12 shrink-0"><ProductImage image={item.product.image} alt={item.product.name} colour={item.product.colour.hex} pattern={item.product.pattern} /></div>
-                  <div className="flex flex-1 items-start justify-between gap-2">
-                    <div>
+                  <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
+                    <div className="min-w-0">
                       <p className="font-body text-sm font-medium text-plum">{item.product.name}</p>
                       <p className="font-body text-xs font-light text-muted-foreground">{item.size}{item.pages ? ` · ${item.pages}p` : ''}{item.ruling ? ` · ${item.ruling}` : ''} · Qty {item.qty}</p>
                       {item.customization && (item.customization.name || item.customization.text) && (
                         <p className="font-body text-xs font-light text-royal">“{item.customization.name || item.customization.text}”</p>
                       )}
                     </div>
-                    <p className="font-body text-sm font-medium text-plum">{formatINR(item.unitPrice * item.qty)}</p>
+                    <p className="shrink-0 font-body text-sm font-medium text-plum">{formatINR(item.unitPrice * item.qty)}</p>
                   </div>
                 </li>
               ))}

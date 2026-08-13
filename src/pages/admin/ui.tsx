@@ -9,10 +9,12 @@ export function AdminCard({ title, action, children, className }: {
   className?: string
 }) {
   return (
-    <div className={cn('rounded-2xl border border-border bg-white p-5 shadow-card sm:p-6', className)}>
+    <div className={cn('min-w-0 rounded-2xl border border-border bg-white p-4 shadow-card sm:p-6', className)}>
       {(title || action) && (
-        <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="font-display text-xl text-plum">{title}</h2>}
+        // Wraps so a filter dropdown or "Add" button drops below the title
+        // instead of squeezing it on a narrow screen.
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          {title && <h2 className="font-display text-lg text-plum sm:text-xl">{title}</h2>}
           {action}
         </div>
       )}

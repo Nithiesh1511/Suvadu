@@ -38,7 +38,7 @@ export default function AdminProducts() {
         <p className="font-body text-sm font-light text-muted-foreground">No products match “{q}”.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left font-body text-sm">
+          <table className="table-scroll w-full text-left font-body text-sm">
             <thead>
               <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="py-2 pr-4 font-medium">Product</th>

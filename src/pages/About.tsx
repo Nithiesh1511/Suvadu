@@ -24,7 +24,7 @@ export default function About() {
       <section className="container-suvadu grid items-center gap-12 py-16 lg:grid-cols-2">
         <div>
           <p className="eyebrow mb-3">The beginning</p>
-          <h2 className="font-display text-4xl leading-tight text-plum">Brand Story</h2>
+          <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">Brand Story</h2>
           <div className="mt-5 space-y-4 font-body text-base font-light leading-relaxed text-muted-foreground">
             <p>
               SUVADU began with a simple belief — that the things you write <em>in</em> should feel as considered as the things you write. We were tired of notebooks that looked beautiful but felt ordinary the moment you opened them.
@@ -48,14 +48,14 @@ export default function About() {
         <div className="container-suvadu">
           <div className="max-w-2xl">
             <p className="eyebrow mb-3">What sets us apart</p>
-            <h2 className="font-display text-4xl leading-tight text-plum">Why Suvadu</h2>
+            <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">Why Suvadu</h2>
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {VALUES.map(({ Icon, t, d }) => (
-              <div key={t} className="flex gap-4 rounded-2xl border border-border bg-white p-6 shadow-card">
+              <div key={t} className="flex gap-4 rounded-2xl border border-border bg-white p-5 shadow-card sm:p-6">
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lilac text-royal"><Icon /></span>
-                <div>
-                  <h3 className="font-display text-xl text-plum">{t}</h3>
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg text-plum sm:text-xl">{t}</h3>
                   <p className="mt-1.5 font-body text-sm font-light leading-relaxed text-muted-foreground">{d}</p>
                 </div>
               </div>
@@ -66,10 +66,10 @@ export default function About() {
 
       {/* CTA */}
       <section className="container-suvadu pb-20">
-        <div className="relative overflow-hidden rounded-3xl bg-plum px-6 py-14 text-center text-white sm:px-12">
+        <div className="relative overflow-hidden rounded-2xl bg-plum px-5 py-12 text-center text-white sm:rounded-3xl sm:px-12 sm:py-14">
           <div className="pointer-events-none absolute inset-0 opacity-30 bg-grain" />
           <div className="relative mx-auto max-w-xl">
-            <h2 className="font-display text-3xl text-white sm:text-4xl">Ready to make your mark?</h2>
+            <h2 className="font-display text-2xl text-white sm:text-4xl">Ready to make your mark?</h2>
             <p className="mt-3 font-body text-sm font-light text-white/70">Explore our collections or design a notebook that’s entirely your own.</p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Link to="/collections" className="btn-primary bg-white text-royal hover:bg-lilac">Shop Collections <ArrowRight width={16} /></Link>

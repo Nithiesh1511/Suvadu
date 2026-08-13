@@ -67,7 +67,7 @@ export default function AdminReviews() {
     <AdminCard
       title={`Total Reviews (${reviews.length})`}
       action={
-        <select value={filter} onChange={(e) => setFilter(e.target.value as Filter)} className="field cursor-pointer py-1.5 text-sm">
+        <select value={filter} onChange={(e) => setFilter(e.target.value as Filter)} className="field w-auto cursor-pointer py-1.5">
           {FILTERS.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
       }
@@ -75,7 +75,7 @@ export default function AdminReviews() {
       {editing && (
         <form onSubmit={saveEdit} className="mb-6 grid gap-4 rounded-2xl border border-royal/20 bg-lilac/30 p-5">
           <h3 className="font-display text-lg text-plum">Edit review</h3>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <AdminInput label="Author" value={form.author_name} onChange={(v) => setForm((f) => ({ ...f, author_name: v }))} />
             <AdminField label="Rating">
               <select className="field cursor-pointer" value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: e.target.value }))}>
@@ -103,15 +103,15 @@ export default function AdminReviews() {
           {list.map((r) => (
             <div key={r.id} className="rounded-2xl border border-border p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="font-display text-base text-plum">{r.author_name}</span>
                   <Stars rating={r.rating} />
                   {r.location && <span className="font-body text-xs font-light text-muted-foreground">{r.location}</span>}
                 </div>
                 <StatusBadge status={r.status} />
               </div>
-              <p className="mt-2 font-body text-sm font-light leading-relaxed text-plum/80">“{r.text}”</p>
-              <p className="mt-1 font-body text-[11px] font-light text-muted-foreground">{r.product_id ? `Product: ${r.product_id}` : 'General testimonial'}</p>
+              <p className="mt-2 break-anywhere font-body text-sm font-light leading-relaxed text-plum/80">“{r.text}”</p>
+              <p className="mt-1 break-anywhere font-body text-[11px] font-light text-muted-foreground">{r.product_id ? `Product: ${r.product_id}` : 'General testimonial'}</p>
               <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3 font-body text-sm font-medium">
                 {r.status !== 'approved' && <button onClick={() => setStatus(r.id, 'approved')} className="text-emerald-600 hover:underline">Approve</button>}
                 {r.status !== 'rejected' && <button onClick={() => setStatus(r.id, 'rejected')} className="text-rose-500 hover:underline">Reject</button>}

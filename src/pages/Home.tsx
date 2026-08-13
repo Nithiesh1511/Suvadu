@@ -58,7 +58,7 @@ function Story3DBanner() {
         )}
       >
         <p className="eyebrow mb-4">Our story</p>
-        <h2 className="font-display text-4xl leading-tight text-plum">A notebook is where ideas begin.</h2>
+        <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">A notebook is where ideas begin.</h2>
         <p className="mt-5 max-w-xl font-body text-base font-light leading-relaxed text-muted-foreground">
           SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
         </p>
@@ -106,15 +106,14 @@ export default function Home() {
         <div className="container-suvadu grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
           <div className="animate-fade-up">
             <p className="eyebrow mb-5">Suvadu Notebooks · Pan-India</p>
-            <h1 className="text-balance font-display text-5xl leading-[1.05] text-plum sm:text-6xl lg:text-7xl">
+            <h1 className="text-balance font-display text-[2.75rem] leading-[1.05] text-plum xs:text-5xl sm:text-6xl lg:text-7xl">
               Make your <span className="italic text-royal">mark.</span>
             </h1>
-            <p className="mt-6 max-w-md font-body text-lg font-light leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-md font-body text-base font-light leading-relaxed text-muted-foreground sm:text-lg">
               Minimal, aesthetic notebooks crafted for the thinking mind. Premium paper, considered covers, and the option to make every page unmistakably yours.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8">
               <Link to="/collections" className="btn-primary btn-lg">Shop Now</Link>
-              <Link to="/collections" className="btn-secondary btn-lg">Explore Collections</Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 font-body text-sm text-muted-foreground">
               <span className="flex items-center gap-2"><Truck width={18} className="shrink-0 text-royal" /> Pan-India delivery</span>
@@ -160,12 +159,12 @@ export default function Home() {
           {banners.slice(0, 1).map((b) => {
             const Inner = (
               <div
-                className="relative flex min-h-[180px] items-center overflow-hidden rounded-3xl border border-border bg-plum px-8 py-10 text-white shadow-card sm:px-12"
+                className="relative flex min-h-[150px] items-center overflow-hidden rounded-2xl border border-border bg-plum px-5 py-8 text-white shadow-card sm:min-h-[180px] sm:rounded-3xl sm:px-12 sm:py-10"
                 style={b.image_url ? { backgroundImage: `url(${b.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
               >
                 {b.image_url && <span className="absolute inset-0 bg-plum/45" />}
                 <div className="relative max-w-xl">
-                  {b.title && <h2 className="font-display text-3xl text-white sm:text-4xl">{b.title}</h2>}
+                  {b.title && <h2 className="font-display text-2xl text-white sm:text-4xl">{b.title}</h2>}
                   {b.subtitle && <p className="mt-2 font-body text-sm font-light text-white/80">{b.subtitle}</p>}
                 </div>
               </div>
@@ -178,7 +177,7 @@ export default function Home() {
       )}
 
       {/* 2. FEATURED COLLECTIONS */}
-      <section className="container-suvadu py-20">
+      <section className="container-suvadu py-14 sm:py-20">
         <SectionHead
           eyebrow="Curated for you"
           title="Featured Collections"
@@ -217,14 +216,14 @@ export default function Home() {
       </section>
 
       {/* 3. BEST SELLERS */}
-      <section className="bg-lilac/40 py-20">
+      <section className="bg-lilac/40 py-14 sm:py-20">
         <div className="container-suvadu">
           <SectionHead eyebrow="Loved most" title="Best Sellers" subtitle="The notebooks our customers keep coming back for." />
           <div className="mt-10">
             {loading ? (
               <ProductGridSkeleton count={4} />
             ) : (
-              <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                 {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
               </div>
             )}
@@ -236,7 +235,7 @@ export default function Home() {
       </section>
 
       {/* 4. ABOUT SUVADU (short) */}
-      <section className="container-suvadu py-20">
+      <section className="container-suvadu py-14 sm:py-20">
         <Story3DBanner />
       </section>
 
@@ -260,7 +259,7 @@ export default function Home() {
       </section>
 
       {/* 5. CUSTOMER REVIEWS */}
-      <section className="container-suvadu py-20">
+      <section className="container-suvadu py-14 sm:py-20">
         <SectionHead eyebrow="Kind words" title="Loved by writers across India" />
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {displayReviews.map((r, i) => (
@@ -277,12 +276,12 @@ export default function Home() {
       </section>
 
       {/* 6. NEWSLETTER */}
-      <section className="container-suvadu pb-20">
+      <section className="container-suvadu pb-14 sm:pb-20">
         <NewsletterBanner />
       </section>
 
       {/* 7. INSTAGRAM FEED */}
-      <section className="container-suvadu pb-20">
+      <section className="container-suvadu pb-14 sm:pb-20">
         <SectionHead eyebrow="@suvadu.notebooks" title="From the Suvadu journal" link={{ to: 'https://www.instagram.com/suvadu.notebooks/', label: 'Follow us', external: true }} />
         <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {collections.concat(collections).slice(0, 6).map((c, i) => (
@@ -333,11 +332,11 @@ export function SectionHead({ eyebrow, title, subtitle, link }: {
   link?: { to: string; label: string; external?: boolean }
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
-      <div>
+    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+      <div className="min-w-0">
         {eyebrow && <p className="eyebrow mb-3">{eyebrow}</p>}
-        <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">{title}</h2>
-        {subtitle && <p className="mt-3 max-w-xl font-body text-base font-light text-muted-foreground">{subtitle}</p>}
+        <h2 className="font-display text-2xl leading-tight text-plum sm:text-4xl">{title}</h2>
+        {subtitle && <p className="mt-3 max-w-xl font-body text-sm font-light text-muted-foreground sm:text-base">{subtitle}</p>}
       </div>
       {link && (
         link.external ? (
@@ -352,11 +351,11 @@ export function SectionHead({ eyebrow, title, subtitle, link }: {
 
 function NewsletterBanner() {
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-plum px-6 py-14 text-center text-white sm:px-12">
+    <div className="relative overflow-hidden rounded-2xl bg-plum px-5 py-12 text-center text-white sm:rounded-3xl sm:px-12 sm:py-14">
       <div className="pointer-events-none absolute inset-0 opacity-30 bg-grain" />
       <div className="relative mx-auto max-w-2xl">
-        <p className="font-body text-xs font-medium uppercase tracking-[0.24em] text-royal-200">Join the Suvadu circle</p>
-        <h2 className="mt-4 font-display text-3xl text-white sm:text-4xl">Get 10% off your first notebook</h2>
+        <p className="font-body text-[11px] font-medium uppercase tracking-[0.18em] text-royal-200 sm:text-xs sm:tracking-[0.24em]">Join the Suvadu circle</p>
+        <h2 className="mt-4 font-display text-2xl text-white sm:text-4xl">Get 10% off your first notebook</h2>
         <p className="mt-3 font-body text-sm font-light text-white/70">Subscribe for new collections, restocks and a little inspiration.</p>
         <NewsletterForm />
       </div>
@@ -384,7 +383,9 @@ function NewsletterForm() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto mt-7 flex max-w-md overflow-hidden rounded-full bg-white p-1.5">
+    // Stacks below xs: an email field and a "Subscribing…" button can't share a
+    // 300px-wide pill without the input collapsing to a few characters.
+    <form onSubmit={submit} className="mx-auto mt-7 flex max-w-md flex-col gap-2 rounded-2xl bg-white p-2 xs:flex-row xs:gap-0 xs:rounded-full xs:p-1.5">
       <label htmlFor="home-newsletter" className="sr-only">Email address for newsletter</label>
       <input
         id="home-newsletter"
@@ -393,7 +394,7 @@ function NewsletterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Enter your email"
-        className="w-full bg-transparent px-5 font-body text-sm text-plum outline-none placeholder:text-muted-foreground/60"
+        className="w-full min-w-0 bg-transparent px-4 py-2 font-body text-base text-plum outline-none placeholder:text-muted-foreground/60 xs:px-5 xs:py-0 sm:text-sm"
       />
       <button type="submit" disabled={busy} className="btn-primary shrink-0 disabled:opacity-60">{busy ? 'Subscribing…' : 'Subscribe'}</button>
     </form>

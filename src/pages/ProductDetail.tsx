@@ -21,6 +21,7 @@ import PageHeader from '@/components/PageHeader'
 import JsonLd from '@/components/JsonLd'
 import { Heart, Share, Zoom, Plus, Minus, Check, Close, Truck, Leaf, Pen } from '@/components/Icons'
 import { formatINR, cn } from '@/lib/utils'
+import { openWhatsApp } from '@/lib/contact'
 import { useSeo, SITE_URL } from '@/lib/seo'
 import NotFound from './NotFound'
 
@@ -222,14 +223,14 @@ export default function ProductDetail() {
             {product.isNew && <span className="badge-soft">New</span>}
           </div>
 
-          <h1 className="mt-3 font-display text-4xl leading-tight text-plum sm:text-5xl">{product.name}</h1>
+          <h1 className="mt-3 text-balance font-display text-3xl leading-tight text-plum sm:text-4xl lg:text-5xl">{product.name}</h1>
 
           {/* Price — updates with size */}
-          <div className="mt-6 flex items-end gap-3">
+          <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
             {onRequest ? (
-              <span className="font-display text-3xl text-royal">Price on request</span>
+              <span className="font-display text-2xl text-royal sm:text-3xl">Price on request</span>
             ) : (
-              <span className="font-body text-3xl font-medium text-plum">{formatINR(unitPrice as number)}</span>
+              <span className="font-body text-2xl font-medium text-plum sm:text-3xl">{formatINR(unitPrice as number)}</span>
             )}
             <span className="pb-1 font-body text-sm font-light text-muted-foreground">incl. taxes · {size}</span>
           </div>
@@ -367,7 +368,7 @@ export default function ProductDetail() {
           </div>
           {onRequest && (
             <p className="mt-3 font-body text-xs font-light text-muted-foreground">
-              This configuration is priced on request — <Link to="/contact" className="link-underline">contact us</Link> for a quote.
+              This configuration is priced on request — <button type="button" onClick={() => openWhatsApp(`Hi Suvadu! I'd like a quote for: ${prod.name}`)} className="link-underline">message us on WhatsApp</button> for a quote.
             </p>
           )}
 
@@ -390,18 +391,26 @@ export default function ProductDetail() {
       <ProductReviews productId={prod.id} />
 
       {/* Related products */}
-      <section className="container-suvadu py-16">
-        <h2 className="font-display text-3xl text-plum">You may also like</h2>
-        <div className="mt-8 grid grid-cols-2 gap-5 lg:grid-cols-4">
+      <section className="container-suvadu py-12 sm:py-16">
+        <h2 className="font-display text-2xl text-plum sm:text-3xl">You may also like</h2>
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {(related.length ? related : fallbackRelated).map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
 
       {/* Zoom overlay */}
       {zoom && (
-        <div role="dialog" aria-modal="true" aria-label={`${product.name} enlarged`} className="fixed inset-0 z-[90] flex items-center justify-center bg-plum/70 p-6 backdrop-blur-sm animate-fade-in" onClick={() => setZoom(false)}>
-          <button aria-label="Close" onClick={() => setZoom(false)} className="absolute right-6 top-6 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-plum hover:text-royal"><Close /></button>
-          <div className="animate-fade-up" onClick={(e) => e.stopPropagation()} style={{ height: 'min(88vh, 760px)' }}>
+        <div role="dialog" aria-modal="true" aria-label={`${product.name} enlarged`} className="fixed inset-0 z-[90] flex items-center justify-center bg-plum/70 p-4 backdrop-blur-sm animate-fade-in sm:p-6" onClick={() => setZoom(false)}>
+          <button aria-label="Close" onClick={() => setZoom(false)} className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-plum hover:text-royal sm:right-6 sm:top-6"><Close /></button>
+          {/* Sized by width, not height: the cover is 3:4, so the old height-driven
+              88vh box came out wider than a phone viewport and clipped. 66vh is
+              that same height expressed as a width (88vh × 3/4), and min() picks
+              whichever constraint binds first. */}
+          <div
+            className="animate-fade-up"
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: 'min(100%, 66vh, 570px)' }}
+          >
             <ProductImage
               image={product.image}
               alt={product.name}
@@ -410,7 +419,7 @@ export default function ProductDetail() {
               label={product.collectionName}
               customText={isCustom ? previewText || undefined : undefined}
               customFont={isCustom ? cFont : undefined}
-              className="!h-full !w-auto shadow-lift"
+              className="shadow-lift"
             />
           </div>
         </div>

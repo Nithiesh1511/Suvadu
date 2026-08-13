@@ -4,11 +4,13 @@ import Header from './Header'
 import Footer from './Footer'
 import BackgroundFX from './BackgroundFX'
 import ErrorBoundary from './ErrorBoundary'
+import WhatsAppFab from './WhatsAppFab'
 import { ROUTE_META, applyMeta } from '@/lib/seo'
 import { initGA, trackPageview } from '@/lib/analytics'
 
 export default function Layout() {
   const { pathname } = useLocation()
+  const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/')
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     // Apply per-route SEO meta for static pages; dynamic detail pages set
@@ -31,6 +33,9 @@ export default function Layout() {
         </ErrorBoundary>
       </main>
       <Footer />
+      {/* Storefront only — the admin console shares this Layout, and staff have
+          no use for a customer chat button bouncing over their tables. */}
+      {!isAdmin && <WhatsAppFab />}
     </div>
   )
 }

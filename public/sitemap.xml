@@ -21,10 +21,6 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://suvadu.example.com/contact</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
     <loc>https://suvadu.example.com/faq</loc>
     <changefreq>weekly</changefreq>
   </url>

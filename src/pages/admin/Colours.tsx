@@ -84,15 +84,17 @@ export default function AdminColours() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {colours.map((c) => (
-              <div key={c.name} className="flex items-center gap-3 rounded-2xl border border-border p-3">
+              <div key={c.name} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-border p-3">
                 <input type="color" value={c.hex} onChange={(e) => updateHex(c.name, e.target.value)} aria-label={`${c.name} colour`} className="h-9 w-9 shrink-0 cursor-pointer rounded-full border border-border bg-white" />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 basis-24">
                   <p className="truncate font-body text-sm font-medium text-plum">{c.name}</p>
                   <p className="font-body text-xs font-light text-muted-foreground">{c.hex}</p>
                 </div>
-                <StatusBadge status={c.active ? 'active' : 'inactive'} />
-                <button onClick={() => toggle(c)} className="font-body text-xs font-medium text-royal hover:underline">{c.active ? 'Hide' : 'Show'}</button>
-                <button onClick={() => remove(c.name)} aria-label="Delete" className="text-muted-foreground hover:text-rose-500"><Trash width={15} /></button>
+                <div className="flex items-center gap-3">
+                  <StatusBadge status={c.active ? 'active' : 'inactive'} />
+                  <button onClick={() => toggle(c)} className="font-body text-xs font-medium text-royal hover:underline">{c.active ? 'Hide' : 'Show'}</button>
+                  <button onClick={() => remove(c.name)} aria-label="Delete" className="text-muted-foreground hover:text-rose-500"><Trash width={15} /></button>
+                </div>
               </div>
             ))}
           </div>

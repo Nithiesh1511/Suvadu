@@ -38,9 +38,11 @@ export default function AdminLayout() {
   return (
     <div>
       <PageHeader eyebrow="Admin Console" title="SUVADU Admin" crumbs={[{ label: 'Admin' }]} />
-      <section className="container-suvadu grid gap-8 py-8 lg:grid-cols-[220px_1fr]">
+      <section className="container-suvadu grid gap-6 py-6 sm:gap-8 sm:py-8 lg:grid-cols-[220px_1fr]">
         <aside className="h-fit lg:sticky lg:top-24">
-          <nav className="flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col">
+          {/* A horizontal scroller below lg — twelve modules can't stack usefully
+              on a phone, and shrink-0 keeps each label from being compressed. */}
+          <nav className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col lg:overflow-visible">
             {NAV.map((item) => (
               <NavLink
                 key={item.to}
@@ -48,7 +50,7 @@ export default function AdminLayout() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    'whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm transition',
+                    'shrink-0 whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm transition',
                     isActive ? 'bg-royal text-white' : 'text-plum/80 hover:bg-lilac',
                   )
                 }
@@ -58,7 +60,7 @@ export default function AdminLayout() {
             ))}
             <button
               onClick={() => signOut()}
-              className="whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50"
+              className="shrink-0 whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50"
             >
               Sign out
             </button>

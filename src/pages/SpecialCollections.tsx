@@ -20,8 +20,8 @@ export default function SpecialCollections() {
         crumbs={[{ label: 'Special Collections' }]}
       />
 
-      <section className="container-suvadu py-16">
-        <div className="grid gap-8 lg:grid-cols-3">
+      <section className="container-suvadu py-12 sm:py-16">
+        <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
           {SPECIAL_COLLECTIONS.map((c) => {
             const a = ACCENTS[c.slug] ?? { colour: '#E6E6FA', pattern: 'plain' as const }
             return (
@@ -35,9 +35,9 @@ export default function SpecialCollections() {
                     <NotebookCover colour={a.colour} pattern={a.pattern} label={c.displayName} customText={c.slug === 'made-for-you' ? 'Your Name' : undefined} />
                   </div>
                 </div>
-                <div className="flex flex-1 flex-col p-7">
+                <div className="flex flex-1 flex-col p-5 sm:p-7">
                   <p className="eyebrow">{c.type}</p>
-                  <h3 className="mt-2 font-display text-2xl text-plum">{c.displayName}</h3>
+                  <h3 className="mt-2 font-display text-xl text-plum sm:text-2xl">{c.displayName}</h3>
                   <p className="mt-2 flex-1 font-body text-sm font-light leading-relaxed text-muted-foreground">{c.details}</p>
                   <span className="mt-5 inline-flex items-center gap-1.5 font-body text-xs font-medium uppercase tracking-cta text-royal">
                     Explore <ArrowRight width={15} className="transition-transform group-hover:translate-x-1" />
@@ -50,9 +50,9 @@ export default function SpecialCollections() {
       </section>
 
       {/* Personalisation feature band */}
-      <section className="border-y border-border bg-gradient-to-b from-lilac/40 to-white py-16">
-        <div className="container-suvadu grid items-center gap-12 lg:grid-cols-2">
-          <div className="relative mx-auto w-60">
+      <section className="border-y border-border bg-gradient-to-b from-lilac/40 to-white py-12 sm:py-16">
+        <div className="container-suvadu grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
+          <div className="relative mx-auto w-44 sm:w-60">
             <NotebookCover colour="#613092" pattern="plain" customText="For Ananya" customFont="Elegant Italic" className="shadow-lift" />
             <span className="absolute -right-4 -top-4 grid h-14 w-14 place-items-center rounded-full bg-white text-royal shadow-lift">
               <Pen />
@@ -60,7 +60,7 @@ export default function SpecialCollections() {
           </div>
           <div>
             <p className="eyebrow mb-3">How personalisation works</p>
-            <h2 className="font-display text-4xl leading-tight text-plum">Three steps to a one-of-one notebook</h2>
+            <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">Three steps to a one-of-one notebook</h2>
             <ul className="mt-7 space-y-4">
               {[
                 ['Choose your base', 'Pick a size, cover colour and pattern you love.'],

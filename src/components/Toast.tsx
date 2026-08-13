@@ -19,16 +19,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ notify }}>
       {children}
-      <div className="pointer-events-none fixed bottom-6 right-6 z-[100] flex flex-col gap-2">
+      {/* Anchored to both edges on phones so a long message wraps inside the
+          viewport instead of growing off-screen to the left. Raised clear of the
+          floating WhatsApp button, which owns the bottom-right corner. */}
+      <div className="pointer-events-none fixed inset-x-4 bottom-24 z-[100] flex flex-col items-stretch gap-2 sm:inset-x-auto sm:right-6 sm:items-end">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-center gap-3 rounded-full bg-plum px-5 py-3 text-sm text-white shadow-lift animate-fade-up"
+            className="pointer-events-auto flex w-full items-center gap-3 rounded-2xl bg-plum px-4 py-3 text-sm text-white shadow-lift animate-fade-up sm:w-auto sm:max-w-sm sm:rounded-full sm:px-5"
           >
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-royal-400/40">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-royal-400/40">
               <Check width={14} height={14} />
             </span>
-            {t.text}
+            <span className="min-w-0 break-anywhere">{t.text}</span>
           </div>
         ))}
       </div>

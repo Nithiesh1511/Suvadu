@@ -3,6 +3,11 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // `xs` covers small phones (iPhone SE / 360px Androids) where a 2-up grid
+      // or a side-by-side form still has to collapse.
+      screens: {
+        xs: '400px',
+      },
       colors: {
         // SUVADU brand palette (from the Dev Brief)
         royal: {
@@ -69,11 +74,23 @@ export default {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        // A double hop followed by a long rest, rather than Tailwind's built-in
+        // animate-bounce which never stops and is tuned for scroll cues. The
+        // per-keyframe easing is what makes it read as gravity: decelerating on
+        // the way up, accelerating on the way down.
+        'bounce-nudge': {
+          '0%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
+          '8%': { transform: 'translateY(-12px)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
+          '16%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
+          '22%': { transform: 'translateY(-5px)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
+          '28%, 100%': { transform: 'translateY(0)' },
+        },
       },
       animation: {
         'fade-up': 'fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both',
         'fade-in': 'fade-in 0.5s ease both',
         marquee: 'marquee 28s linear infinite',
+        'bounce-nudge': 'bounce-nudge 3s ease-in-out infinite',
       },
     },
   },

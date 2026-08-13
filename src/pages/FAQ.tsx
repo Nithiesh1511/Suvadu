@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { supabase, type FaqRow } from '@/lib/supabase'
 import PageHeader from '@/components/PageHeader'
-import { ChevronDown } from '@/components/Icons'
+import { ChevronDown, Whatsapp } from '@/components/Icons'
+import { openWhatsApp } from '@/lib/contact'
 import { cn } from '@/lib/utils'
 
 export default function FAQ() {
@@ -38,13 +38,13 @@ export default function FAQ() {
       <section className="container-suvadu grid gap-10 py-12 lg:grid-cols-[220px_1fr]">
         {/* Category nav */}
         <aside className="h-fit">
-          <nav className="flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col">
+          <nav className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col">
             {categories.map((c) => (
               <button
                 key={c}
                 onClick={() => { setCategory(c); setOpen(faqs.find((f) => f.category === c)?.id ?? null) }}
                 className={cn(
-                  'whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm transition',
+                  'shrink-0 whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm transition',
                   category === c ? 'bg-royal text-white' : 'text-plum/80 hover:bg-lilac',
                 )}
               >
@@ -70,15 +70,15 @@ export default function FAQ() {
                     <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-white shadow-card">
                       <button
                         onClick={() => setOpen(isOpen ? null : item.id)}
-                        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                        className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left sm:gap-4 sm:px-5"
                         aria-expanded={isOpen}
                       >
-                        <span className="font-display text-lg text-plum">{item.question}</span>
+                        <span className="font-display text-base text-plum sm:text-lg">{item.question}</span>
                         <ChevronDown width={20} className={cn('shrink-0 text-royal transition-transform duration-300', isOpen && 'rotate-180')} />
                       </button>
                       <div className={cn('grid transition-all duration-300', isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}>
                         <div className="overflow-hidden">
-                          <p className="px-5 pb-5 font-body text-sm font-light leading-relaxed text-muted-foreground">{item.answer}</p>
+                          <p className="px-4 pb-5 font-body text-sm font-light leading-relaxed text-muted-foreground sm:px-5">{item.answer}</p>
                         </div>
                       </div>
                     </div>
@@ -91,7 +91,9 @@ export default function FAQ() {
           <div className="mt-8 rounded-2xl border border-border bg-lilac/30 p-6 text-center">
             <p className="font-display text-xl text-plum">Still have a question?</p>
             <p className="mt-1 font-body text-sm font-light text-muted-foreground">Our team is happy to help.</p>
-            <Link to="/contact" className="btn-primary mt-4">Contact Us</Link>
+            <button type="button" onClick={() => openWhatsApp('Hi Suvadu! I have a question that wasn’t covered in your FAQ.')} className="btn-primary mt-4">
+              <Whatsapp width={16} /> Chat on WhatsApp
+            </button>
           </div>
         </div>
       </section>
