@@ -45,158 +45,6 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://suvadu.example.com/collections/calm-collection</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/calm-collection-1</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/calm-collection-2</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/calm-collection-3</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/calm-collection-4</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/calm-collection-5</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/inspire-ink</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/inspire-ink-1</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/inspire-ink-2</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/inspire-ink-3</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/inspire-ink-4</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/nature-notes</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/nature-notes-1</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/nature-notes-2</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/nature-notes-3</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/nature-notes-4</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/nature-notes-5</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/rhythm-series</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/rhythm-series-1</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/rhythm-series-2</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/rhythm-series-3</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/rhythm-series-4</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/rhythm-series-5</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/midnight-collection</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/midnight-collection-1</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/midnight-collection-2</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/midnight-collection-3</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/her-journal</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/her-journal-1</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/her-journal-2</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/her-journal-3</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/her-journal-4</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/her-journal-5</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/tiny-tales</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/tiny-tales-1</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/tiny-tales-2</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/tiny-tales-3</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/tiny-tales-4</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
     <loc>https://suvadu.example.com/special-collections/match-and-write</loc>
     <changefreq>weekly</changefreq>
   </url>
@@ -209,11 +57,27 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://suvadu.example.com/collections/everyday-collection</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://suvadu.example.com/collections/calm-collections</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
     <loc>https://suvadu.example.com/products/customized-notebook</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>https://suvadu.example.com/products/matching-set</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://suvadu.example.com/products/daily-ruled-notebook</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://suvadu.example.com/products/peace</loc>
     <changefreq>weekly</changefreq>
   </url>
 </urlset>

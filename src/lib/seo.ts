@@ -1,29 +1,75 @@
 import { useEffect } from 'react'
 
 // ── SEO meta helper (brief §11) ───────────────────────────────────────────
-// Unique <title> (≤60 chars) and meta description (≤160 chars) per page.
+// Unique <title> (≤60 chars) and meta description (≤160 chars) per page, plus a
+// canonical URL and Open Graph / Twitter Card tags so shared links unfurl with a
+// title, description and image.
 const SITE = 'SUVADU Notebooks'
 
-export function applyMeta(title: string, description?: string) {
-  const full = title.includes(SITE) ? title : `${title} · ${SITE}`
-  document.title = full.length > 60 ? full.slice(0, 60) : full
+// Absolute site origin for canonical/OG URLs. Set VITE_SITE_URL to your real
+// production domain (e.g. https://suvadunotebooks.com); falls back to the current
+// origin at runtime so previews still work.
+export const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') || ''
 
-  if (description) {
-    let tag = document.head.querySelector('meta[name="description"]') as HTMLMetaElement | null
-    if (!tag) {
-      tag = document.createElement('meta')
-      tag.name = 'description'
-      document.head.appendChild(tag)
-    }
-    tag.content = description.length > 160 ? description.slice(0, 157) + '…' : description
+function siteOrigin(): string {
+  if (SITE_URL) return SITE_URL
+  return typeof window !== 'undefined' ? window.location.origin : ''
+}
+
+function upsertMeta(selector: string, attr: 'name' | 'property', key: string, content: string) {
+  let tag = document.head.querySelector(selector) as HTMLMetaElement | null
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.setAttribute(attr, key)
+    document.head.appendChild(tag)
+  }
+  tag.content = content
+}
+
+function upsertCanonical(href: string) {
+  let link = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'canonical'
+    document.head.appendChild(link)
+  }
+  link.href = href
+}
+
+export function applyMeta(title: string, description?: string, image?: string) {
+  const full = title.includes(SITE) ? title : `${title} · ${SITE}`
+  const finalTitle = full.length > 60 ? full.slice(0, 57) + '…' : full
+  document.title = finalTitle
+
+  const desc = description
+    ? (description.length > 160 ? description.slice(0, 157) + '…' : description)
+    : undefined
+  if (desc) upsertMeta('meta[name="description"]', 'name', 'description', desc)
+
+  // Canonical: strip query/hash so filtered listing URLs don't fork into dupes.
+  const canonical = siteOrigin() + (typeof window !== 'undefined' ? window.location.pathname : '')
+  upsertCanonical(canonical)
+
+  // Open Graph + Twitter.
+  upsertMeta('meta[property="og:title"]', 'property', 'og:title', finalTitle)
+  if (desc) upsertMeta('meta[property="og:description"]', 'property', 'og:description', desc)
+  upsertMeta('meta[property="og:type"]', 'property', 'og:type', image ? 'product' : 'website')
+  upsertMeta('meta[property="og:url"]', 'property', 'og:url', canonical)
+  upsertMeta('meta[property="og:site_name"]', 'property', 'og:site_name', SITE)
+  upsertMeta('meta[name="twitter:card"]', 'name', 'twitter:card', image ? 'summary_large_image' : 'summary')
+  upsertMeta('meta[name="twitter:title"]', 'name', 'twitter:title', finalTitle)
+  if (desc) upsertMeta('meta[name="twitter:description"]', 'name', 'twitter:description', desc)
+  if (image) {
+    upsertMeta('meta[property="og:image"]', 'property', 'og:image', image)
+    upsertMeta('meta[name="twitter:image"]', 'name', 'twitter:image', image)
   }
 }
 
-/** Set page title + description for the lifetime of a component (dynamic pages). */
-export function useSeo(title: string, description?: string) {
+/** Set page title + description (+ optional share image) for a component. */
+export function useSeo(title: string, description?: string, image?: string) {
   useEffect(() => {
-    applyMeta(title, description)
-  }, [title, description])
+    applyMeta(title, description, image)
+  }, [title, description, image])
 }
 
 /** Static route → meta map, applied centrally in Layout on every navigation.

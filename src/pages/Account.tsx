@@ -53,13 +53,38 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 
 export default function Account({ tab = 'profile' }: { tab?: Tab }) {
   const { user, wishlist, toggleWishlist, addToCart } = useStore()
-  const { signOut } = useAuth()
+  const { signOut, loading: authLoading, session, profileError } = useAuth()
   const { allProducts: ALL_PRODUCTS } = useCatalog()
   const { notify } = useToast()
   const navigate = useNavigate()
   const [active, setActive] = useState<Tab>(tab)
   useEffect(() => setActive(tab), [tab])
 
+  // Wait for the session/profile bootstrap before deciding — otherwise a signed-in
+  // user briefly sees the Sign In form flash on every load.
+  if (authLoading) {
+    return (
+      <div>
+        <PageHeader title="My Account" crumbs={[{ label: 'Account' }]} />
+        <section className="container-suvadu py-20 text-center">
+          <p className="font-body text-sm font-light text-muted-foreground">Loading your account…</p>
+        </section>
+      </div>
+    )
+  }
+  // Session exists but the profile fetch failed — surface it instead of showing
+  // the Sign In form (which would wrongly imply the user is logged out).
+  if (session && profileError) {
+    return (
+      <div>
+        <PageHeader title="My Account" crumbs={[{ label: 'Account' }]} />
+        <section className="container-suvadu py-20 text-center">
+          <p className="font-body text-sm font-medium text-rose-500">We couldn’t load your profile. Please check your connection and refresh.</p>
+          <button onClick={() => window.location.reload()} className="btn-secondary mt-5">Retry</button>
+        </section>
+      </div>
+    )
+  }
   if (!user) return <AuthGate notify={notify} />
 
   const wished: Product[] = wishlist.map((id) => ALL_PRODUCTS.find((p) => p.id === id)).filter(Boolean) as Product[]
@@ -92,7 +117,7 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
                 {t.label}
               </button>
             ))}
-            <button onClick={async () => { await signOut(); notify('Logged out'); navigate('/') }} className="whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50">
+            <button onClick={async () => { const r = await signOut(); notify(r.ok ? 'Logged out' : r.message); if (r.ok) navigate('/') }} className="whitespace-nowrap rounded-xl px-4 py-2.5 text-left font-body text-sm text-rose-500 transition hover:bg-rose-50">
               Logout
             </button>
           </nav>
@@ -119,8 +144,8 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
 
 /* ---------- Auth ---------- */
 function AuthGate({ notify }: { notify: (m: string) => void }) {
-  const { signIn, signUp } = useAuth()
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const { signIn, signUp, resetPassword } = useAuth()
+  const [mode, setMode] = useState<'login' | 'register' | 'reset'>('login')
   const [form, setForm] = useState({ name: '', email: '', mobile: '', password: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -138,24 +163,31 @@ function AuthGate({ notify }: { notify: (m: string) => void }) {
     const res =
       mode === 'login'
         ? await signIn(form.email.trim(), form.password)
-        : await signUp({ name: form.name.trim(), email: form.email.trim(), password: form.password, mobile: form.mobile.trim() })
+        : mode === 'reset'
+          ? await resetPassword(form.email.trim())
+          : await signUp({ name: form.name.trim(), email: form.email.trim(), password: form.password, mobile: form.mobile.trim() })
     setBusy(false)
     if (!res.ok) { setError(res.message); return }
     notify(res.message)
-    // On sign-up with email confirmation enabled there's no session yet — bounce
-    // the user back to the login tab to sign in after confirming.
-    if (res.needsConfirmation) setMode('login')
+    // On sign-up with email confirmation enabled (or after a reset email) there's
+    // no session yet — bounce back to the login tab.
+    if (res.needsConfirmation || mode === 'reset') setMode('login')
   }
+
+  const heading = mode === 'login' ? 'Welcome back' : mode === 'reset' ? 'Reset password' : 'Join Suvadu'
+  const title = mode === 'login' ? 'Sign In' : mode === 'reset' ? 'Reset Password' : 'Create Account'
 
   return (
     <div>
-      <PageHeader title={mode === 'login' ? 'Sign In' : 'Create Account'} crumbs={[{ label: 'Account' }]} />
+      <PageHeader title={title} crumbs={[{ label: 'Account' }]} />
       <section className="container-suvadu py-16">
         <div className="card-surface mx-auto max-w-md p-7">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-lilac text-royal"><User width={26} /></span>
-          <h2 className="mt-5 text-center font-display text-2xl text-plum">{mode === 'login' ? 'Welcome back' : 'Join Suvadu'}</h2>
+          <h2 className="mt-5 text-center font-display text-2xl text-plum">{heading}</h2>
           <p className="mt-1 text-center font-body text-sm font-light text-muted-foreground">
-            {mode === 'login' ? 'Sign in to view orders, wishlist & customizations.' : 'Create an account to save your favourites.'}
+            {mode === 'login' ? 'Sign in to view orders, wishlist & customizations.'
+              : mode === 'reset' ? 'Enter your email and we’ll send a reset link.'
+              : 'Create an account to save your favourites.'}
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
@@ -166,18 +198,31 @@ function AuthGate({ notify }: { notify: (m: string) => void }) {
             {mode === 'register' && (
               <Input label="Mobile Number" type="tel" value={form.mobile} onChange={(v) => setForm((f) => ({ ...f, mobile: v.replace(/\D/g, '').slice(0, 10) }))} />
             )}
-            <Input label="Password" type="password" value={form.password} onChange={(v) => setForm((f) => ({ ...f, password: v }))} required />
+            {mode !== 'reset' && (
+              <Input label="Password" type="password" value={form.password} onChange={(v) => setForm((f) => ({ ...f, password: v }))} required />
+            )}
+            {mode === 'login' && (
+              <div className="text-right">
+                <button type="button" onClick={() => { setMode('reset'); setError('') }} className="font-body text-xs font-medium text-royal hover:underline">Forgot password?</button>
+              </div>
+            )}
             {error && <p className="font-body text-sm font-medium text-rose-500">{error}</p>}
             <button type="submit" disabled={busy} className="btn-primary btn-lg w-full">
-              {busy ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
+              {busy ? 'Please wait…' : mode === 'login' ? 'Sign In' : mode === 'reset' ? 'Send Reset Link' : 'Create Account'}
             </button>
           </form>
 
           <p className="mt-5 text-center font-body text-sm font-light text-muted-foreground">
-            {mode === 'login' ? "Don't have an account? " : 'Already have one? '}
-            <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} className="font-medium text-royal hover:underline">
-              {mode === 'login' ? 'Register' : 'Sign in'}
-            </button>
+            {mode === 'reset' ? (
+              <button onClick={() => { setMode('login'); setError('') }} className="font-medium text-royal hover:underline">← Back to sign in</button>
+            ) : (
+              <>
+                {mode === 'login' ? "Don't have an account? " : 'Already have one? '}
+                <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} className="font-medium text-royal hover:underline">
+                  {mode === 'login' ? 'Register' : 'Sign in'}
+                </button>
+              </>
+            )}
           </p>
         </div>
       </section>
@@ -227,23 +272,31 @@ function ProfilePanel() {
 function OrdersPanel() {
   const { addToCart } = useStore()
   const { allProducts } = useCatalog()
+  const { session } = useAuth()
   const { notify } = useToast()
   const [orders, setOrders] = useState<OrderRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
+    if (!session) { setLoading(false); return }
+    // Explicitly scope to the signed-in user. RLS also grants admins read access
+    // to ALL orders, so without this filter an admin's own "My Orders" would list
+    // every customer's orders — filter here regardless of RLS.
     supabase
       .from('orders')
       .select('id, order_number, status, total, created_at, order_items(product_id, product_name, product_slug, size, qty, unit_price, pages, customization)')
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (!active) return
-        setOrders((data as unknown as OrderRecord[]) ?? [])
+        if (error) setError(error.message)
+        else setOrders((data as unknown as OrderRecord[]) ?? [])
         setLoading(false)
       })
     return () => { active = false }
-  }, [])
+  }, [session])
 
   function reorder(o: OrderRecord) {
     let added = 0
@@ -266,6 +319,9 @@ function OrdersPanel() {
 
   if (loading) {
     return <Card title="Order History"><p className="font-body text-sm font-light text-muted-foreground">Loading your orders…</p></Card>
+  }
+  if (error) {
+    return <Card title="Order History"><p className="font-body text-sm font-medium text-rose-500">Couldn’t load your orders: {error}</p></Card>
   }
   if (orders.length === 0) {
     return (
@@ -316,32 +372,73 @@ function OrdersPanel() {
 const EMPTY_ADDRESS: Omit<Address, 'id'> = { label: '', line: '', city: '', state: '', pincode: '' }
 
 function AddressesPanel({ notify }: { notify: (m: string) => void }) {
-  const [addresses, setAddresses] = useState<Address[]>([
-    { id: 'A1', label: 'Home', line: '14 Brigade Road, Ashok Nagar', city: 'Bengaluru', state: 'Karnataka', pincode: '560025' },
-  ])
+  const { session } = useAuth()
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [loading, setLoading] = useState(true)
   // null = closed, 'new' = adding, otherwise the id of the address being edited.
   const [editing, setEditing] = useState<string | null>(null)
   const [form, setForm] = useState<Omit<Address, 'id'>>(EMPTY_ADDRESS)
+
+  useEffect(() => {
+    let active = true
+    if (!session) { setLoading(false); return }
+    supabase
+      .from('addresses')
+      .select('id, label, line, city, state, pincode')
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (!active) return
+        setAddresses((data as unknown as Address[]) ?? [])
+        setLoading(false)
+      })
+    return () => { active = false }
+  }, [session])
 
   function openAdd() { setForm(EMPTY_ADDRESS); setEditing('new') }
   function openEdit(a: Address) { setForm({ label: a.label, line: a.line, city: a.city, state: a.state, pincode: a.pincode }); setEditing(a.id) }
   function close() { setEditing(null); setForm(EMPTY_ADDRESS) }
 
-  function save(e: React.FormEvent) {
+  async function save(e: React.FormEvent) {
     e.preventDefault()
     if (!form.line || !/^\d{6}$/.test(form.pincode)) { notify('Enter a valid address and 6-digit pincode.'); return }
+    if (!session) { notify('Please sign in to save an address.'); return }
     if (editing === 'new') {
-      setAddresses((a) => [...a, { ...form, id: 'A' + Date.now() }])
+      const { data, error } = await supabase
+        .from('addresses')
+        .insert({ user_id: session.user.id, ...form })
+        .select('id, label, line, city, state, pincode')
+        .single()
+      if (error) { notify(`Could not save address: ${error.message}`); return }
+      setAddresses((a) => [...a, data as unknown as Address])
       notify('Address added')
     } else {
-      setAddresses((a) => a.map((x) => (x.id === editing ? { ...form, id: x.id } : x)))
+      const { data, error } = await supabase
+        .from('addresses')
+        .update(form)
+        .eq('id', editing)
+        .select('id, label, line, city, state, pincode')
+        .single()
+      if (error) { notify(`Could not update address: ${error.message}`); return }
+      setAddresses((a) => a.map((x) => (x.id === editing ? (data as unknown as Address) : x)))
       notify('Address updated')
     }
     close()
   }
 
+  async function remove(id: string) {
+    const { error } = await supabase.from('addresses').delete().eq('id', id)
+    if (error) { notify(`Could not remove address: ${error.message}`); return }
+    setAddresses((p) => p.filter((x) => x.id !== id))
+    if (editing === id) close()
+    notify('Address removed')
+  }
+
   return (
     <Card title="Saved Addresses" action={!editing ? { label: 'Add New Address', onClick: openAdd } : undefined}>
+      {loading && <p className="font-body text-sm font-light text-muted-foreground">Loading addresses…</p>}
+      {!loading && addresses.length === 0 && !editing && (
+        <p className="font-body text-sm font-light text-muted-foreground">No saved addresses yet. Add one for faster checkout.</p>
+      )}
       <div className="space-y-4">
         {addresses.map((a) => (
           <div key={a.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border p-5">
@@ -351,7 +448,7 @@ function AddressesPanel({ notify }: { notify: (m: string) => void }) {
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <button onClick={() => openEdit(a)} aria-label="Edit address" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-lilac hover:text-royal"><Pen width={15} /></button>
-              <button onClick={() => { setAddresses((p) => p.filter((x) => x.id !== a.id)); if (editing === a.id) close(); notify('Address removed') }} aria-label="Delete address" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-rose-50 hover:text-rose-500"><Trash width={16} /></button>
+              <button onClick={() => remove(a.id)} aria-label="Delete address" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-rose-50 hover:text-rose-500"><Trash width={16} /></button>
             </div>
           </div>
         ))}
@@ -381,6 +478,7 @@ function CustomizationsPanel() {
   const { session } = useAuth()
   const [items, setItems] = useState<SavedCustomization[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -392,8 +490,9 @@ function CustomizationsPanel() {
       .select('customization, orders!inner(user_id)')
       .eq('orders.user_id', session.user.id)
       .not('customization', 'is', null)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (!active) return
+        if (error) { setError(error.message); setLoading(false); return }
         const rows = (data as unknown as CustomItemRow[]) ?? []
         const seen = new Set<string>()
         const list: SavedCustomization[] = []
@@ -414,6 +513,9 @@ function CustomizationsPanel() {
 
   if (loading) {
     return <Card title="Saved Customizations"><p className="font-body text-sm font-light text-muted-foreground">Loading…</p></Card>
+  }
+  if (error) {
+    return <Card title="Saved Customizations"><p className="font-body text-sm font-medium text-rose-500">Couldn’t load your customizations: {error}</p></Card>
   }
   if (items.length === 0) {
     return (

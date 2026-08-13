@@ -48,6 +48,7 @@ export interface Product {
   reviews: number
   bestseller?: boolean
   isNew?: boolean
+  stock?: number | null // null/undefined = not tracked; 0 = out of stock
 }
 
 // ---- Section 5: Colour Options — Minimal Aesthetic Collection ----
@@ -311,7 +312,7 @@ export interface FaqItem {
 export const FAQ: Record<string, FaqItem[]> = {
   Shipping: [
     { q: 'Where do you ship?', a: 'We ship pan-India via Shiprocket. Most metros receive orders in 2–4 business days; other locations in 4–7 days.' },
-    { q: 'How much does shipping cost?', a: 'Shipping is calculated at checkout based on your pincode. Orders above a set value ship free — the threshold is shown in your cart.' },
+    { q: 'How much does shipping cost?', a: 'Shipping is free across India — the price you see is the price you pay, with no separate delivery charge at checkout.' },
     { q: 'Can I track my order?', a: 'Yes. Once shipped you’ll receive a tracking link by SMS and email, and you can track it under My Account → Order History.' },
   ],
   Customization: [

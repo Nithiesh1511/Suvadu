@@ -57,6 +57,7 @@ export interface ProductRow {
   bestseller: boolean
   is_new: boolean
   is_custom: boolean
+  stock: number | null   // null = not tracked / unlimited; 0 = out of stock
   created_at: string
 }
 

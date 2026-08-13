@@ -94,9 +94,19 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
           </label>
         </div>
 
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-          {products.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
+        {products.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border py-16 text-center">
+            <p className="font-display text-xl text-plum">No designs here yet</p>
+            <p className="mx-auto mt-2 max-w-sm font-body text-sm font-light text-muted-foreground">
+              This collection is being stocked. Explore our other collections in the meantime.
+            </p>
+            <Link to="/collections" className="btn-secondary mt-6">Browse all collections</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+            {products.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        )}
       </section>
 
       <section className="border-t border-border bg-lilac/30 py-14">

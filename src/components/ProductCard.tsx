@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { Product } from '@/data/products'
 import { formatINR } from '@/lib/utils'
@@ -8,7 +9,7 @@ import Stars from './Stars'
 import { Heart } from './Icons'
 import { cn } from '@/lib/utils'
 
-export default function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product }: { product: Product }) {
   const { isWished, toggleWishlist, user } = useStore()
   const { notify } = useToast()
   const navigate = useNavigate()
@@ -80,3 +81,8 @@ export default function ProductCard({ product }: { product: Product }) {
     </Link>
   )
 }
+
+// Memoized: product cards render in grids of many; a parent re-render (or an
+// unrelated store change) shouldn't re-render every card when its product is
+// unchanged.
+export default memo(ProductCard)

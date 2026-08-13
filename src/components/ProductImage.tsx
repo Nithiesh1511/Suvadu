@@ -28,6 +28,9 @@ export default function ProductImage({ image, alt, className, rounded = true, ..
         src={image}
         alt={alt ?? ''}
         loading="lazy"
+        decoding="async"
+        width={600}
+        height={800}
         className={cn('aspect-[3/4] w-full object-cover', rounded && 'rounded-2xl', className)}
       />
     )

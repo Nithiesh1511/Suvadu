@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '@/context/StoreContext'
 import { useAuth } from '@/context/AuthContext'
@@ -11,9 +11,18 @@ import ProductImage from '@/components/ProductImage'
 import { Check, ArrowRight, Pen } from '@/components/Icons'
 import { formatINR, cn, isEmail, isMobile } from '@/lib/utils'
 
+// Collision-resistant, human-readable order number: time component (base36) plus
+// a short random suffix. Unique in practice; the insert also retries on the rare
+// clash against the order_number UNIQUE constraint.
+function makeOrderNumber(): string {
+  const t = Date.now().toString(36).toUpperCase().slice(-6)
+  const r = Math.floor(Math.random() * 46656).toString(36).toUpperCase().padStart(3, '0')
+  return `SUV${t}${r}`
+}
+
 export default function Checkout() {
   const { cart, subtotal, discount, total, coupon, clearCart, user } = useStore()
-  const { session } = useAuth()
+  const { session, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const { notify } = useToast()
 
@@ -21,6 +30,18 @@ export default function Checkout() {
     name: user?.name ?? '', email: user?.email ?? '', mobile: user?.mobile ?? '',
     address: '', city: '', state: '', pincode: '',
   })
+
+  // The profile loads asynchronously; if it resolves after this page mounted,
+  // backfill the contact fields the signed-in user would otherwise retype.
+  useEffect(() => {
+    if (!user) return
+    setForm((f) => ({
+      ...f,
+      name: f.name || user.name,
+      email: f.email || user.email,
+      mobile: f.mobile || user.mobile,
+    }))
+  }, [user])
   // Actual method (UPI/card/net-banking) is chosen inside the Razorpay modal.
   const paymentMethod = 'Razorpay'
   const [editing, setEditing] = useState(true)
@@ -56,32 +77,43 @@ export default function Checkout() {
     setPlacing(true)
 
     // 1. Persist the order as 'pending' along with its line items.
-    const orderNumber = 'SUV' + Math.floor(100000 + (Date.now() % 900000))
-    const { data: order, error } = await supabase
-      .from('orders')
-      .insert({
-        order_number: orderNumber,
-        user_id: session.user.id,
-        status: 'pending',
-        subtotal,
-        discount,
-        shipping: 0,
-        total: grandTotal,
-        coupon,
-        payment_method: paymentMethod,
-        address: form,
-      })
-      .select()
-      .single()
-
-    if (error || !order) {
+    //    Retry on the rare order_number collision (unique constraint, code 23505).
+    let order: { id: string } | null = null
+    let orderNumber = ''
+    for (let attempt = 0; attempt < 4 && !order; attempt++) {
+      orderNumber = makeOrderNumber()
+      const { data, error } = await supabase
+        .from('orders')
+        .insert({
+          order_number: orderNumber,
+          user_id: session.user.id,
+          status: 'pending',
+          subtotal,
+          discount,
+          shipping: 0,
+          total: grandTotal,
+          coupon,
+          payment_method: paymentMethod,
+          address: form,
+        })
+        .select()
+        .single()
+      if (data) { order = data; break }
+      // 23505 = unique_violation → regenerate and retry; anything else is fatal.
+      if (error?.code !== '23505') {
+        setPlacing(false)
+        notify(`Could not place order: ${error?.message ?? 'unknown error'}`)
+        return
+      }
+    }
+    if (!order) {
       setPlacing(false)
-      notify(`Could not place order: ${error?.message ?? 'unknown error'}`)
+      notify('Could not place order — please try again.')
       return
     }
 
     const items = cart.map((c) => ({
-      order_id: order.id,
+      order_id: order!.id,
       product_id: c.product.id,
       product_name: c.product.name,
       product_slug: c.product.slug,
@@ -95,7 +127,14 @@ export default function Checkout() {
           : null,
     }))
     const { error: itemsError } = await supabase.from('order_items').insert(items)
-    if (itemsError) notify(`Order saved but items failed to record: ${itemsError.message}`)
+    if (itemsError) {
+      // Don't leave an order with no line items behind — roll it back and abort
+      // before charging anything.
+      await supabase.from('orders').delete().eq('id', order.id)
+      setPlacing(false)
+      notify(`Could not record your items: ${itemsError.message}. Please try again.`)
+      return
+    }
 
     // 2. Create the Razorpay order (server-side) and open the checkout modal.
     const loaded = await loadRazorpay()
@@ -158,7 +197,7 @@ export default function Checkout() {
             <span className="grid h-20 w-20 place-items-center rounded-full bg-royal text-white shadow-lift animate-fade-up"><Check width={40} /></span>
             <h2 className="mt-7 font-display text-4xl text-plum">Thank you!</h2>
             <p className="mt-3 max-w-md font-body text-base font-light text-muted-foreground">
-              Your payment was successful and your order is being prepared. A confirmation has been sent to your email.
+              Your payment was successful and your order is being prepared. You can track it any time under My Orders.
             </p>
             <div className="mt-6 rounded-2xl bg-lilac/60 px-8 py-4">
               <p className="font-body text-xs uppercase tracking-wide text-muted-foreground">Order ID</p>
@@ -168,6 +207,24 @@ export default function Checkout() {
               <Link to="/account" className="btn-primary">View My Orders</Link>
               <Link to="/collections" className="btn-secondary">Continue Shopping</Link>
             </div>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
+  // ---- Sign-in gate (before the address form, so nothing is typed in vain) ----
+  if (!authLoading && !session) {
+    return (
+      <div>
+        <PageHeader title="Checkout" crumbs={[{ label: 'Cart', to: '/cart' }, { label: 'Checkout' }]} />
+        <section className="container-suvadu py-20 text-center">
+          <div className="card-surface mx-auto max-w-md px-6 py-14">
+            <h2 className="font-display text-3xl text-plum">Please sign in to check out</h2>
+            <p className="mt-2 font-body text-sm font-light text-muted-foreground">
+              Sign in or create an account to place your order and track it later. Your cart is saved.
+            </p>
+            <Link to="/account" className="btn-primary btn-lg mt-7">Sign In / Register</Link>
           </div>
         </section>
       </div>

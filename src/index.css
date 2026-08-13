@@ -239,6 +239,55 @@
   background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #F3E8FF 100%);
 }
 .nb3d canvas { display: block; touch-action: none; }
+
+/* Showcase: the notebook fills a full-width banner. --nb3d-shift / --nb3d-lift
+   are set from JS to match how far the camera pushed the book right and lifted
+   it above the control strip, so the DOM chrome tracks the notebook. */
+.nb3d--showcase {
+  --nb3d-shift: 0%;
+  --nb3d-lift: 0%;
+  min-height: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 90% at calc(50% + var(--nb3d-shift)) 8%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 55%),
+    radial-gradient(ellipse at calc(50% + var(--nb3d-shift)) 34%, #FDFBFF 0%, #F3E8FF 52%, #E4D3F7 100%);
+}
+/* Faint floor band so the book reads as sitting on a surface. */
+.nb3d--showcase::after {
+  content: '';
+  position: absolute; inset: auto 0 0 0; height: 34%; z-index: 1;
+  background: linear-gradient(to bottom, rgba(97, 48, 146, 0) 0%, rgba(97, 48, 146, 0.07) 100%);
+  pointer-events: none;
+}
+.nb3d--showcase .nb3d__hint,
+.nb3d--showcase .nb3d__open,
+.nb3d--showcase .nb3d__close,
+.nb3d--showcase .nb3d__overlay { z-index: 2; }
+/* The banner supplies its own heading, so the built-in brand tag stands down. */
+.nb3d--showcase .nb3d__tag { display: none; }
+.nb3d--showcase .nb3d__close { top: 22px; right: 24px; width: 38px; height: 38px; }
+.nb3d--showcase .nb3d__close svg { width: 17px; height: 17px; }
+/* Controls live in the reserved strip, off to the sides of the notebook. */
+.nb3d--showcase .nb3d__hint {
+  left: 30px; bottom: 34px; transform: none; font-size: 11px;
+}
+.nb3d--showcase .nb3d__open {
+  left: auto; right: 24px; bottom: 24px; transform: none;
+  padding: 12px 24px; box-shadow: 0 10px 28px rgba(44, 26, 62, 0.28);
+}
+.nb3d--showcase .nb3d__open:hover { transform: translateY(-2px); }
+.nb3d--showcase .nb3d__overlay {
+  left: calc(50% + var(--nb3d-shift));
+  top: calc(50% - var(--nb3d-lift));
+  width: 34%; max-width: 360px;
+}
+.nb3d--showcase .nb3d__line { font-size: clamp(20px, 2.4vw, 30px); }
+/* Too narrow for a hint and a button side by side — keep the button, centred. */
+@media (max-width: 560px) {
+  .nb3d--showcase .nb3d__hint { display: none; }
+  .nb3d--showcase .nb3d__open { left: 50%; right: auto; transform: translateX(-50%); }
+  .nb3d--showcase .nb3d__open:hover { transform: translateX(-50%) translateY(-2px); }
+}
 .nb3d__tag {
   position: absolute; top: 20px; left: 22px;
   color: #613092; font-family: 'DM Serif Display', serif; font-size: 20px; opacity: 0.9;

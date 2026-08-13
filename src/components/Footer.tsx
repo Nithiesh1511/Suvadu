@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useToast } from './Toast'
+import { supabase } from '@/lib/supabase'
+import { isEmail } from '@/lib/utils'
 import { Instagram, Facebook, Pinterest, ArrowRight } from './Icons'
 
 const SHOP_LINKS = [
@@ -28,11 +30,18 @@ const SOCIAL = [
 export default function Footer() {
   const { notify } = useToast()
   const [email, setEmail] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  function subscribe(e: React.FormEvent) {
+  async function subscribe(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim()) return
-    notify('Thanks for subscribing — check your inbox!')
+    const value = email.trim().toLowerCase()
+    if (!isEmail(value)) { notify('Please enter a valid email address.'); return }
+    setBusy(true)
+    // upsert so a repeat sign-up doesn't error on the primary-key conflict.
+    const { error } = await supabase.from('newsletter_subscribers').upsert({ email: value }, { onConflict: 'email' })
+    setBusy(false)
+    if (error) { notify('Could not subscribe right now — please try again.'); return }
+    notify('Thanks for subscribing!')
     setEmail('')
   }
 
@@ -94,7 +103,9 @@ export default function Footer() {
               New collections, restocks and the occasional poem. No spam.
             </p>
             <form onSubmit={subscribe} className="mt-4 flex overflow-hidden rounded-full border border-border bg-white p-1 focus-within:border-royal">
+              <label htmlFor="footer-newsletter" className="sr-only">Email address for newsletter</label>
               <input
+                id="footer-newsletter"
                 type="email"
                 required
                 value={email}
@@ -102,7 +113,7 @@ export default function Footer() {
                 placeholder="Your email"
                 className="w-full bg-transparent px-4 font-body text-sm text-plum outline-none placeholder:text-muted-foreground/60"
               />
-              <button type="submit" aria-label="Subscribe" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-royal text-white transition hover:bg-royal-700">
+              <button type="submit" disabled={busy} aria-label="Subscribe" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-royal text-white transition hover:bg-royal-700 disabled:opacity-50">
                 <ArrowRight width={18} height={18} />
               </button>
             </form>

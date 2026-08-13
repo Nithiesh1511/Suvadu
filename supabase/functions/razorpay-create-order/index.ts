@@ -35,6 +35,16 @@ Deno.serve(async (req) => {
     if (error || !order) return json({ error: 'Order not found.' }, 404)
     if (order.user_id !== user.id) return json({ error: 'Forbidden.' }, 403)
 
+    // ⚠️ SECURITY — server-authoritative pricing (do this before going live).
+    // The order row's subtotal/discount/total were written by the client, so the
+    // amount below currently trusts client-supplied numbers. Before charging real
+    // money, recompute the total here from order_items × the live `products`
+    // prices (+ page factor) and the validated coupon, and reject if it disagrees
+    // with order.total. Reference implementation to add when Razorpay resumes:
+    //   const { data: items } = await admin.from('order_items')
+    //     .select('product_id, size, qty, pages').eq('order_id', order.id)
+    //   // look up products, apply PAGE_PRICE_FACTOR, sum, apply coupon → expected
+    //   if (Math.round(expected) !== Math.round(Number(order.total))) return json(...)
     const amount = Math.round(Number(order.total) * 100) // Razorpay expects the smallest unit (paise)
     const rzpRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',

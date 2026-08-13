@@ -30,11 +30,22 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // lock body scroll when drawer open
+  // lock body scroll while either overlay is open
   useEffect(() => {
-    document.body.style.overflow = drawer ? 'hidden' : ''
+    const open = drawer || search
+    document.body.style.overflow = open ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
-  }, [drawer])
+  }, [drawer, search])
+
+  // Close the search / menu overlays on Escape (keyboard accessibility).
+  useEffect(() => {
+    if (!drawer && !search) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setSearch(false); setDrawer(false) }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [drawer, search])
 
   const results = query.trim()
     ? ALL_PRODUCTS.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()) || p.collectionName.toLowerCase().includes(query.toLowerCase())).slice(0, 6)

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from '@/components/Layout'
 import Home from '@/pages/Home'
@@ -13,21 +14,29 @@ import Checkout from '@/pages/Checkout'
 import Account from '@/pages/Account'
 import ProductDetail from '@/pages/ProductDetail'
 import Policy from '@/pages/Policy'
-import AdminLayout from '@/pages/admin/AdminLayout'
-import AdminDashboard from '@/pages/admin/Dashboard'
-import AdminProducts from '@/pages/admin/Products'
-import AdminProductForm from '@/pages/admin/ProductForm'
-import AdminCollections from '@/pages/admin/Collections'
-import AdminOrders from '@/pages/admin/Orders'
-import AdminCoupons from '@/pages/admin/Coupons'
-import AdminColours from '@/pages/admin/Colours'
-import AdminBanners from '@/pages/admin/Banners'
-import AdminFaqs from '@/pages/admin/Faqs'
-import AdminReviews from '@/pages/admin/Reviews'
-import AdminCustomers from '@/pages/admin/Customers'
-import AdminLogs from '@/pages/admin/Logs'
-import AdminContactRequests from '@/pages/admin/ContactRequests'
 import NotFound from '@/pages/NotFound'
+
+// The admin panel is a separate concern from the storefront and is only reached
+// by a handful of admin users. Lazy-load the whole thing so anonymous shoppers
+// never download it in the main bundle.
+const AdminLayout = lazy(() => import('@/pages/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'))
+const AdminProducts = lazy(() => import('@/pages/admin/Products'))
+const AdminProductForm = lazy(() => import('@/pages/admin/ProductForm'))
+const AdminCollections = lazy(() => import('@/pages/admin/Collections'))
+const AdminOrders = lazy(() => import('@/pages/admin/Orders'))
+const AdminCoupons = lazy(() => import('@/pages/admin/Coupons'))
+const AdminColours = lazy(() => import('@/pages/admin/Colours'))
+const AdminBanners = lazy(() => import('@/pages/admin/Banners'))
+const AdminFaqs = lazy(() => import('@/pages/admin/Faqs'))
+const AdminReviews = lazy(() => import('@/pages/admin/Reviews'))
+const AdminCustomers = lazy(() => import('@/pages/admin/Customers'))
+const AdminLogs = lazy(() => import('@/pages/admin/Logs'))
+const AdminContactRequests = lazy(() => import('@/pages/admin/ContactRequests'))
+
+function AdminFallback() {
+  return <div className="grid min-h-[40vh] place-items-center font-body text-sm text-muted-foreground">Loading…</div>
+}
 
 export default function App() {
   return (
@@ -47,7 +56,14 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/account" element={<Account />} />
         <Route path="/account/wishlist" element={<Account tab="wishlist" />} />
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<AdminFallback />}>
+              <AdminLayout />
+            </Suspense>
+          }
+        >
           <Route index element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="products/new" element={<AdminProductForm />} />

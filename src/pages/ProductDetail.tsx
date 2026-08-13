@@ -21,7 +21,7 @@ import PageHeader from '@/components/PageHeader'
 import JsonLd from '@/components/JsonLd'
 import { Heart, Share, Zoom, Plus, Minus, Check, Close, Truck, Leaf, Pen } from '@/components/Icons'
 import { formatINR, cn } from '@/lib/utils'
-import { useSeo } from '@/lib/seo'
+import { useSeo, SITE_URL } from '@/lib/seo'
 import NotFound from './NotFound'
 
 const TRUST = [
@@ -54,6 +54,14 @@ export default function ProductDetail() {
   // open the personalise panel once we know it's a customized product.
   useEffect(() => { if (isCustom) setShowPersonalise(true) }, [isCustom])
 
+  // Close the zoom overlay on Escape (keyboard accessibility).
+  useEffect(() => {
+    if (!zoom) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoom(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [zoom])
+
   // Customization state (only relevant for customized products)
   const [cName, setCName] = useState('')
   const [cText, setCText] = useState('')
@@ -65,8 +73,9 @@ export default function ProductDetail() {
   )
   const fallbackRelated = useMemo(() => products.filter((p) => p.slug !== slug).slice(0, 4), [slug, products])
 
-  // SEO meta (brief §11) — unique title + description per product.
-  useSeo(product?.name ?? 'Product', product?.description)
+  // SEO meta (brief §11) — unique title + description per product, plus the cover
+  // image (when present) so shared links unfurl with a picture.
+  useSeo(product?.name ?? 'Product', product?.description, product?.image ?? undefined)
 
   if (loading && !product) {
     return (
@@ -84,10 +93,16 @@ export default function ProductDetail() {
   // Page count scales the price (listed price is for 160 pages).
   const unitPrice = basePrice == null ? null : priceForPages(basePrice, pages)
 
+  // Inventory (stock == null means untracked → always available).
+  const stock = prod.stock ?? null
+  const outOfStock = stock === 0
+  const lowStock = stock != null && stock > 0 && stock <= 5
+  const maxQty = stock != null && stock > 0 ? stock : Infinity
+
   const previewText = cName || cText
   const thumbs = buildThumbs(colour, product.pattern)
 
-  // Product structured data (brief §11 — Product schema)
+  // Product structured data (brief §11 — Product schema).
   const productLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -95,19 +110,31 @@ export default function ProductDetail() {
     description: prod.description,
     category: prod.collectionName,
     brand: { '@type': 'Brand', name: 'SUVADU Notebooks' },
-    aggregateRating: { '@type': 'AggregateRating', ratingValue: prod.rating, reviewCount: prod.reviews },
+    // Only advertise an aggregateRating when there are real reviews — emitting
+    // reviewCount: 0 is invalid schema and risks a structured-data penalty.
+    ...(prod.reviews > 0
+      ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: prod.rating, reviewCount: prod.reviews } }
+      : {}),
     offers: {
       '@type': 'Offer',
       priceCurrency: 'INR',
       price: prod.prices.A5 ?? prod.prices.A4 ?? 0,
-      availability: 'https://schema.org/InStock',
-      url: `https://suvadu.example.com/products/${prod.slug}`,
+      availability: outOfStock ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      url: `${SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/products/${prod.slug}`,
     },
   }
 
   function handleAddToCart(redirect = false) {
     if (onRequest) {
       notify('This size is priced on request — we’ll be in touch with a quote.')
+      return
+    }
+    if (outOfStock) {
+      notify('This notebook is currently out of stock.')
+      return
+    }
+    if (stock != null && qty > stock) {
+      notify(`Only ${stock} left in stock.`)
       return
     }
     if (isCustom && !cName.trim() && !cText.trim()) {
@@ -206,6 +233,14 @@ export default function ProductDetail() {
             )}
             <span className="pb-1 font-body text-sm font-light text-muted-foreground">incl. taxes · {size}</span>
           </div>
+
+          {/* Stock status */}
+          {outOfStock && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 font-body text-xs font-medium text-rose-600">Out of stock</p>
+          )}
+          {lowStock && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 font-body text-xs font-medium text-amber-700">Only {stock} left in stock</p>
+          )}
 
           <p className="mt-5 font-body text-base font-light leading-relaxed text-muted-foreground">{product.description}</p>
 
@@ -316,7 +351,7 @@ export default function ProductDetail() {
             <div className="flex items-center rounded-full border border-border bg-white">
               <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="grid h-11 w-11 place-items-center text-plum transition hover:text-royal"><Minus width={16} /></button>
               <span className="w-8 text-center font-body text-base font-medium text-plum">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} aria-label="Increase quantity" className="grid h-11 w-11 place-items-center text-plum transition hover:text-royal"><Plus width={16} /></button>
+              <button onClick={() => setQty((q) => Math.min(maxQty, q + 1))} disabled={qty >= maxQty} aria-label="Increase quantity" className="grid h-11 w-11 place-items-center text-plum transition hover:text-royal disabled:opacity-40"><Plus width={16} /></button>
             </div>
             <button onClick={handleWish} className={cn('btn-secondary', wished && 'border-rose-300 text-rose-500')}>
               <Heart width={16} filled={wished} /> {wished ? 'Wishlisted' : 'Wishlist'}
@@ -327,8 +362,8 @@ export default function ProductDetail() {
           </div>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <button onClick={() => handleAddToCart(false)} disabled={onRequest} className="btn-primary btn-lg flex-1">Add to Cart</button>
-            <button onClick={() => handleAddToCart(true)} disabled={onRequest} className="btn-secondary btn-lg flex-1">Buy Now</button>
+            <button onClick={() => handleAddToCart(false)} disabled={onRequest || outOfStock} className="btn-primary btn-lg flex-1">{outOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
+            <button onClick={() => handleAddToCart(true)} disabled={onRequest || outOfStock} className="btn-secondary btn-lg flex-1">Buy Now</button>
           </div>
           {onRequest && (
             <p className="mt-3 font-body text-xs font-light text-muted-foreground">
@@ -364,8 +399,8 @@ export default function ProductDetail() {
 
       {/* Zoom overlay */}
       {zoom && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-plum/70 p-6 backdrop-blur-sm animate-fade-in" onClick={() => setZoom(false)}>
-          <button aria-label="Close" className="absolute right-6 top-6 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-plum hover:text-royal"><Close /></button>
+        <div role="dialog" aria-modal="true" aria-label={`${product.name} enlarged`} className="fixed inset-0 z-[90] flex items-center justify-center bg-plum/70 p-6 backdrop-blur-sm animate-fade-in" onClick={() => setZoom(false)}>
+          <button aria-label="Close" onClick={() => setZoom(false)} className="absolute right-6 top-6 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-plum hover:text-royal"><Close /></button>
           <div className="animate-fade-up" onClick={(e) => e.stopPropagation()} style={{ height: 'min(88vh, 760px)' }}>
             <ProductImage
               image={product.image}

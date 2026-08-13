@@ -180,6 +180,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
         'shrink-0 whitespace-nowrap rounded-full border px-4 py-2 font-body text-sm transition',
         active

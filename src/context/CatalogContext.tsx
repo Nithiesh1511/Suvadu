@@ -29,6 +29,7 @@ export interface ProductInput {
   image: string // data URL (admin picker), an existing URL, or '' for none
   bestseller: boolean
   isNew: boolean
+  stock: number | null // null = not tracked / unlimited
 }
 
 export interface CollectionInput {
@@ -105,6 +106,7 @@ function mapProduct(r: ProductRow, collectionName: string): Product {
     reviews: r.reviews,
     bestseller: r.bestseller,
     isNew: r.is_new,
+    stock: r.stock ?? null,
   }
 }
 
@@ -250,6 +252,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         reviews: 0,
         bestseller: input.bestseller,
         is_new: input.isNew,
+        stock: input.stock,
         is_custom: true,
       }
 
@@ -300,6 +303,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         image: imageUrl,
         bestseller: input.bestseller,
         is_new: input.isNew,
+        stock: input.stock,
       }
       const { data, error: updErr } = await supabase.from('products').update(patch).eq('id', id).select().single()
       if (updErr) {

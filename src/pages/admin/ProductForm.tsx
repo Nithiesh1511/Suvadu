@@ -18,6 +18,7 @@ const empty = {
   name: '', collectionSlug: '', type: 'basic' as ProductType,
   priceA5: '299', priceA4: '399', priceCustom: '',
   description: '', image: '', bestseller: false, isNew: true,
+  stock: '', // blank = not tracked (unlimited)
 }
 
 export default function ProductForm() {
@@ -47,6 +48,7 @@ export default function ProductForm() {
         image: existing.image ?? '',
         bestseller: Boolean(existing.bestseller),
         isNew: Boolean(existing.isNew),
+        stock: existing.stock == null ? '' : String(existing.stock),
       })
     } else if (!isEdit && !form.collectionSlug && collections[0]) {
       setForm((f) => ({ ...f, collectionSlug: collections[0].slug }))
@@ -87,6 +89,7 @@ export default function ProductForm() {
       image: form.image,
       bestseller: form.bestseller,
       isNew: form.isNew,
+      stock: form.stock.trim() === '' ? null : Math.max(0, Math.floor(Number(form.stock))),
     }
     setSaving(true)
     const res = isEdit ? await updateProduct(id!, input) : await addProduct(input)
@@ -127,8 +130,12 @@ export default function ProductForm() {
             <input className="field" type="number" min="0" value={form.priceA4} onChange={(e) => set('priceA4', e.target.value)} placeholder="Leave blank if N/A" />
           </AdminField>
 
-          <AdminField label="Custom price (₹) — optional" className="sm:col-span-2">
+          <AdminField label="Custom price (₹) — optional">
             <input className="field" type="number" min="0" value={form.priceCustom} onChange={(e) => set('priceCustom', e.target.value)} placeholder="Leave blank = priced on request" />
+          </AdminField>
+
+          <AdminField label="Stock — optional">
+            <input className="field" type="number" min="0" step="1" value={form.stock} onChange={(e) => set('stock', e.target.value)} placeholder="Leave blank = not tracked" />
           </AdminField>
 
           <AdminField label="Product image" className="sm:col-span-2">

@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { REVIEWS } from '@/data/products'
 import { useCatalog } from '@/context/CatalogContext'
 import { supabase, type BannerRow, type ReviewRow } from '@/lib/supabase'
+import { cn } from '@/lib/utils'
 import ProductCard from '@/components/ProductCard'
 import NotebookCover from '@/components/NotebookCover'
 import Stars from '@/components/Stars'
@@ -11,6 +12,69 @@ import { ArrowRight, Truck, Leaf, Sparkle, Pen, Instagram } from '@/components/I
 
 // Lazy so three.js stays out of the initial bundle.
 const NotebookPreview3D = lazy(() => import('@/components/NotebookPreview3D'))
+
+// Full-width banner, sized like the promotional banners above.
+const STAGE_3D_H = 'h-[420px] sm:h-[500px] lg:h-[580px]'
+
+function Stage3DFallback() {
+  return (
+    <div className={`grid ${STAGE_3D_H} place-items-center bg-lilac/40 font-body text-sm font-light text-muted-foreground`}>
+      Loading 3D preview…
+    </div>
+  )
+}
+
+/** "Our story" as a full-width interactive banner: the 3D notebook fills the
+ *  whole frame and the copy is overlaid on the left, the way the promotional
+ *  banners work. Below lg the copy drops underneath, so it never sits on the
+ *  notebook. Opening the cover fades the copy out and hands the book the frame. */
+function Story3DBanner() {
+  const [bookOpen, setBookOpen] = useState(false)
+
+  return (
+    <div className="relative">
+      <div className="relative overflow-hidden rounded-[2rem] border border-royal/10 bg-lilac/40 shadow-lift ring-1 ring-white/60">
+        <WhenVisible fallback={<Stage3DFallback />}>
+          <Suspense fallback={<Stage3DFallback />}>
+            <NotebookPreview3D variant="showcase" className={STAGE_3D_H} onOpenChange={setBookOpen} />
+          </Suspense>
+        </WhenVisible>
+        {/* Softens the canvas under the overlaid copy — desktop only. */}
+        <div
+          aria-hidden
+          className={cn(
+            // z-[1] keeps it above the canvas but under the 3D controls (z-2).
+            'pointer-events-none absolute inset-0 z-[1] hidden bg-gradient-to-r from-white/90 via-white/55 to-transparent transition-opacity duration-700 lg:block',
+            bookOpen && 'opacity-0',
+          )}
+        />
+      </div>
+
+      <div
+        className={cn(
+          'mt-8 lg:absolute lg:inset-y-0 lg:left-0 lg:z-10 lg:mt-0 lg:flex lg:w-[46%] lg:flex-col lg:justify-center lg:p-14',
+          'lg:pointer-events-none lg:transition-opacity lg:duration-700',
+          bookOpen && 'lg:opacity-0',
+        )}
+      >
+        <p className="eyebrow mb-4">Our story</p>
+        <h2 className="font-display text-4xl leading-tight text-plum">A notebook is where ideas begin.</h2>
+        <p className="mt-5 max-w-xl font-body text-base font-light leading-relaxed text-muted-foreground">
+          SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
+        </p>
+        <p className="mt-4 max-w-xl font-body text-base font-light leading-relaxed text-muted-foreground">
+          From minimal aesthetics to fully personalised covers, every Suvadu notebook is made to help you make your mark.
+        </p>
+        <Link
+          to="/about"
+          className={cn('link-underline mt-6 inline-flex items-center gap-1.5', !bookOpen && 'lg:pointer-events-auto')}
+        >
+          Read Our Story <ArrowRight width={16} />
+        </Link>
+      </div>
+    </div>
+  )
+}
 
 export default function Home() {
   const { collections, getBestSellers, loading } = useCatalog()
@@ -173,26 +237,7 @@ export default function Home() {
 
       {/* 4. ABOUT SUVADU (short) */}
       <section className="container-suvadu py-20">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div className="order-2 lg:order-1">
-            <Suspense fallback={<div className="grid min-h-[440px] place-items-center rounded-3xl bg-lilac/40 font-body text-sm font-light text-muted-foreground">Loading 3D preview…</div>}>
-              <NotebookPreview3D className="h-[440px]" />
-            </Suspense>
-          </div>
-          <div className="order-1 lg:order-2">
-            <p className="eyebrow mb-4">Our story</p>
-            <h2 className="font-display text-4xl leading-tight text-plum">A notebook is where ideas begin.</h2>
-            <p className="mt-5 font-body text-base font-light leading-relaxed text-muted-foreground">
-              SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
-            </p>
-            <p className="mt-4 font-body text-base font-light leading-relaxed text-muted-foreground">
-              From minimal aesthetics to fully personalised covers, every Suvadu notebook is made to help you make your mark.
-            </p>
-            <Link to="/about" className="link-underline mt-6 inline-flex items-center gap-1.5">
-              Read Our Story <ArrowRight width={16} />
-            </Link>
-          </div>
-        </div>
+        <Story3DBanner />
       </section>
 
       {/* Value props */}
@@ -246,6 +291,7 @@ export default function Home() {
               href="https://www.instagram.com/suvadu.notebooks/"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Follow @suvadu.notebooks on Instagram"
               className="group relative aspect-square overflow-hidden rounded-xl"
               style={{ backgroundColor: c.accent }}
             >
@@ -259,6 +305,25 @@ export default function Home() {
       </section>
     </div>
   )
+}
+
+// Renders children only once the placeholder scrolls near the viewport, so the
+// heavy three.js chunk is fetched on intent (scroll) rather than on every load.
+function WhenVisible({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || visible) return
+    if (typeof IntersectionObserver === 'undefined') { setVisible(true); return }
+    const io = new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) { setVisible(true); io.disconnect() } },
+      { rootMargin: '200px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [visible])
+  return <div ref={ref}>{visible ? children : fallback}</div>
 }
 
 export function SectionHead({ eyebrow, title, subtitle, link }: {
@@ -300,15 +365,29 @@ function NewsletterBanner() {
 }
 
 import { useToast } from '@/components/Toast'
+import { isEmail } from '@/lib/utils'
 function NewsletterForm() {
   const { notify } = useToast()
   const [email, setEmail] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    const value = email.trim().toLowerCase()
+    if (!isEmail(value)) { notify('Please enter a valid email address.'); return }
+    setBusy(true)
+    const { error } = await supabase.from('newsletter_subscribers').upsert({ email: value }, { onConflict: 'email' })
+    setBusy(false)
+    if (error) { notify('Could not subscribe right now — please try again.'); return }
+    notify('Subscribed — welcome to Suvadu!')
+    setEmail('')
+  }
+
   return (
-    <form
-      onSubmit={(e) => { e.preventDefault(); if (email.trim()) { notify('Subscribed — welcome to Suvadu!'); setEmail('') } }}
-      className="mx-auto mt-7 flex max-w-md overflow-hidden rounded-full bg-white p-1.5"
-    >
+    <form onSubmit={submit} className="mx-auto mt-7 flex max-w-md overflow-hidden rounded-full bg-white p-1.5">
+      <label htmlFor="home-newsletter" className="sr-only">Email address for newsletter</label>
       <input
+        id="home-newsletter"
         type="email"
         required
         value={email}
@@ -316,7 +395,7 @@ function NewsletterForm() {
         placeholder="Enter your email"
         className="w-full bg-transparent px-5 font-body text-sm text-plum outline-none placeholder:text-muted-foreground/60"
       />
-      <button type="submit" className="btn-primary shrink-0">Subscribe</button>
+      <button type="submit" disabled={busy} className="btn-primary shrink-0 disabled:opacity-60">{busy ? 'Subscribing…' : 'Subscribe'}</button>
     </form>
   )
 }
