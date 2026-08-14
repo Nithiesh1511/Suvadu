@@ -194,10 +194,22 @@ export default function Home() {
               to={`/collections/${col.slug}`}
               className="group relative overflow-hidden rounded-2xl border border-border shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
             >
-              <div className="flex aspect-[16/10] items-center justify-center" style={{ backgroundColor: col.accent }}>
-                <div className="w-28 rotate-[-4deg] transition-transform duration-500 group-hover:rotate-0 group-hover:scale-105">
-                  <NotebookCover colour={col.accent} pattern={col.pattern} label={col.displayName} />
-                </div>
+              {/* An admin-uploaded cover fills the frame; without one we fall back
+                  to the generated notebook on the accent colour. */}
+              <div className="flex aspect-[16/10] items-center justify-center overflow-hidden" style={{ backgroundColor: col.accent }}>
+                {col.image ? (
+                  <img
+                    src={col.image}
+                    alt={col.displayName}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-28 rotate-[-4deg] transition-transform duration-500 group-hover:rotate-0 group-hover:scale-105">
+                    <NotebookCover colour={col.accent} pattern={col.pattern} label={col.displayName} />
+                  </div>
+                )}
               </div>
               <div className="bg-white p-6">
                 <div className="flex items-center justify-between">

@@ -38,6 +38,8 @@ export interface CollectionInput {
   description: string
   accent: string
   pattern: Pattern
+  /** data URL from the admin picker, an existing URL, or '' to clear it. */
+  image?: string
 }
 
 type Result = { ok: boolean; message: string }
@@ -80,6 +82,7 @@ function mapCollection(r: CollectionRow, count: number): Collection {
     count,
     accent: r.accent,
     pattern: r.pattern as Pattern,
+    image: r.image_url ?? undefined,
   }
 }
 
@@ -110,15 +113,28 @@ function mapProduct(r: ProductRow, collectionName: string): Product {
   }
 }
 
-async function uploadProductImage(id: string, dataUrl: string): Promise<string> {
+/** Uploads a data URL into the public bucket and returns its public URL. */
+async function uploadImage(name: string, dataUrl: string): Promise<string> {
   const blob = await (await fetch(dataUrl)).blob()
   const ext = (blob.type.split('/')[1] || 'png').split('+')[0]
-  const path = `${id}.${ext}`
+  const path = `${name}.${ext}`
   const { error } = await supabase.storage
     .from(BUCKET)
     .upload(path, blob, { upsert: true, contentType: blob.type })
   if (error) throw error
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
+}
+
+const uploadProductImage = (id: string, dataUrl: string) => uploadImage(id, dataUrl)
+
+/** Shared by add/updateCollection. Unlike product covers, collection covers are
+ *  kept inline as a base64 data URL in `collections.image_url` — no Storage
+ *  object, so nothing to clean up when a collection changes or loses its image.
+ *  An existing http URL (seeded rows) is kept as-is; '' clears the image. */
+function resolveCollectionImage(image: string | undefined): string | null {
+  if (!image) return null
+  if (image.startsWith('data:')) return image
+  return image.trim() || null
 }
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
@@ -336,6 +352,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       let slug = base
       let n = 2
       while (existing.has(slug)) slug = `${base}-${n++}`
+
       const row = {
         slug,
         display_name: name,
@@ -345,6 +362,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         pattern: input.pattern,
         sort_order: collectionRows.length,
         is_special: false,
+        image_url: resolveCollectionImage(input.image),
       }
       const { data, error } = await supabase.from('collections').insert(row).select().single()
       if (error) {
@@ -360,12 +378,14 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const updateCollection = useCallback(async (slug: string, input: CollectionInput): Promise<Result> => {
     const name = input.displayName.trim()
     if (!name) return { ok: false, message: 'Collection name is required.' }
+
     const patch = {
       display_name: name,
       internal_name: input.internalName?.trim() || name,
       description: input.description.trim(),
       accent: input.accent,
       pattern: input.pattern,
+      image_url: resolveCollectionImage(input.image),
     }
     const { data, error } = await supabase.from('collections').update(patch).eq('slug', slug).select().single()
     if (error) {
