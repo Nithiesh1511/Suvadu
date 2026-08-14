@@ -34,6 +34,7 @@ export interface CollectionRow {
   pattern: string
   sort_order: number
   is_special: boolean
+  image_url: string | null
 }
 
 export interface ProductRow {

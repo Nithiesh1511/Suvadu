@@ -21,6 +21,8 @@ export interface Collection {
   count: number
   accent: string
   pattern: Pattern
+  /** Admin-uploaded cover image. Undefined = render the generated NotebookCover. */
+  image?: string
 }
 
 export interface SpecialCollection {
