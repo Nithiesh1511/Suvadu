@@ -4,6 +4,7 @@ import { useToast } from './Toast'
 import { supabase } from '@/lib/supabase'
 import { isEmail } from '@/lib/utils'
 import { Instagram, Facebook, Pinterest, ArrowRight } from './Icons'
+import Logo from './Logo'
 
 const SHOP_LINKS = [
   { label: 'Shop', to: '/collections' },
@@ -50,7 +51,9 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
           {/* Brand */}
           <div>
-            <Link to="/" className="font-display text-3xl text-plum">SUVADU</Link>
+            <Link to="/" aria-label="Suvadu — home" className="inline-block">
+              <Logo className="h-14 sm:h-16" />
+            </Link>
             <p className="mt-4 font-display text-xl italic text-royal">Make your mark.</p>
             <p className="mt-3 max-w-xs font-body text-sm font-light leading-relaxed text-muted-foreground">
               Suvadu notebooks for the thinking mind.

@@ -22,7 +22,7 @@ const POLICIES: Record<Kind, PolicyDoc> = {
     eyebrow: 'The essentials',
     intro: 'By using this website and placing an order, you agree to the following terms. Please read them carefully.',
     sections: [
-      { h: 'Orders & pricing', p: ['All prices are shown in Indian Rupees and are inclusive of applicable taxes unless stated otherwise.', 'Prices vary by selected size. Custom-size pricing for personalised products is provided on request.', 'We reserve the right to correct pricing errors and to refuse or cancel any order.'] },
+      { h: 'Orders & pricing', p: ['All prices are shown in Indian Rupees.', 'Prices vary by selected size. Custom-size pricing for personalised products is provided on request.', 'We reserve the right to correct pricing errors and to refuse or cancel any order.'] },
       { h: 'Personalised products', p: ['Customized notebooks are made to order based on the details you provide. Please review your name, text, font and colour carefully before placing the order.', 'Personalised items cannot be cancelled once production has begun.'] },
       { h: 'Intellectual property', p: ['All site content, designs and the SUVADU name and logo are the property of SUVADU Notebooks and may not be reproduced without permission.'] },
       { h: 'Limitation of liability', p: ['SUVADU is not liable for indirect or consequential losses arising from the use of our products or website, to the extent permitted by law.'] },

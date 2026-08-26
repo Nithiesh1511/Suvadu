@@ -4,6 +4,7 @@ import { useStore } from '@/context/StoreContext'
 import { useCatalog } from '@/context/CatalogContext'
 import { cn } from '@/lib/utils'
 import { Search, Heart, Cart, User, Menu, Close } from './Icons'
+import Logo from './Logo'
 
 const NAV = [
   { label: 'Home', to: '/' },
@@ -67,9 +68,8 @@ export default function Header() {
       >
         <div className="container-suvadu flex h-16 items-center justify-between gap-2 sm:gap-4 lg:h-[72px]">
           {/* Logo */}
-          <Link to="/" className="shrink-0 font-display text-xl tracking-wide text-plum sm:text-2xl">
-            SUVADU
-            <span className="ml-1 align-top text-royal">·</span>
+          <Link to="/" aria-label="Suvadu — home" className="shrink-0">
+            <Logo className="h-8 sm:h-10" />
           </Link>
 
           {/* Desktop nav */}
@@ -166,7 +166,7 @@ export default function Header() {
         <div className={cn('absolute inset-0 bg-plum/50 transition-opacity', drawer ? 'opacity-100' : 'opacity-0')} onClick={() => setDrawer(false)} />
         <aside className={cn('absolute right-0 top-0 flex h-full w-[82%] max-w-xs flex-col bg-white shadow-lift transition-transform duration-300', drawer ? 'translate-x-0' : 'translate-x-full')}>
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <span className="font-display text-xl text-plum">SUVADU</span>
+            <Logo className="h-8" />
             <button aria-label="Close menu" onClick={() => setDrawer(false)} className="grid h-9 w-9 place-items-center rounded-full text-plum hover:bg-lilac"><Close /></button>
           </div>
           <nav className="flex flex-col p-3">

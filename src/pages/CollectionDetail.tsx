@@ -77,7 +77,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
       <section className="container-suvadu py-12">
         <div className="mb-8 flex items-center justify-between">
           <p className="font-body text-sm font-light text-muted-foreground">
-            {products.length} {products.length === 1 ? 'design' : 'designs'}
+            {products.length} {products.length === 1 ? 'product' : 'products'}
           </p>
           <label className="relative">
             <select
@@ -96,7 +96,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
 
         {products.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border py-16 text-center">
-            <p className="font-display text-xl text-plum">No designs here yet</p>
+            <p className="font-display text-xl text-plum">No products here yet</p>
             <p className="mx-auto mt-2 max-w-sm font-body text-sm font-light text-muted-foreground">
               This collection is being stocked. Explore our other collections in the meantime.
             </p>
