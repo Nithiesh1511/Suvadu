@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { REVIEWS } from '@/data/products'
 import { useCatalog } from '@/context/CatalogContext'
 import { supabase, type BannerRow, type ReviewRow } from '@/lib/supabase'
-import { cn } from '@/lib/utils'
 import ProductCard from '@/components/ProductCard'
 import NotebookCover from '@/components/NotebookCover'
 import Stars from '@/components/Stars'
@@ -24,53 +23,34 @@ function Stage3DFallback() {
   )
 }
 
-/** "Our story" as a full-width interactive banner: the 3D notebook fills the
- *  whole frame and the copy is overlaid on the left, the way the promotional
- *  banners work. Below lg the copy drops underneath, so it never sits on the
- *  notebook. Opening the cover fades the copy out and hands the book the frame. */
+/** "Our story": the copy reads first, then the 3D notebook takes a full-width
+ *  banner to itself. The notebook sits dead centre on its stage — as in the
+ *  prototype — so nothing is overlaid on top of it. */
 function Story3DBanner() {
-  const [bookOpen, setBookOpen] = useState(false)
-
   return (
-    <div className="relative">
-      <div className="relative overflow-hidden rounded-[2rem] border border-royal/10 bg-lilac/40 shadow-lift ring-1 ring-white/60">
-        <WhenVisible fallback={<Stage3DFallback />}>
-          <Suspense fallback={<Stage3DFallback />}>
-            <NotebookPreview3D variant="showcase" className={STAGE_3D_H} onOpenChange={setBookOpen} />
-          </Suspense>
-        </WhenVisible>
-        {/* Softens the canvas under the overlaid copy — desktop only. */}
-        <div
-          aria-hidden
-          className={cn(
-            // z-[1] keeps it above the canvas but under the 3D controls (z-2).
-            'pointer-events-none absolute inset-0 z-[1] hidden bg-gradient-to-r from-white/90 via-white/55 to-transparent transition-opacity duration-700 lg:block',
-            bookOpen && 'opacity-0',
-          )}
-        />
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0">
+          <p className="eyebrow mb-3">Our story</p>
+          <h2 className="font-display text-2xl leading-tight text-plum sm:text-4xl">A notebook is where ideas begin.</h2>
+          <p className="mt-3 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
+            SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
+          </p>
+          <p className="mt-3 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
+            From minimal aesthetics to fully personalised covers, every Suvadu notebook is made to help you make your mark.
+          </p>
+        </div>
+        <Link to="/about" className="link-underline inline-flex items-center gap-1.5 pb-1">
+          Read Our Story <ArrowRight width={15} />
+        </Link>
       </div>
 
-      <div
-        className={cn(
-          'mt-8 lg:absolute lg:inset-y-0 lg:left-0 lg:z-10 lg:mt-0 lg:flex lg:w-[46%] lg:flex-col lg:justify-center lg:p-14',
-          'lg:pointer-events-none lg:transition-opacity lg:duration-700',
-          bookOpen && 'lg:opacity-0',
-        )}
-      >
-        <p className="eyebrow mb-4">Our story</p>
-        <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">A notebook is where ideas begin.</h2>
-        <p className="mt-5 max-w-xl font-body text-base font-light leading-relaxed text-muted-foreground">
-          SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
-        </p>
-        <p className="mt-4 max-w-xl font-body text-base font-light leading-relaxed text-muted-foreground">
-          From minimal aesthetics to fully personalised covers, every Suvadu notebook is made to help you make your mark.
-        </p>
-        <Link
-          to="/about"
-          className={cn('link-underline mt-6 inline-flex items-center gap-1.5', !bookOpen && 'lg:pointer-events-auto')}
-        >
-          Read Our Story <ArrowRight width={16} />
-        </Link>
+      <div className="mt-10 overflow-hidden rounded-[2rem] border border-royal/10 shadow-lift ring-1 ring-white/60">
+        <WhenVisible fallback={<Stage3DFallback />}>
+          <Suspense fallback={<Stage3DFallback />}>
+            <NotebookPreview3D variant="showcase" className={STAGE_3D_H} />
+          </Suspense>
+        </WhenVisible>
       </div>
     </div>
   )
@@ -214,7 +194,7 @@ export default function Home() {
               <div className="bg-white p-6">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display text-2xl text-plum">{col.displayName}</h3>
-                  <span className="badge-soft">{col.count} designs</span>
+                  <span className="badge-soft">{col.count} {col.count === 1 ? 'product' : 'products'}</span>
                 </div>
                 <p className="mt-2 font-body text-sm font-light leading-relaxed text-muted-foreground">{col.description}</p>
                 <span className="mt-4 inline-flex items-center gap-1.5 font-body text-xs font-medium uppercase tracking-cta text-royal">

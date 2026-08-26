@@ -19,17 +19,15 @@ import ProductCard from '@/components/ProductCard'
 import ProductReviews from '@/components/ProductReviews'
 import PageHeader from '@/components/PageHeader'
 import JsonLd from '@/components/JsonLd'
-import { Heart, Share, Zoom, Plus, Minus, Check, Close, Truck, Leaf, Pen } from '@/components/Icons'
+import Stars from '@/components/Stars'
+import { Heart, Share, Plus, Minus, Close, ChevronDown, Pen } from '@/components/Icons'
 import { formatINR, cn } from '@/lib/utils'
 import { openWhatsApp } from '@/lib/contact'
 import { useSeo, SITE_URL } from '@/lib/seo'
 import NotFound from './NotFound'
 
-const TRUST = [
-  { Icon: Truck, t: 'Pan-India delivery', d: 'Tracked via Shiprocket' },
-  { Icon: Leaf, t: '100 GSM paper', d: 'Lay-flat binding' },
-  { Icon: Check, t: 'Secure checkout', d: 'Razorpay protected' },
-]
+/** How far the cover magnifies under the cursor. */
+const ZOOM = 2.2
 
 export default function ProductDetail() {
   const { slug = '' } = useParams()
@@ -48,7 +46,9 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [thumb, setThumb] = useState(0)
   const [zoom, setZoom] = useState(false)
-  // Personalise your cover: open by default for custom products, also revealed when the user picks the Custom size
+  // Cursor position over the cover, in %, while hovering — null when not hovering.
+  const [lens, setLens] = useState<{ x: number; y: number } | null>(null)
+  // Personalise your cover: open by default for custom products
   const [showPersonalise, setShowPersonalise] = useState(isCustom)
 
   // The product loads async from the DB, so isCustom is false on first render —
@@ -73,6 +73,14 @@ export default function ProductDetail() {
     [slug, product, products],
   )
   const fallbackRelated = useMemo(() => products.filter((p) => p.slug !== slug).slice(0, 4), [slug, products])
+
+  // Delivery estimate — 4 days out, matching the 2–4 day metro window quoted in
+  // the shipping FAQ. Computed once per mount so it can't shift mid-session.
+  const deliveryDate = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 4)
+    return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })
+  }, [])
 
   // SEO meta (brief §11) — unique title + description per product, plus the cover
   // image (when present) so shared links unfurl with a picture.
@@ -102,6 +110,9 @@ export default function ProductDetail() {
 
   const previewText = cName || cText
   const thumbs = buildThumbs(colour, product.pattern)
+  // An admin-uploaded photo is a single view — the colour thumbs only make sense
+  // for the generated cover, where each one is a real alternative.
+  const showThumbs = !product.image
 
   // Product structured data (brief §11 — Product schema).
   const productLd = {
@@ -166,7 +177,6 @@ export default function ProductDetail() {
     <div>
       <JsonLd data={productLd} />
       <PageHeader
-        title=""
         crumbs={[
           { label: 'Collections', to: '/collections' },
           { label: product.collectionName, to: `/collections/${product.collectionSlug}` },
@@ -174,215 +184,250 @@ export default function ProductDetail() {
         ]}
       />
 
-      <section className="container-suvadu -mt-4 grid gap-10 py-12 lg:grid-cols-2 lg:gap-16">
-        {/* Gallery */}
-        <div>
-          <button
-            type="button"
-            onClick={() => setZoom(true)}
-            className="group relative block w-full cursor-zoom-in overflow-hidden rounded-3xl border border-border shadow-card"
-            aria-label="Zoom image"
-          >
-            <ProductImage
-              image={product.image}
-              alt={product.name}
-              colour={colour.hex}
-              pattern={product.pattern}
-              label={product.collectionName}
-              customText={isCustom ? previewText || undefined : undefined}
-              customFont={isCustom ? cFont : undefined}
-              className="!aspect-[4/5]"
-            />
-            <span className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-royal opacity-0 shadow-card transition group-hover:opacity-100">
-              <Zoom width={18} height={18} />
-            </span>
-          </button>
-
-          <div className={cn('mt-4 grid grid-cols-4 gap-3', product.image && 'hidden')}>
-            {thumbs.map((t, i) => (
-              <button
-                key={i}
-                onClick={() => { setThumb(i); setColour(t.colour) }}
-                className={cn(
-                  'overflow-hidden rounded-xl border-2 transition',
-                  thumb === i ? 'border-royal' : 'border-transparent hover:border-royal/40',
-                )}
-                aria-label={`View ${t.colour.name}`}
+      {/* Editorial layout: cover on the left, only the decision-critical copy on
+          the right. Everything else lives behind the three disclosures at the
+          bottom, so the page stays quiet. */}
+      <section className="relative py-12 sm:py-16 lg:py-20">
+        {/* The site-wide aurora is too saturated to sit behind this much empty
+            space. A white radial that fades to nothing calms the middle of the
+            page without drawing a card edge around it. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(75%_60%_at_50%_45%,rgba(255,255,255,0.9),rgba(255,255,255,0)_75%)]"
+        />
+        <div className="container-suvadu relative mx-auto max-w-6xl">
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 xl:gap-28">
+            {/* ── Cover (left) ─────────────────────────────────────────── */}
+            <div>
+              {/* Hover magnifies the cover in place and pans with the cursor.
+                  Touch devices never fire mousemove, so they fall through to
+                  tap-to-enlarge instead. */}
+              <div
+                className="relative overflow-hidden rounded-2xl bg-white"
+                onMouseMove={(e) => {
+                  const r = e.currentTarget.getBoundingClientRect()
+                  setLens({
+                    x: ((e.clientX - r.left) / r.width) * 100,
+                    y: ((e.clientY - r.top) / r.height) * 100,
+                  })
+                }}
+                onMouseLeave={() => setLens(null)}
               >
-                <NotebookCover colour={t.colour.hex} pattern={t.pattern} className="!aspect-square" />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Details */}
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link to={`/collections/${product.collectionSlug}`} className="eyebrow">{product.collectionName}</Link>
-            {product.bestseller && <span className="badge-soft bg-royal text-white">Bestseller</span>}
-            {product.isNew && <span className="badge-soft">New</span>}
-          </div>
-
-          <h1 className="mt-3 text-balance font-display text-3xl leading-tight text-plum sm:text-4xl lg:text-5xl">{product.name}</h1>
-
-          {/* Price — updates with size */}
-          <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
-            {onRequest ? (
-              <span className="font-display text-2xl text-royal sm:text-3xl">Price on request</span>
-            ) : (
-              <span className="font-body text-2xl font-medium text-plum sm:text-3xl">{formatINR(unitPrice as number)}</span>
-            )}
-            <span className="pb-1 font-body text-sm font-light text-muted-foreground">incl. taxes · {size}</span>
-          </div>
-
-          {/* Stock status */}
-          {outOfStock && (
-            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 font-body text-xs font-medium text-rose-600">Out of stock</p>
-          )}
-          {lowStock && (
-            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 font-body text-xs font-medium text-amber-700">Only {stock} left in stock</p>
-          )}
-
-          <p className="mt-5 font-body text-base font-light leading-relaxed text-muted-foreground">{product.description}</p>
-
-          {/* Size — A5 only */}
-          <div className="mt-8">
-            <div className="flex items-center justify-between">
-              <h3 className="font-body text-sm font-medium uppercase tracking-wide text-plum">Size</h3>
-              <span className="font-body text-xs font-light text-muted-foreground">{SIZE_INFO.A5.dims}</span>
-            </div>
-            <div className="mt-3">
-              <span className="inline-flex min-w-[84px] items-center justify-center rounded-xl border border-royal bg-royal px-4 py-2.5 font-body text-sm text-white shadow-soft">A5</span>
-            </div>
-          </div>
-
-          {/* Page-count selector */}
-          <div className="mt-7">
-            <div className="flex items-center justify-between">
-              <h3 className="font-body text-sm font-medium uppercase tracking-wide text-plum">Pages</h3>
-              <span className="font-body text-xs font-light text-muted-foreground">{pages} pages</span>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {PAGE_OPTIONS.map((p) => (
                 <button
-                  key={p}
-                  onClick={() => setPages(p)}
-                  className={cn(
-                    'min-w-[84px] rounded-xl border px-4 py-2.5 font-body text-sm transition',
-                    pages === p ? 'border-royal bg-royal text-white shadow-soft' : 'border-border bg-white text-plum hover:border-royal',
-                  )}
+                  type="button"
+                  onClick={() => setZoom(true)}
+                  className="block w-full cursor-zoom-in"
+                  aria-label="Enlarge image"
                 >
-                  {p}
+                  {/* Only `transform` transitions, so the scale eases in and out
+                      while the origin (the pan) tracks the cursor instantly. */}
+                  <div
+                    className="transition-transform duration-300 ease-out will-change-transform"
+                    style={lens ? { transform: `scale(${ZOOM})`, transformOrigin: `${lens.x}% ${lens.y}%` } : undefined}
+                  >
+                    <ProductImage
+                      image={product.image}
+                      alt={product.name}
+                      colour={colour.hex}
+                      pattern={product.pattern}
+                      label={product.collectionName}
+                      customText={isCustom ? previewText || undefined : undefined}
+                      customFont={isCustom ? cFont : undefined}
+                      className="!aspect-[4/5]"
+                    />
+                  </div>
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ruled / Unruled */}
-          <div className="mt-7">
-            <h3 className="font-body text-sm font-medium uppercase tracking-wide text-plum">Pages style</h3>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {(['Ruled', 'Unruled'] as const).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRuling(r)}
-                  className={cn(
-                    'min-w-[110px] rounded-xl border px-4 py-2.5 font-body text-sm transition',
-                    ruling === r ? 'border-royal bg-royal text-white shadow-soft' : 'border-border bg-white text-plum hover:border-royal',
-                  )}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Customization fields — ONLY for customized products, revealed when the user picks Custom (brief §7.2) */}
-          {isCustom && showPersonalise && (
-            <div className="mt-8 rounded-2xl border border-royal/20 bg-lilac/40 p-5">
-              <h3 className="flex items-center gap-2 font-display text-xl text-plum">
-                <Pen width={18} className="text-royal" /> Personalise your cover
-              </h3>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">Name on cover</span>
-                  <input value={cName} onChange={(e) => setCName(e.target.value)} maxLength={20} placeholder="e.g. Ananya" className="field" />
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">Font</span>
-                  <select value={cFont} onChange={(e) => setCFont(e.target.value)} className="field cursor-pointer">
-                    {FONT_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
-                  </select>
-                </label>
-                <label className="block sm:col-span-2">
-                  <span className="mb-1.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">Custom text (optional)</span>
-                  <input value={cText} onChange={(e) => setCText(e.target.value)} maxLength={32} placeholder="A short line, quote or date" className="field" />
-                </label>
               </div>
 
-              {/* Cover colour — circular swatches (brief §7.2 / §5) */}
-              <div className="mt-4">
-                <span className="mb-2 block font-body text-xs font-medium uppercase tracking-wide text-plum">Cover colour</span>
-                <div className="flex flex-wrap gap-2.5">
-                  {colours.map((c) => (
+              {showThumbs && (
+                <div className="mt-5 flex gap-3">
+                  {thumbs.map((t, i) => (
                     <button
-                      key={c.name}
-                      type="button"
-                      onClick={() => setColour(c)}
-                      aria-label={c.name}
-                      aria-pressed={colour.name === c.name}
-                      title={c.name}
+                      key={i}
+                      onClick={() => { setThumb(i); setColour(t.colour) }}
                       className={cn(
-                        'h-8 w-8 rounded-full border border-border transition',
-                        colour.name === c.name ? 'ring-2 ring-royal ring-offset-2' : 'hover:scale-110',
+                        'w-14 overflow-hidden rounded-lg transition',
+                        thumb === i ? 'ring-2 ring-royal ring-offset-2' : 'opacity-70 hover:opacity-100',
                       )}
-                      style={{ backgroundColor: c.hex }}
-                    />
+                      aria-label={`View ${t.colour.name}`}
+                      aria-pressed={thumb === i}
+                    >
+                      <NotebookCover colour={t.colour.hex} pattern={t.pattern} className="!aspect-square" />
+                    </button>
                   ))}
                 </div>
-                <p className="mt-2 font-body text-xs font-light text-muted-foreground">Selected colour: {colour.name}</p>
+              )}
+
+              <p className="mt-5 font-body text-xs font-light text-muted-foreground">
+                Hover to zoom · click to enlarge
+              </p>
+            </div>
+
+            {/* ── Details (right) ──────────────────────────────────────── */}
+            <div className="max-w-md">
+              <Link to={`/collections/${product.collectionSlug}`} className="eyebrow">
+                {product.collectionName}
+              </Link>
+
+              <h1 className="mt-4 text-balance font-display text-3xl leading-tight text-plum sm:text-4xl">
+                {product.name}
+              </h1>
+
+              {product.reviews > 0 && (
+                <a href="#reviews" className="mt-4 inline-flex items-center gap-2 hover:opacity-70">
+                  <Stars rating={product.rating} size={14} />
+                  <span className="font-body text-xs font-light text-muted-foreground">
+                    {product.rating.toFixed(1)} · {product.reviews} reviews
+                  </span>
+                </a>
+              )}
+
+              <p className="mt-8 font-body text-2xl font-medium text-plum">
+                {onRequest ? <span className="font-display text-royal">Price on request</span> : formatINR(unitPrice as number)}
+              </p>
+              <p className="mt-1.5 font-body text-xs font-light text-muted-foreground">
+                Free delivery across India
+              </p>
+
+              <p className="mt-8 font-body text-base font-light leading-relaxed text-muted-foreground">
+                {product.description}
+              </p>
+
+              {/* Choices — two quiet rows */}
+              <div className="mt-12 space-y-6">
+                <Choice
+                  label="Pages"
+                  options={PAGE_OPTIONS.map((p) => ({ value: p, label: String(p) }))}
+                  value={pages}
+                  onChange={setPages}
+                />
+                <Choice
+                  label="Style"
+                  options={[{ value: 'Ruled' as const, label: 'Ruled' }, { value: 'Unruled' as const, label: 'Unruled' }]}
+                  value={ruling}
+                  onChange={setRuling}
+                />
               </div>
 
-              <p className="mt-3 font-body text-xs font-light text-muted-foreground">Your cover preview updates live on the left.</p>
-            </div>
-          )}
+              {/* Personalisation — customized products only (brief §7.2) */}
+              {isCustom && showPersonalise && (
+                <div className="mt-10 border-t border-border pt-8">
+                  <h2 className="flex items-center gap-2 font-display text-xl text-plum">
+                    <Pen width={17} className="text-royal" /> Personalise your cover
+                  </h2>
+                  <div className="mt-5 space-y-4">
+                    <label className="block">
+                      <span className="mb-1.5 block font-body text-xs font-light text-muted-foreground">Name on cover</span>
+                      <input value={cName} onChange={(e) => setCName(e.target.value)} maxLength={20} placeholder="e.g. Ananya" className="field" />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1.5 block font-body text-xs font-light text-muted-foreground">Custom text (optional)</span>
+                      <input value={cText} onChange={(e) => setCText(e.target.value)} maxLength={32} placeholder="A short line, quote or date" className="field" />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1.5 block font-body text-xs font-light text-muted-foreground">Font</span>
+                      <select value={cFont} onChange={(e) => setCFont(e.target.value)} className="field cursor-pointer">
+                        {FONT_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+                      </select>
+                    </label>
+                  </div>
 
-          {/* Quantity + actions */}
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <div className="flex items-center rounded-full border border-border bg-white">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="grid h-11 w-11 place-items-center text-plum transition hover:text-royal"><Minus width={16} /></button>
-              <span className="w-8 text-center font-body text-base font-medium text-plum">{qty}</span>
-              <button onClick={() => setQty((q) => Math.min(maxQty, q + 1))} disabled={qty >= maxQty} aria-label="Increase quantity" className="grid h-11 w-11 place-items-center text-plum transition hover:text-royal disabled:opacity-40"><Plus width={16} /></button>
-            </div>
-            <button onClick={handleWish} className={cn('btn-secondary', wished && 'border-rose-300 text-rose-500')}>
-              <Heart width={16} filled={wished} /> {wished ? 'Wishlisted' : 'Wishlist'}
-            </button>
-            <button onClick={share} aria-label="Share" className="grid h-11 w-11 place-items-center rounded-full border border-border text-royal transition hover:bg-lilac">
-              <Share width={17} />
-            </button>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <button onClick={() => handleAddToCart(false)} disabled={onRequest || outOfStock} className="btn-primary btn-lg flex-1">{outOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
-            <button onClick={() => handleAddToCart(true)} disabled={onRequest || outOfStock} className="btn-secondary btn-lg flex-1">Buy Now</button>
-          </div>
-          {onRequest && (
-            <p className="mt-3 font-body text-xs font-light text-muted-foreground">
-              This configuration is priced on request — <button type="button" onClick={() => openWhatsApp(`Hi Suvadu! I'd like a quote for: ${prod.name}`)} className="link-underline">message us on WhatsApp</button> for a quote.
-            </p>
-          )}
-
-          {/* Trust strip */}
-          <div className="mt-8 grid gap-3 border-t border-border pt-6 sm:grid-cols-3">
-            {TRUST.map(({ Icon, t, d }) => (
-              <div key={t} className="flex items-center gap-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lilac text-royal"><Icon width={17} /></span>
-                <div>
-                  <p className="font-body text-xs font-medium text-plum">{t}</p>
-                  <p className="font-body text-[11px] font-light text-muted-foreground">{d}</p>
+                  <div className="mt-5">
+                    <span className="mb-2.5 block font-body text-xs font-light text-muted-foreground">Cover colour — {colour.name}</span>
+                    <div className="flex flex-wrap gap-2.5">
+                      {colours.map((c) => (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => setColour(c)}
+                          aria-label={c.name}
+                          aria-pressed={colour.name === c.name}
+                          title={c.name}
+                          className={cn(
+                            'h-7 w-7 rounded-full border border-border transition',
+                            colour.name === c.name ? 'ring-2 ring-royal ring-offset-2' : 'hover:scale-110',
+                          )}
+                          style={{ backgroundColor: c.hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {/* Availability only speaks up when it matters — "In stock" on every
+                  product is noise. */}
+              {(outOfStock || lowStock) && (
+                <p className={cn('mt-8 font-body text-sm', outOfStock ? 'text-rose-600' : 'text-amber-600')}>
+                  {outOfStock ? 'Currently unavailable' : `Only ${stock} left`}
+                </p>
+              )}
+
+              {/* Buy */}
+              <div className="mt-10 flex items-center gap-4">
+                <div className="flex shrink-0 items-center rounded-full border border-border bg-white">
+                  <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="grid h-11 w-11 place-items-center text-plum transition hover:text-royal"><Minus width={15} /></button>
+                  <span className="w-7 text-center font-body text-sm font-medium text-plum">{qty}</span>
+                  <button onClick={() => setQty((q) => Math.min(maxQty, q + 1))} disabled={qty >= maxQty} aria-label="Increase quantity" className="grid h-11 w-11 place-items-center text-plum transition hover:text-royal disabled:opacity-40"><Plus width={15} /></button>
+                </div>
+                <button onClick={() => handleAddToCart(false)} disabled={onRequest || outOfStock} className="btn-primary btn-lg flex-1">
+                  {outOfStock ? 'Out of Stock' : 'Add to Cart'}
+                </button>
               </div>
-            ))}
+
+              {/* Secondary actions stay as quiet text, not competing buttons. */}
+              <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-2">
+                {!onRequest && !outOfStock && (
+                  <button onClick={() => handleAddToCart(true)} className="link-underline font-body text-xs">
+                    Buy it now
+                  </button>
+                )}
+                <button onClick={handleWish} aria-pressed={wished} className={cn('inline-flex items-center gap-1.5 font-body text-xs font-light transition hover:text-royal', wished ? 'text-rose-500' : 'text-muted-foreground')}>
+                  <Heart width={14} filled={wished} /> {wished ? 'Saved' : 'Save'}
+                </button>
+                <button onClick={share} className="inline-flex items-center gap-1.5 font-body text-xs font-light text-muted-foreground transition hover:text-royal">
+                  <Share width={13} /> Share
+                </button>
+              </div>
+
+              {onRequest ? (
+                <p className="mt-6 font-body text-xs font-light leading-relaxed text-muted-foreground">
+                  Priced on request —{' '}
+                  <button type="button" onClick={() => openWhatsApp(`Hi Suvadu! I'd like a quote for: ${prod.name}`)} className="link-underline">
+                    message us on WhatsApp
+                  </button>{' '}
+                  for a quote.
+                </p>
+              ) : (
+                <p className="mt-6 font-body text-xs font-light text-muted-foreground">
+                  Free delivery · arrives by {deliveryDate}
+                </p>
+              )}
+
+              {/* Everything else, folded away */}
+              <div className="mt-12 border-t border-border">
+                <Disclosure title="Details">
+                  <ul className="space-y-1.5">
+                    {prod.specs.map((s) => (
+                      <li key={s} className="flex gap-2.5">
+                        <span aria-hidden className="mt-2 h-1 w-1 shrink-0 rounded-full bg-royal" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </Disclosure>
+                <Disclosure title="Size & paper">
+                  <p>A5 — {SIZE_INFO.A5.dims}. 100 GSM premium paper with lay-flat thread binding, {pages} pages, {ruling.toLowerCase()}.</p>
+                </Disclosure>
+                <Disclosure title="Shipping & returns">
+                  <p>
+                    Free delivery across India, tracked via Shiprocket — 2–4 business days to metros, 4–7 elsewhere.
+                    Unused, non-personalised notebooks can be returned within 7 days. Personalised items are made to
+                    order and can only be returned if they arrive damaged.
+                  </p>
+                </Disclosure>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -391,18 +436,18 @@ export default function ProductDetail() {
       <ProductReviews productId={prod.id} />
 
       {/* Related products */}
-      <section className="container-suvadu py-12 sm:py-16">
+      <section className="container-suvadu py-16 sm:py-20">
         <h2 className="font-display text-2xl text-plum sm:text-3xl">You may also like</h2>
-        <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {(related.length ? related : fallbackRelated).map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
 
-      {/* Zoom overlay */}
+      {/* Enlarged overlay */}
       {zoom && (
         <div role="dialog" aria-modal="true" aria-label={`${product.name} enlarged`} className="fixed inset-0 z-[90] flex items-center justify-center bg-plum/70 p-4 backdrop-blur-sm animate-fade-in sm:p-6" onClick={() => setZoom(false)}>
           <button aria-label="Close" onClick={() => setZoom(false)} className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-plum hover:text-royal sm:right-6 sm:top-6"><Close /></button>
-          {/* Sized by width, not height: the cover is 3:4, so the old height-driven
+          {/* Sized by width, not height: the cover is 3:4, so a height-driven
               88vh box came out wider than a phone viewport and clipped. 66vh is
               that same height expressed as a width (88vh × 3/4), and min() picks
               whichever constraint binds first. */}
@@ -428,8 +473,51 @@ export default function ProductDetail() {
   )
 }
 
+/** Label on the left, a small segmented track on the right. */
+function Choice<T extends string | number>({ label, options, value, onChange }: {
+  label: string
+  options: ReadonlyArray<{ value: T; label: string }>
+  value: T
+  onChange: (v: T) => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-6">
+      <span className="font-body text-sm font-light text-muted-foreground">{label}</span>
+      <div className="inline-flex rounded-full border border-border bg-white p-1">
+        {options.map((o) => (
+          <button
+            key={String(o.value)}
+            onClick={() => onChange(o.value)}
+            aria-pressed={value === o.value}
+            className={cn(
+              'rounded-full px-5 py-1.5 font-body text-sm transition',
+              value === o.value ? 'bg-royal text-white' : 'text-muted-foreground hover:text-plum',
+            )}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Native <details> — no state, no library, keyboard-accessible for free. */
+function Disclosure({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <details className="group border-b border-border">
+      <summary className="flex cursor-pointer list-none items-center justify-between py-4 font-body text-sm font-medium text-plum [&::-webkit-details-marker]:hidden">
+        {title}
+        <ChevronDown width={16} className="text-muted-foreground transition group-open:rotate-180" />
+      </summary>
+      <div className="pb-5 font-body text-sm font-light leading-relaxed text-muted-foreground">
+        {children}
+      </div>
+    </details>
+  )
+}
+
 function buildThumbs(selected: ColourOption, pattern: import('@/data/products').Pattern) {
   const others = COLOURS.filter((c) => c.name !== selected.name).slice(0, 3)
   return [selected, ...others].map((colour) => ({ colour, pattern }))
 }
-

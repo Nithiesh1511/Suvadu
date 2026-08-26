@@ -127,7 +127,7 @@ export default function AdminCollections() {
                 <h3 className="truncate font-display text-lg text-plum">{c.displayName}</h3>
                 <button onClick={() => openEdit(c)} aria-label="Edit" className="shrink-0 text-muted-foreground hover:text-royal"><Pen width={15} /></button>
               </div>
-              <p className="font-body text-xs font-light text-muted-foreground">{c.count} designs · /{c.slug}</p>
+              <p className="font-body text-xs font-light text-muted-foreground">{c.count} {c.count === 1 ? 'product' : 'products'} · /{c.slug}</p>
               <p className="mt-1 line-clamp-2 font-body text-xs font-light text-plum/70">{c.description}</p>
             </div>
           </div>

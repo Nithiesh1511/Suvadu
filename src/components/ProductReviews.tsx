@@ -38,8 +38,9 @@ export default function ProductReviews({ productId }: { productId: string }) {
     notify('Thanks! Your review is pending approval.')
   }
 
+  // scroll-mt clears the sticky header when the product page's rating link jumps here.
   return (
-    <section className="border-t border-border bg-lilac/20 py-12 sm:py-14">
+    <section id="reviews" className="scroll-mt-24 border-t border-border bg-lilac/20 py-12 sm:py-14">
       <div className="container-suvadu grid gap-10 lg:grid-cols-[1.4fr_1fr]">
         <div>
           <h2 className="font-display text-2xl text-plum sm:text-3xl">Customer reviews</h2>

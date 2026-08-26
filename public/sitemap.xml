@@ -40,40 +40,4 @@
     <loc>https://suvadu.example.com/refund-policy</loc>
     <changefreq>weekly</changefreq>
   </url>
-  <url>
-    <loc>https://suvadu.example.com/special-collections/match-and-write</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/special-collections/made-for-you</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/special-collections/create-and-carry</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/everyday-collection</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/collections/calm-collections</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/customized-notebook</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/matching-set</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/daily-ruled-notebook</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://suvadu.example.com/products/peace</loc>
-    <changefreq>weekly</changefreq>
-  </url>
 </urlset>
