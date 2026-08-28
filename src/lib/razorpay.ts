@@ -58,15 +58,33 @@ export function loadRazorpay(): Promise<boolean> {
   return scriptPromise
 }
 
+/** An Edge Function that answers 4xx/5xx reaches supabase-js as a generic
+ *  "non-2xx status code" with no body — useless in a toast. The response itself
+ *  is on `error.context`, and our functions always reply `{ error: "..." }`, so
+ *  read the real sentence back out before it reaches the shopper. */
+async function functionError(error: unknown, fallback: string): Promise<Error> {
+  const context = (error as { context?: Response }).context
+  if (context && typeof context.clone === 'function') {
+    try {
+      const body = await context.clone().json()
+      if (body?.error) return new Error(String(body.error))
+    } catch {
+      // Not JSON (a gateway error page, a timeout) — fall through.
+    }
+  }
+  const message = (error as Error)?.message
+  return new Error(message && !/non-2xx/i.test(message) ? message : fallback)
+}
+
 export async function createRazorpayOrder(orderId: string): Promise<CreatedOrder> {
   const { data, error } = await supabase.functions.invoke('razorpay-create-order', { body: { orderId } })
-  if (error) throw new Error(error.message)
+  if (error) throw await functionError(error, 'Could not start payment.')
   if (!data || data.error) throw new Error(data?.error ?? 'Could not start payment.')
   return data as CreatedOrder
 }
 
 export async function verifyRazorpayPayment(payload: RazorpaySuccess): Promise<void> {
   const { data, error } = await supabase.functions.invoke('razorpay-verify-payment', { body: payload })
-  if (error) throw new Error(error.message)
+  if (error) throw await functionError(error, 'Payment verification failed.')
   if (!data?.ok) throw new Error(data?.error ?? 'Payment verification failed.')
 }

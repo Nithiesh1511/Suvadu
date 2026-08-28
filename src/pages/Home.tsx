@@ -57,7 +57,7 @@ function Story3DBanner() {
 }
 
 export default function Home() {
-  const { collections, getBestSellers, loading } = useCatalog()
+  const { collections, getBestSellers, loading, error: catalogError } = useCatalog()
   const featured = collections.slice(0, 6)
   const bestSellers = getBestSellers()
   const [banners, setBanners] = useState<BannerRow[]>([])
@@ -102,21 +102,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Hero visual — fanned notebooks */}
-          <div className="relative hidden h-[440px] lg:block">
-            <div className="absolute left-[6%] top-10 w-48 -rotate-[10deg] shadow-lift transition-transform duration-500 hover:-translate-y-2">
-              <NotebookCover colour="#E6E6FA" pattern="plain" label="Calm Collection" />
-            </div>
-            <div className="absolute left-[34%] top-0 z-10 w-52 rotate-[3deg] shadow-lift transition-transform duration-500 hover:-translate-y-2">
-              <NotebookCover colour="#613092" pattern="mono" label="Inspire Ink" />
-            </div>
-            <div className="absolute right-[4%] top-14 w-48 rotate-[11deg] shadow-lift transition-transform duration-500 hover:-translate-y-2">
-              <NotebookCover colour="#FF8DA1" pattern="floral" label="Her Journal" />
-            </div>
-            <div className="absolute bottom-2 left-[26%] z-20 w-44 -rotate-[3deg] shadow-lift transition-transform duration-500 hover:-translate-y-2">
-              <NotebookCover colour="#36454F" pattern="dots" label="Midnight" />
-            </div>
-          </div>
+          {/* Hero visual — fanned notebooks. Labelled with real collections: they
+              used to read "Inspire Ink", "Her Journal" and "Midnight", none of
+              which the shop sells, so the first thing the hero did was advertise
+              four things you couldn't buy. */}
+          <HeroCovers />
         </div>
       </section>
 
@@ -161,10 +151,12 @@ export default function Home() {
         <SectionHead
           eyebrow="Curated for you"
           title="Featured Collections"
-          subtitle="Seven worlds to write in — each with its own voice."
+          subtitle={`${collections.length || ''} ${collections.length === 1 ? 'world' : 'worlds'} to write in — each with its own voice.`.trim()}
           link={{ to: '/collections', label: 'View all' }}
         />
-        {loading ? (
+        {catalogError ? (
+          <CatalogRetryNotice />
+        ) : loading ? (
           <div className="mt-10"><CollectionGridSkeleton count={6} /></div>
         ) : (
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -212,7 +204,9 @@ export default function Home() {
         <div className="container-suvadu">
           <SectionHead eyebrow="Loved most" title="Best Sellers" subtitle="The notebooks our customers keep coming back for." />
           <div className="mt-10">
-            {loading ? (
+            {catalogError ? (
+              <CatalogRetryNotice />
+            ) : loading ? (
               <ProductGridSkeleton count={4} />
             ) : (
               <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
@@ -293,6 +287,23 @@ export default function Home() {
 
 // Renders children only once the placeholder scrolls near the viewport, so the
 // heavy three.js chunk is fetched on intent (scroll) rather than on every load.
+/** The catalogue didn't load. Say so inline — the rest of the home page is
+ *  static and still worth reading — and give the shopper a retry. */
+function CatalogRetryNotice() {
+  const { refresh, loading } = useCatalog()
+  return (
+    <div className="mt-10 rounded-2xl border border-dashed border-border py-12 text-center">
+      <p className="font-display text-xl text-plum">We couldn’t load the shop</p>
+      <p className="mx-auto mt-2 max-w-sm font-body text-sm font-light text-muted-foreground">
+        A connection problem on our side, not a missing page.
+      </p>
+      <button onClick={() => void refresh()} disabled={loading} className="btn-secondary mt-5 disabled:opacity-60">
+        {loading ? 'Retrying…' : 'Try again'}
+      </button>
+    </div>
+  )
+}
+
 function WhenVisible({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
@@ -334,15 +345,62 @@ export function SectionHead({ eyebrow, title, subtitle, link }: {
   )
 }
 
+/** The fanned notebooks in the hero, labelled with collections that exist.
+ *  Falls back to unlabelled covers until the catalogue lands, rather than
+ *  inventing names to fill the space. */
+function HeroCovers() {
+  const { collections } = useCatalog()
+  const positions = [
+    'absolute left-[6%] top-10 w-48 -rotate-[10deg]',
+    'absolute left-[34%] top-0 z-10 w-52 rotate-[3deg]',
+    'absolute right-[4%] top-14 w-48 rotate-[11deg]',
+    'absolute bottom-2 left-[26%] z-20 w-44 -rotate-[3deg]',
+  ]
+  const fallback = [
+    { colour: '#E6E6FA', pattern: 'plain' as const },
+    { colour: '#613092', pattern: 'mono' as const },
+    { colour: '#FF8DA1', pattern: 'floral' as const },
+    { colour: '#36454F', pattern: 'dots' as const },
+  ]
+  const shown = collections.slice(0, 4)
+
+  return (
+    <div className="relative hidden h-[440px] lg:block">
+      {positions.map((pos, i) => {
+        const col = shown[i]
+        const cover = col
+          ? <NotebookCover colour={col.accent} pattern={col.pattern} label={col.displayName} />
+          : <NotebookCover colour={fallback[i].colour} pattern={fallback[i].pattern} />
+        const cls = `${pos} shadow-lift transition-transform duration-500 hover:-translate-y-2`
+        return col
+          ? <Link key={col.slug} to={`/collections/${col.slug}`} className={cls}>{cover}</Link>
+          : <div key={i} aria-hidden className={cls}>{cover}</div>
+      })}
+    </div>
+  )
+}
+
 function NewsletterBanner() {
+  // Only promise the discount if the coupon behind it is actually live — the
+  // headline used to advertise 10% off unconditionally, and subscribing then
+  // delivered nothing at all.
+  const [offer, setOffer] = useState<WelcomeOffer | null>(null)
+  useEffect(() => {
+    let active = true
+    fetchWelcomeOffer().then((o) => { if (active) setOffer(o) })
+    return () => { active = false }
+  }, [])
+
   return (
     <div className="relative overflow-hidden rounded-2xl bg-plum px-5 py-12 text-center text-white sm:rounded-3xl sm:px-12 sm:py-14">
       <div className="pointer-events-none absolute inset-0 opacity-30 bg-grain" />
       <div className="relative mx-auto max-w-2xl">
         <p className="font-body text-[11px] font-medium uppercase tracking-[0.18em] text-royal-200 sm:text-xs sm:tracking-[0.24em]">Join the Suvadu circle</p>
-        <h2 className="mt-4 font-display text-2xl text-white sm:text-4xl">Get 10% off your first notebook</h2>
+        <h2 className="mt-4 font-display text-2xl text-white sm:text-4xl">
+          {offer ? `Get ${offer.pct}% off your first notebook` : 'Never miss a new collection'}
+        </h2>
         <p className="mt-3 font-body text-sm font-light text-white/70">Subscribe for new collections, restocks and a little inspiration.</p>
-        <NewsletterForm />
+        <NewsletterForm offer={offer} />
       </div>
     </div>
   )
@@ -350,10 +408,12 @@ function NewsletterBanner() {
 
 import { useToast } from '@/components/Toast'
 import { isEmail } from '@/lib/utils'
-function NewsletterForm() {
+import { fetchWelcomeOffer, type WelcomeOffer } from '@/lib/welcome'
+function NewsletterForm({ offer }: { offer: WelcomeOffer | null }) {
   const { notify } = useToast()
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
+  const [claimed, setClaimed] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -363,8 +423,36 @@ function NewsletterForm() {
     const { error } = await supabase.from('newsletter_subscribers').upsert({ email: value }, { onConflict: 'email' })
     setBusy(false)
     if (error) { notify('Could not subscribe right now — please try again.'); return }
-    notify('Subscribed — welcome to Suvadu!')
+    // There is no transactional email here, so the code is handed over on the
+    // spot rather than promised and never sent.
+    notify(offer ? `Subscribed — your code is ${offer.code}` : 'Subscribed — welcome to Suvadu!')
+    setClaimed(true)
     setEmail('')
+  }
+
+  if (claimed) {
+    return (
+      <div className="mx-auto mt-7 max-w-md rounded-2xl bg-white/10 px-5 py-6 ring-1 ring-white/20">
+        <p className="font-display text-xl text-white">You’re in.</p>
+        {offer ? (
+          <>
+            <p className="mt-1.5 font-body text-sm font-light text-white/75">
+              Use this code at checkout for {offer.pct}% off your first notebook.
+            </p>
+            <p className="mt-4 select-all rounded-xl bg-white px-4 py-3 font-body text-lg font-medium tracking-[0.18em] text-royal">
+              {offer.code}
+            </p>
+            <Link to="/collections" className="mt-4 inline-flex items-center gap-1.5 font-body text-sm font-medium text-royal-200 hover:text-white">
+              Start shopping <ArrowRight width={15} />
+            </Link>
+          </>
+        ) : (
+          <p className="mt-1.5 font-body text-sm font-light text-white/75">
+            We’ll be in touch with new collections and restocks.
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (

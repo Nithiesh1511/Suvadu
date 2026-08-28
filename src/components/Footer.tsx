@@ -124,7 +124,9 @@ export default function Footer() {
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-center sm:flex-row sm:text-left">
           <p className="font-body text-xs font-light text-muted-foreground">
-            © {new Date().getFullYear()} SUVADU Notebooks. All rights reserved. · <Link to="/admin" className="hover:text-royal">Admin</Link>
+            {/* No link to /admin here: staff know the URL, and shoppers have no
+                reason to be shown the staff door on every page. */}
+            © {new Date().getFullYear()} SUVADU Notebooks. All rights reserved.
           </p>
           <p className="font-body text-xs font-light text-muted-foreground">Crafted in India · Pan-India shipping · Secure payments via Razorpay</p>
         </div>

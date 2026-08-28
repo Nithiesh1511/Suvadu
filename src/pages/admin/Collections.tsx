@@ -181,7 +181,7 @@ export default function AdminCollections() {
               </div>
             </div>
             <p className="mt-2 font-body text-xs font-light text-muted-foreground">
-              Shown on the Home page collection card. Stored with the collection itself — large images are resized to {MAX_EDGE}px before saving. Leave empty to keep using the generated cover from the accent colour and pattern. Max {MAX_IMAGE_MB}MB.
+              Shown on the Home page collection card. Uploaded to image storage and resized to {MAX_EDGE}px on the long edge. Leave empty to keep using the generated cover from the accent colour and pattern. Max {MAX_IMAGE_MB}MB.
             </p>
           </AdminField>
           <div className="flex gap-3 sm:col-span-2">

@@ -24,6 +24,7 @@ import { Heart, Share, Plus, Minus, Close, ChevronDown, Pen } from '@/components
 import { formatINR, cn } from '@/lib/utils'
 import { openWhatsApp } from '@/lib/contact'
 import { useSeo, SITE_URL } from '@/lib/seo'
+import CatalogError from '@/components/CatalogError'
 import NotFound from './NotFound'
 
 /** How far the cover magnifies under the cursor. */
@@ -31,7 +32,7 @@ const ZOOM = 2.2
 
 export default function ProductDetail() {
   const { slug = '' } = useParams()
-  const { getProductBySlug, products, colours, loading } = useCatalog()
+  const { getProductBySlug, products, colours, loading, error: catalogError } = useCatalog()
   const product = getProductBySlug(slug)
   const navigate = useNavigate()
   const { addToCart, toggleWishlist, isWished, user } = useStore()
@@ -39,8 +40,28 @@ export default function ProductDetail() {
 
   const isCustom = product?.type === 'customized'
 
-  const size: SizeKey = 'A5' // A5 is the only offered size
-  const [colour, setColour] = useState<ColourOption>(product?.colour ?? COLOURS[0])
+  // ── Size ────────────────────────────────────────────────────────────────
+  // Offer every size the product is actually priced for. A5 is the standard;
+  // A4 is stocked on request; Custom is quoted rather than priced, and the
+  // "price on request" branch below handles it.
+  const sizeOptions = useMemo<SizeKey[]>(() => {
+    if (!product) return ['A5']
+    const list: SizeKey[] = []
+    if (product.prices.A5 != null) list.push('A5')
+    if (product.prices.A4 != null) list.push('A4')
+    if (product.prices.Custom != null || product.customPriceOnRequest) list.push('Custom')
+    return list.length ? list : ['A5']
+  }, [product])
+
+  // The product arrives asynchronously, so neither of these can be a useState
+  // initialiser — on first render there is no product to read a default from,
+  // and a lazy initialiser only ever runs once. Hold the shopper's explicit
+  // pick instead, and fall back to the product's own value until they make one.
+  const [pickedSize, setPickedSize] = useState<SizeKey | null>(null)
+  const [pickedColour, setPickedColour] = useState<ColourOption | null>(null)
+  const size: SizeKey = pickedSize && sizeOptions.includes(pickedSize) ? pickedSize : sizeOptions[0]
+  const colour: ColourOption = pickedColour ?? product?.colour ?? COLOURS[0]
+
   const [pages, setPages] = useState<number>(DEFAULT_PAGES)
   const [ruling, setRuling] = useState<'Ruled' | 'Unruled'>('Ruled')
   const [qty, setQty] = useState(1)
@@ -68,6 +89,22 @@ export default function ProductDetail() {
   const [cText, setCText] = useState('')
   const [cFont, setCFont] = useState(FONT_OPTIONS[0])
 
+  // Route param changes reuse this component rather than remounting it, so every
+  // choice has to be reset by hand — otherwise the next product opens with the
+  // last one's page count, ruling, quantity and personalisation still applied,
+  // and `thumb` points at a swatch that no longer matches the rendered cover.
+  useEffect(() => {
+    setPickedSize(null)
+    setPickedColour(null)
+    setPages(DEFAULT_PAGES)
+    setRuling('Ruled')
+    setQty(1)
+    setThumb(0)
+    setCName('')
+    setCText('')
+    setCFont(FONT_OPTIONS[0])
+  }, [slug])
+
   const related = useMemo(
     () => products.filter((p) => p.slug !== slug && p.collectionSlug === product?.collectionSlug).slice(0, 4),
     [slug, product, products],
@@ -83,8 +120,15 @@ export default function ProductDetail() {
   }, [])
 
   // SEO meta (brief §11) — unique title + description per product, plus the cover
-  // image (when present) so shared links unfurl with a picture.
-  useSeo(product?.name ?? 'Product', product?.description, product?.image ?? undefined)
+  // image (when present) so shared links unfurl with a picture. Child effects run
+  // before parent ones, so the <NotFound /> below can't set its own title here —
+  // this has to say "Page not found" or the tab, bookmark and history entry all
+  // keep claiming to be a product that doesn't exist.
+  useSeo(
+    product?.name ?? (loading ? 'Product' : 'Page not found'),
+    product?.description,
+    product?.image ?? undefined,
+  )
 
   if (loading && !product) {
     return (
@@ -93,11 +137,13 @@ export default function ProductDetail() {
       </div>
     )
   }
+  // Distinguish "this product doesn't exist" from "we couldn't load anything".
+  if (!product && catalogError) return <CatalogError />
   if (!product) return <NotFound />
   const prod = product // narrowed (non-undefined) — safe to capture in closures below
 
   const wished = isWished(prod.id)
-  const basePrice = product.prices.A5
+  const basePrice = product.prices[size]
   const onRequest = basePrice == null
   // Page count scales the price (listed price is for 160 pages).
   const unitPrice = basePrice == null ? null : priceForPages(basePrice, pages)
@@ -130,7 +176,7 @@ export default function ProductDetail() {
     offers: {
       '@type': 'Offer',
       priceCurrency: 'INR',
-      price: prod.prices.A5 ?? prod.prices.A4 ?? 0,
+      price: basePrice ?? prod.prices.A5 ?? prod.prices.A4 ?? 0,
       availability: outOfStock ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
       url: `${SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/products/${prod.slug}`,
     },
@@ -244,7 +290,7 @@ export default function ProductDetail() {
                   {thumbs.map((t, i) => (
                     <button
                       key={i}
-                      onClick={() => { setThumb(i); setColour(t.colour) }}
+                      onClick={() => { setThumb(i); setPickedColour(t.colour) }}
                       className={cn(
                         'w-14 overflow-hidden rounded-lg transition',
                         thumb === i ? 'ring-2 ring-royal ring-offset-2' : 'opacity-70 hover:opacity-100',
@@ -295,6 +341,14 @@ export default function ProductDetail() {
 
               {/* Choices — two quiet rows */}
               <div className="mt-12 space-y-6">
+                {sizeOptions.length > 1 && (
+                  <Choice
+                    label="Size"
+                    options={sizeOptions.map((sz) => ({ value: sz, label: sz }))}
+                    value={size}
+                    onChange={setPickedSize}
+                  />
+                )}
                 <Choice
                   label="Pages"
                   options={PAGE_OPTIONS.map((p) => ({ value: p, label: String(p) }))}
@@ -339,7 +393,7 @@ export default function ProductDetail() {
                         <button
                           key={c.name}
                           type="button"
-                          onClick={() => setColour(c)}
+                          onClick={() => setPickedColour(c)}
                           aria-label={c.name}
                           aria-pressed={colour.name === c.name}
                           title={c.name}
@@ -417,7 +471,10 @@ export default function ProductDetail() {
                   </ul>
                 </Disclosure>
                 <Disclosure title="Size & paper">
-                  <p>A5 — {SIZE_INFO.A5.dims}. 100 GSM premium paper with lay-flat thread binding, {pages} pages, {ruling.toLowerCase()}.</p>
+                  <p>{size} — {SIZE_INFO[size].dims}. 100 GSM premium paper with lay-flat thread binding, {pages} pages, {ruling.toLowerCase()}.</p>
+                  {sizeOptions.length > 1 && (
+                    <p className="mt-2">{SIZE_INFO[size].note}</p>
+                  )}
                 </Disclosure>
                 <Disclosure title="Shipping & returns">
                   <p>

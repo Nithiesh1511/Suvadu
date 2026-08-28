@@ -8,7 +8,7 @@ import NotebookCover from '@/components/NotebookCover'
 import ProductImage from '@/components/ProductImage'
 import { useCatalog } from '@/context/CatalogContext'
 import { supabase } from '@/lib/supabase'
-import { COLOURS, type Product, type SizeKey } from '@/data/products'
+import { COLOURS, getAccessoryById, isAccessory, type Product, type SizeKey } from '@/data/products'
 import { User, Trash, Pen, Heart } from '@/components/Icons'
 import { formatINR, cn, isEmail, isMobile } from '@/lib/utils'
 
@@ -33,6 +33,9 @@ interface OrderRecord {
   status: OrderStatus
   total: number
   created_at: string
+  /** Set as soon as the Razorpay modal is opened. Null means payment was never
+   *  even initiated, which is the ONLY case where an order is provably unpaid. */
+  razorpay_order_id: string | null
   order_items: OrderItemRecord[]
 }
 
@@ -87,7 +90,11 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
   }
   if (!user) return <AuthGate notify={notify} />
 
-  const wished: Product[] = wishlist.map((id) => ALL_PRODUCTS.find((p) => p.id === id)).filter(Boolean) as Product[]
+  // Accessories aren't in the catalogue table — resolve them from the static
+  // registry too, so the badge in the header and this list can't disagree.
+  const wished: Product[] = wishlist
+    .map((id) => ALL_PRODUCTS.find((p) => p.id === id) ?? getAccessoryById(id))
+    .filter(Boolean) as Product[]
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'profile', label: 'Profile' },
@@ -156,6 +163,7 @@ function AuthGate({ notify }: { notify: (m: string) => void }) {
     // Client-side guards for clearer feedback than the raw API error.
     if (!isEmail(form.email)) { setError('Please enter a valid email address.'); return }
     if (mode === 'register') {
+      if (!form.name.trim()) { setError('Please enter your name — it’s what we’ll put on your order.'); return }
       if (form.mobile && !isMobile(form.mobile)) { setError('Please enter a valid 10-digit mobile number.'); return }
       if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
     }
@@ -192,14 +200,14 @@ function AuthGate({ notify }: { notify: (m: string) => void }) {
 
           <form onSubmit={submit} className="mt-6 space-y-4">
             {mode === 'register' && (
-              <Input label="Full Name" value={form.name} onChange={(v) => setForm((f) => ({ ...f, name: v }))} />
+              <Input label="Full Name" value={form.name} onChange={(v) => setForm((f) => ({ ...f, name: v }))} required autoComplete="name" />
             )}
-            <Input label="Email" type="email" value={form.email} onChange={(v) => setForm((f) => ({ ...f, email: v }))} required />
+            <Input label="Email" type="email" value={form.email} onChange={(v) => setForm((f) => ({ ...f, email: v }))} required autoComplete="email" />
             {mode === 'register' && (
-              <Input label="Mobile Number" type="tel" value={form.mobile} onChange={(v) => setForm((f) => ({ ...f, mobile: v.replace(/\D/g, '').slice(0, 10) }))} />
+              <Input label="Mobile Number" type="tel" value={form.mobile} onChange={(v) => setForm((f) => ({ ...f, mobile: v.replace(/\D/g, '').slice(0, 10) }))} autoComplete="tel-national" />
             )}
             {mode !== 'reset' && (
-              <Input label="Password" type="password" value={form.password} onChange={(v) => setForm((f) => ({ ...f, password: v }))} required />
+              <Input label="Password" type="password" value={form.password} onChange={(v) => setForm((f) => ({ ...f, password: v }))} required autoComplete={mode === 'register' ? 'new-password' : 'current-password'} />
             )}
             {mode === 'login' && (
               <div className="text-right">
@@ -286,7 +294,7 @@ function OrdersPanel() {
     // every customer's orders — filter here regardless of RLS.
     supabase
       .from('orders')
-      .select('id, order_number, status, total, created_at, order_items(product_id, product_name, product_slug, size, qty, unit_price, pages, customization)')
+      .select('id, order_number, status, total, created_at, razorpay_order_id, order_items(product_id, product_name, product_slug, size, qty, unit_price, pages, customization)')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
@@ -298,10 +306,37 @@ function OrdersPanel() {
     return () => { active = false }
   }, [session])
 
+  /** Clear an order that never reached the payment gateway.
+   *
+   *  'pending' alone does NOT mean unpaid: there is no Razorpay webhook, so an
+   *  order whose payment succeeded but whose verify call failed (dropped
+   *  connection, closed tab) also sits at 'pending' with the money captured.
+   *  Deleting one of those would destroy the shopper's only record of a payment
+   *  that really happened. So this is offered only when razorpay_order_id is
+   *  null — the modal was never opened, so nothing can have been charged.
+   *  Requires the owner DELETE policy from migration 0007. */
+  async function discardUnstarted(o: OrderRecord) {
+    if (o.razorpay_order_id) return
+    const { error, count } = await supabase
+      .from('orders')
+      .delete({ count: 'exact' })
+      .eq('id', o.id)
+      .eq('status', 'pending')
+      .is('razorpay_order_id', null)
+    if (error || !count) {
+      notify('Couldn’t remove that order — please contact us and we’ll clear it.')
+      return
+    }
+    setOrders((p) => p.filter((x) => x.id !== o.id))
+    notify('Order removed')
+  }
+
   function reorder(o: OrderRecord) {
     let added = 0
     o.order_items.forEach((it) => {
-      const p = allProducts.find((x) => x.id === it.product_id || x.slug === it.product_slug)
+      const p =
+        allProducts.find((x) => x.id === it.product_id || x.slug === it.product_slug) ??
+        getAccessoryById(it.product_id)
       if (p) {
         addToCart({
           product: p,
@@ -354,11 +389,21 @@ function OrdersPanel() {
               <ul className="mt-3 space-y-1 font-body text-sm font-light text-plum/80">
                 {o.order_items.map((it, i) => <li key={i}>{it.qty} × {it.product_name} <span className="text-muted-foreground">({it.size})</span></li>)}
               </ul>
+              {o.status === 'pending' && (
+                <p className="mt-3 font-body text-xs font-light leading-relaxed text-amber-700">
+                  {o.razorpay_order_id
+                    ? 'Payment wasn’t completed, so this order hasn’t been placed. If money did leave your account, send us this order number and we’ll sort it out.'
+                    : 'We couldn’t start the payment, so this order was never placed and nothing was charged. Reorder to put the items back in your cart, or remove it.'}
+                </p>
+              )}
               <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
                 <span className="font-body text-sm font-medium text-plum">{formatINR(Number(o.total))}</span>
                 <div className="flex gap-3">
-                  {detailSlug && <Link to={`/products/${detailSlug}`} className="font-body text-sm font-medium text-royal hover:underline">View Details</Link>}
+                  {detailSlug && !isAccessory(o.order_items[0]?.product_id ?? '') && <Link to={`/products/${detailSlug}`} className="font-body text-sm font-medium text-royal hover:underline">View Details</Link>}
                   <button onClick={() => reorder(o)} className="font-body text-sm font-medium text-royal hover:underline">Reorder</button>
+                  {o.status === 'pending' && !o.razorpay_order_id && (
+                    <button onClick={() => discardUnstarted(o)} className="font-body text-sm font-medium text-muted-foreground hover:text-rose-500">Remove</button>
+                  )}
                 </div>
               </div>
             </div>
@@ -567,11 +612,14 @@ function WishlistPanel({ items, onRemove, onAdd }: { items: Product[]; onRemove:
   return (
     <Card title="Wishlist">
       <div className="grid gap-4 sm:grid-cols-2">
-        {items.map((p) => (
+        {items.map((p) => {
+          // Accessories have no product page — linking to one lands on a 404.
+          const to = isAccessory(p.id) ? '/accessories' : `/products/${p.slug}`
+          return (
           <div key={p.id} className="flex gap-4 rounded-2xl border border-border p-4">
-            <Link to={`/products/${p.slug}`} className="w-16 shrink-0"><ProductImage image={p.image} alt={p.name} colour={p.colour.hex} pattern={p.pattern} /></Link>
+            <Link to={to} className="w-16 shrink-0"><ProductImage image={p.image} alt={p.name} colour={p.colour.hex} pattern={p.pattern} /></Link>
             <div className="flex min-w-0 flex-1 flex-col">
-              <Link to={`/products/${p.slug}`} className="font-display text-lg leading-snug text-plum hover:text-royal">{p.name}</Link>
+              <Link to={to} className="font-display text-lg leading-snug text-plum hover:text-royal">{p.name}</Link>
               <p className="font-body text-sm font-medium text-plum">{formatINR(p.prices.A5)}</p>
               <div className="mt-auto flex flex-wrap items-center gap-3 pt-2">
                 <button onClick={() => onAdd(p)} className="btn-primary btn-sm">Add to Cart</button>
@@ -579,7 +627,8 @@ function WishlistPanel({ items, onRemove, onAdd }: { items: Product[]; onRemove:
               </div>
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
     </Card>
   )
@@ -611,13 +660,22 @@ function Detail({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Input({ label, value, onChange, type = 'text', required, className }: {
+function Input({ label, value, onChange, type = 'text', required, className, autoComplete }: {
   label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean; className?: string
+  /** Without this a password manager can neither fill nor offer to save. */
+  autoComplete?: string
 }) {
   return (
     <label className={cn('block', className)}>
       <span className="mb-1.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">{label}</span>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} className="field" />
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        autoComplete={autoComplete}
+        className="field"
+      />
     </label>
   )
 }
