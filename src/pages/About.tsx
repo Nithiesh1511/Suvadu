@@ -2,6 +2,51 @@ import { Link } from 'react-router-dom'
 import PageHeader from '@/components/PageHeader'
 import NotebookCover from '@/components/NotebookCover'
 import { Leaf, Pen, Sparkle, Truck, Check, ArrowRight } from '@/components/Icons'
+import { useCatalog } from '@/context/CatalogContext'
+import { cn } from '@/lib/utils'
+
+/** Four covers beside the brand story. These used to be labelled "Inspire Ink",
+ *  "Her Journal" and "Midnight" — names that exist nowhere else in the shop, so
+ *  anyone who went looking for them found nothing. Show real collections, and
+ *  make them links, since that's what a reader will try to do with them. */
+function StoryCovers() {
+  const { collections } = useCatalog()
+  const shown = collections.slice(0, 4)
+  const offsets = ['mt-8', '', '', '-mt-4']
+
+  // Before the catalogue lands, hold the layout with unlabelled covers rather
+  // than inventing collection names.
+  if (shown.length === 0) {
+    return (
+      <div aria-hidden className="relative mx-auto grid w-full max-w-md grid-cols-2 gap-4">
+        {PLACEHOLDER_COVERS.map((c, i) => (
+          <div key={i} className={offsets[i]}><NotebookCover colour={c.colour} pattern={c.pattern} /></div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative mx-auto grid w-full max-w-md grid-cols-2 gap-4">
+      {shown.map((col, i) => (
+        <Link
+          key={col.slug}
+          to={`/collections/${col.slug}`}
+          className={cn('transition duration-300 hover:-translate-y-1', offsets[i])}
+        >
+          <NotebookCover colour={col.accent} pattern={col.pattern} label={col.displayName} />
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+const PLACEHOLDER_COVERS = [
+  { colour: '#E6E6FA', pattern: 'plain' as const },
+  { colour: '#613092', pattern: 'mono' as const },
+  { colour: '#FF8DA1', pattern: 'floral' as const },
+  { colour: '#36454F', pattern: 'dots' as const },
+]
 
 const VALUES = [
   { Icon: Leaf, t: 'Considered materials', d: 'Premium 100 GSM paper, soft-touch covers and lay-flat binding — chosen so writing feels effortless.' },
@@ -35,12 +80,7 @@ export default function About() {
             <p className="font-display text-xl italic text-royal">“Make your mark.” It isn’t just our tagline — it’s the whole point.</p>
           </div>
         </div>
-        <div className="relative mx-auto grid w-full max-w-md grid-cols-2 gap-4">
-          <div className="mt-8"><NotebookCover colour="#E6E6FA" pattern="plain" label="Calm Collection" /></div>
-          <div><NotebookCover colour="#613092" pattern="mono" label="Inspire Ink" /></div>
-          <div><NotebookCover colour="#FF8DA1" pattern="floral" label="Her Journal" /></div>
-          <div className="-mt-4"><NotebookCover colour="#36454F" pattern="dots" label="Midnight" /></div>
-        </div>
+        <StoryCovers />
       </section>
 
       {/* Why Suvadu */}

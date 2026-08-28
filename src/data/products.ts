@@ -292,6 +292,50 @@ export const BOOKMARKS: Bookmark[] = [
   { id: 'BM4', name: 'Bookmark — Design 4', colour: { name: 'Charcoal Black', hex: '#36454F' }, pattern: 'mono' },
 ]
 
+export const BOOKMARK_PRICE = 99
+
+// ── Accessories as products ──────────────────────────────────────────────────
+// Bookmarks are a fixed range defined here, not rows in the `products` table.
+// Anything that reconciles a cart or a wishlist against the live catalogue has
+// to know about them, or it treats every accessory as a deleted product and
+// silently drops it. That is what `getAccessoryById` is for — one registry, so
+// the cart, the wishlist and the payment function all agree on what exists.
+//
+// The prices here are mirrored server-side in
+// `supabase/functions/_shared/pricing.ts` — change one, change the other.
+export function bookmarkToProduct(b: Bookmark): Product {
+  return {
+    id: b.id,
+    slug: `bookmark-${b.id.toLowerCase()}`,
+    name: b.name,
+    type: 'basic',
+    collectionSlug: 'accessories',
+    collectionName: 'Accessories',
+    prices: { A5: BOOKMARK_PRICE, A4: null, Custom: null },
+    description: 'A little companion for your notebook — printed on thick card with a soft-touch finish.',
+    specs: ['Thick 300 GSM card', 'Soft-touch matte finish', '50 × 150 mm'],
+    colour: b.colour,
+    pattern: b.pattern,
+    rating: 0,
+    reviews: 0,
+  }
+}
+
+export const ACCESSORY_PRODUCTS: Product[] = BOOKMARKS.map(bookmarkToProduct)
+
+const ACCESSORY_BY_ID = new Map(ACCESSORY_PRODUCTS.map((p) => [p.id, p]))
+
+/** An accessory by id, or undefined if the id isn't one. */
+export function getAccessoryById(id: string): Product | undefined {
+  return ACCESSORY_BY_ID.get(id)
+}
+
+/** True for products that live in this file rather than the catalogue table —
+ *  they have no product page, so nothing should link to one. */
+export function isAccessory(id: string): boolean {
+  return ACCESSORY_BY_ID.has(id)
+}
+
 // ---- Home: Customer Reviews ----
 export interface Review {
   name: string

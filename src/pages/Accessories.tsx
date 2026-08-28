@@ -1,30 +1,9 @@
-import { BOOKMARKS, type Bookmark, type Product } from '@/data/products'
+import { BOOKMARKS, BOOKMARK_PRICE, bookmarkToProduct, type Bookmark } from '@/data/products'
 import PageHeader from '@/components/PageHeader'
 import { useStore } from '@/context/StoreContext'
 import { useToast } from '@/components/Toast'
 import { Heart } from '@/components/Icons'
 import { formatINR, cn } from '@/lib/utils'
-
-const BOOKMARK_PRICE = 99
-
-// A bookmark is a lightweight product — build a Product so it flows through the cart.
-function bookmarkToProduct(b: Bookmark): Product {
-  return {
-    id: b.id,
-    slug: `bookmark-${b.id.toLowerCase()}`,
-    name: b.name,
-    type: 'basic',
-    collectionSlug: 'accessories',
-    collectionName: 'Accessories',
-    prices: { A5: BOOKMARK_PRICE, A4: null, Custom: null },
-    description: `${b.name} — a premium Suvadu bookmark to keep your place in style.`,
-    specs: [],
-    colour: b.colour,
-    pattern: b.pattern,
-    rating: 5,
-    reviews: 0,
-  }
-}
 
 export default function Accessories() {
   const { isWished, toggleWishlist, user, addToCart } = useStore()

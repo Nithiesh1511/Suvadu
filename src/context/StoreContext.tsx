@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Product, SizeKey } from '@/data/products'
-import { DEFAULT_PAGES, priceForPages } from '@/data/products'
+import { DEFAULT_PAGES, getAccessoryById, priceForPages } from '@/data/products'
 import { useAuth } from '@/context/AuthContext'
 import { useCatalog } from '@/context/CatalogContext'
 import { supabase } from '@/lib/supabase'
@@ -112,7 +112,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       let changed = false
       const next: CartItem[] = []
       for (const item of prev) {
-        const p = allProducts.find((x) => x.id === item.product.id)
+        // Accessories aren't rows in the catalogue table — look them up in the
+        // static registry too, or every bookmark reads as "deleted" and is
+        // dropped from the cart on the next page load.
+        const p = allProducts.find((x) => x.id === item.product.id) ?? getAccessoryById(item.product.id)
         if (!p) {
           // Product no longer in the catalogue — remove it from the cart.
           changed = true

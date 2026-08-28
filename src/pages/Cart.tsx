@@ -6,6 +6,7 @@ import ProductImage from '@/components/ProductImage'
 import PageHeader from '@/components/PageHeader'
 import { Plus, Minus, Trash, ArrowRight, Check, Close } from '@/components/Icons'
 import { formatINR } from '@/lib/utils'
+import { isAccessory } from '@/data/products'
 
 export default function Cart() {
   const { cart, updateQty, removeFromCart, subtotal, discount, total, coupon, applyCoupon, removeCoupon } = useStore()
@@ -46,9 +47,14 @@ export default function Cart() {
       <section className="container-suvadu grid gap-10 py-12 lg:grid-cols-[1.6fr_1fr]">
         {/* Items */}
         <div className="space-y-5">
-          {cart.map((item) => (
+          {cart.map((item) => {
+            // Accessories have no product page — send them back to the shelf
+            // they came from rather than to a 404.
+            const accessory = isAccessory(item.product.id)
+            const to = accessory ? '/accessories' : `/products/${item.product.slug}`
+            return (
             <div key={item.key} className="flex gap-3 rounded-2xl border border-border bg-white p-3 shadow-card sm:gap-5 sm:p-4">
-              <Link to={`/products/${item.product.slug}`} className="w-16 shrink-0 xs:w-20 sm:w-24">
+              <Link to={to} className="w-16 shrink-0 xs:w-20 sm:w-24">
                 <ProductImage
                   image={item.product.image}
                   alt={item.product.name}
@@ -62,8 +68,8 @@ export default function Cart() {
               <div className="flex min-w-0 flex-1 flex-col">
                 <div className="flex items-start justify-between gap-2 sm:gap-3">
                   <div className="min-w-0">
-                    <Link to={`/products/${item.product.slug}`} className="font-display text-base leading-snug text-plum hover:text-royal sm:text-lg">{item.product.name}</Link>
-                    <p className="font-body text-xs font-light text-muted-foreground">{item.product.collectionName} · Size {item.size}{item.pages ? ` · ${item.pages} pages` : ''}{item.ruling ? ` · ${item.ruling}` : ''}</p>
+                    <Link to={to} className="font-display text-base leading-snug text-plum hover:text-royal sm:text-lg">{item.product.name}</Link>
+                    <p className="font-body text-xs font-light text-muted-foreground">{item.product.collectionName}{accessory ? '' : ` · Size ${item.size}`}{item.pages ? ` · ${item.pages} pages` : ''}{item.ruling ? ` · ${item.ruling}` : ''}</p>
                     {item.customization && (
                       <ul className="mt-1.5 space-y-0.5 font-body text-xs font-light text-royal">
                         {item.customization.name && <li>Name: “{item.customization.name}”</li>}
@@ -88,7 +94,8 @@ export default function Cart() {
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
 
           <Link to="/collections" className="inline-flex items-center gap-1.5 font-body text-sm font-medium text-royal hover:underline">
             ← Continue Shopping

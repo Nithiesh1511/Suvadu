@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '@/context/StoreContext'
 import { useAuth } from '@/context/AuthContext'
@@ -14,6 +14,16 @@ import { formatINR, cn, isEmail, isMobile } from '@/lib/utils'
 // Collision-resistant, human-readable order number: time component (base36) plus
 // a short random suffix. Unique in practice; the insert also retries on the rare
 // clash against the order_number UNIQUE constraint.
+/** One row of the shopper's address book (public.addresses). */
+interface SavedAddress {
+  id: string
+  label: string
+  line: string
+  city: string
+  state: string
+  pincode: string
+}
+
 function makeOrderNumber(): string {
   const t = Date.now().toString(36).toUpperCase().slice(-6)
   const r = Math.floor(Math.random() * 46656).toString(36).toUpperCase().padStart(3, '0')
@@ -42,6 +52,103 @@ export default function Checkout() {
       mobile: f.mobile || user.mobile,
     }))
   }, [user])
+  // ── Saved addresses ──────────────────────────────────────────────────────
+  // The account area has an address book whose empty state promises "faster
+  // checkout". It only means anything if checkout actually offers what's in it.
+  const [saved, setSaved] = useState<SavedAddress[]>([])
+  const [savedLoaded, setSavedLoaded] = useState(false)
+  const [saveToBook, setSaveToBook] = useState(false)
+  /** id of the saved address in use, or null while typing a new one. */
+  const [pickedId, setPickedId] = useState<string | null>(null)
+  /** Has the shopper typed in the address fields? A ref, not state: the saved
+   *  addresses arrive asynchronously and must not clobber what's being typed,
+   *  but that check must not re-run renders or land inside a state updater. */
+  const addressTouched = useRef(false)
+  /** undefined until the first run, so a fresh mount isn't mistaken for a
+   *  change of shopper. */
+  const previousUserId = useRef<string | null | undefined>(undefined)
+
+  const userId = session?.user.id ?? null
+
+  useEffect(() => {
+    let active = true
+
+    // Whose details are on the form? This component stays mounted across a
+    // sign-out (the gate below is an early return, not an unmount), so when a
+    // different person signs in, everything the last one typed has to go —
+    // name and contact details included, or their order ships under the
+    // previous shopper's name. Only on an actual change of identity, though:
+    // wiping on first mount would undo the prefill from the profile.
+    const switchedUser = previousUserId.current !== undefined && previousUserId.current !== userId
+    previousUserId.current = userId
+    if (switchedUser) {
+      setForm({ name: '', email: '', mobile: '', address: '', city: '', state: '', pincode: '' })
+      setEditing(true)
+    }
+    setSaved([])
+    setPickedId(null)
+    setSaveToBook(false)
+    addressTouched.current = false
+
+    if (!userId) { setSavedLoaded(true); return }
+    setSavedLoaded(false)
+    supabase
+      .from('addresses')
+      .select('id, label, line, city, state, pincode')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!active) return
+        setSavedLoaded(true)
+        // A failure here just means no picker — the plain form still works.
+        if (error) return
+        const rows = (data as SavedAddress[]) ?? []
+        setSaved(rows)
+        if (rows.length === 0) return
+        // Land on the first saved address rather than a blank form — but not
+        // over anything the shopper started typing while this was in flight,
+        // and only mark it selected when we actually applied it.
+        if (addressTouched.current) return
+        const first = rows[0]
+        setForm((f) => ({ ...f, address: first.line, city: first.city, state: first.state, pincode: first.pincode }))
+        setPickedId(first.id)
+      })
+    return () => { active = false }
+  }, [userId])
+
+  function applySavedAddress(a: SavedAddress) {
+    addressTouched.current = false
+    setPickedId(a.id)
+    setForm((f) => ({ ...f, address: a.line, city: a.city, state: a.state, pincode: a.pincode }))
+  }
+
+  function startNewAddress() {
+    addressTouched.current = true
+    setPickedId(null)
+    setForm((f) => ({ ...f, address: '', city: '', state: '', pincode: '' }))
+  }
+
+  /** Persist a newly typed address so the next order is one tap. */
+  async function persistAddress() {
+    if (!session || !saveToBook || pickedId) return
+    const { data, error } = await supabase
+      .from('addresses')
+      .insert({
+        user_id: session.user.id,
+        label: 'Delivery address',
+        line: form.address,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+      })
+      .select('id, label, line, city, state, pincode')
+      .single()
+    if (error || !data) return // Saving is a convenience; never block the order.
+    setSaved((p) => [...p, data as SavedAddress])
+    setPickedId((data as SavedAddress).id)
+    setSaveToBook(false)
+  }
+
   // Actual method (UPI/card/net-banking) is chosen inside the Razorpay modal.
   const paymentMethod = 'Razorpay'
   const [editing, setEditing] = useState(true)
@@ -50,7 +157,18 @@ export default function Checkout() {
 
   const grandTotal = total
 
-  function set<K extends keyof typeof form>(k: K, v: string) { setForm((f) => ({ ...f, [k]: v })) }
+  const ADDRESS_FIELDS: readonly string[] = ['address', 'city', 'state', 'pincode']
+
+  function set<K extends keyof typeof form>(k: K, v: string) {
+    setForm((f) => ({ ...f, [k]: v }))
+    // Typing over a saved address means this is a new one — otherwise the picker
+    // keeps a card highlighted that no longer matches the form, and the "save
+    // this address" offer stays hidden so the edit could never be kept.
+    if (ADDRESS_FIELDS.includes(k as string)) {
+      addressTouched.current = true
+      setPickedId(null)
+    }
+  }
 
   const addressComplete = Boolean(
     form.name && isEmail(form.email) && isMobile(form.mobile) &&
@@ -61,6 +179,7 @@ export default function Checkout() {
     e.preventDefault()
     if (!addressComplete) { notify('Please enter your name, a valid email, a 10-digit mobile, full address and a 6-digit pincode.'); return }
     setEditing(false)
+    void persistAddress()
     notify('Delivery address saved')
   }
 
@@ -148,8 +267,10 @@ export default function Checkout() {
     try {
       created = await createRazorpayOrder(order.id)
     } catch (e) {
+      // Nothing was charged. If the server refused the price it also cleared
+      // the pending order, so a retry starts clean — see razorpay-create-order.
       setPlacing(false)
-      notify(`Payment setup failed: ${(e as Error).message}`)
+      notify((e as Error).message)
       return
     }
 
@@ -176,6 +297,11 @@ export default function Checkout() {
       modal: {
         ondismiss: () => {
           setPlacing(false)
+          // Deliberately NOT deleted here. The gateway order already exists, and
+          // with an async method (UPI collect) a payment can still land after
+          // the modal is closed — there is no webhook to tell us. Deleting would
+          // erase the record of a payment that then succeeds. The order stays
+          // pending and Account explains what to do about it.
           notify('Payment cancelled — your order is saved as pending.')
         },
       },
@@ -258,6 +384,43 @@ export default function Checkout() {
               {!editing && <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 font-body text-sm font-medium text-royal hover:underline"><Pen width={14} /> Edit Address</button>}
             </div>
 
+            {editing && savedLoaded && saved.length > 0 && (
+              <div className="mt-5">
+                <span className="mb-2.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">Saved addresses</span>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {saved.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => applySavedAddress(a)}
+                      aria-pressed={pickedId === a.id}
+                      className={cn(
+                        'rounded-2xl border p-4 text-left font-body text-sm font-light transition',
+                        pickedId === a.id
+                          ? 'border-royal bg-lilac/40 text-plum ring-1 ring-royal'
+                          : 'border-border text-muted-foreground hover:border-royal/40',
+                      )}
+                    >
+                      <span className="block font-medium text-plum">{a.label || 'Saved address'}</span>
+                      <span className="mt-1 block break-anywhere">{a.line}, {a.city}, {a.state} — {a.pincode}</span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={startNewAddress}
+                    aria-pressed={pickedId === null}
+                    className={cn(
+                      'rounded-2xl border border-dashed p-4 text-left font-body text-sm transition',
+                      pickedId === null ? 'border-royal bg-lilac/40 text-plum' : 'border-border text-muted-foreground hover:border-royal/40',
+                    )}
+                  >
+                    <span className="block font-medium text-plum">Use a different address</span>
+                    <span className="mt-1 block font-light">Type a new one below.</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {editing ? (
               <form onSubmit={saveAddress} className="mt-5 grid gap-4 sm:grid-cols-2">
                 <Field label="Full Name" value={form.name} onChange={(v) => set('name', v)} className="sm:col-span-2" />
@@ -267,6 +430,19 @@ export default function Checkout() {
                 <Field label="City" value={form.city} onChange={(v) => set('city', v)} />
                 <Field label="State" value={form.state} onChange={(v) => set('state', v)} />
                 <Field label="Pincode" value={form.pincode} onChange={(v) => set('pincode', v.replace(/\D/g, '').slice(0, 6))} />
+                {session && pickedId === null && (
+                  <label className="flex items-center gap-2.5 sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={saveToBook}
+                      onChange={(e) => setSaveToBook(e.target.checked)}
+                      className="h-4 w-4 accent-royal"
+                    />
+                    <span className="font-body text-sm font-light text-muted-foreground">
+                      Save this address to my account for next time
+                    </span>
+                  </label>
+                )}
                 <div className="sm:col-span-2">
                   <button type="submit" className="btn-primary">Save & Continue</button>
                 </div>

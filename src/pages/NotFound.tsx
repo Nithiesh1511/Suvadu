@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom'
 import NotebookCover from '@/components/NotebookCover'
+import { useSeo } from '@/lib/seo'
 
 export default function NotFound() {
+  // Covers the catch-all route. When NotFound is rendered *inside* another page
+  // (a missing product or collection) that page owns the title instead — child
+  // effects run before parent ones, so the parent would otherwise overwrite this.
+  useSeo('Page not found', 'The link may be broken or the page may have moved.')
+
   return (
     <section className="gradient-hero">
       <div className="container-suvadu flex flex-col items-center py-24 text-center">

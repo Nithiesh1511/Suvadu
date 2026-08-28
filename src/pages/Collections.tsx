@@ -6,6 +6,7 @@ import { useCatalog } from '@/context/CatalogContext'
 import { supabase, type ReviewRow } from '@/lib/supabase'
 import ProductCard from '@/components/ProductCard'
 import PageHeader from '@/components/PageHeader'
+import CatalogError from '@/components/CatalogError'
 import Stars from '@/components/Stars'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { ChevronDown, Close, Search } from '@/components/Icons'
@@ -20,7 +21,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 ]
 
 export default function Collections() {
-  const { products: catalog, collections: COLLECTIONS, loading } = useCatalog()
+  const { products: catalog, collections: COLLECTIONS, loading, error: catalogError } = useCatalog()
   const [params, setParams] = useSearchParams()
   const bestsellerOnly = params.get('filter') === 'bestseller'
 
@@ -60,6 +61,17 @@ export default function Collections() {
     return list
   }, [catalog, bestsellerOnly, category, sort, query])
 
+  // The whole page is driven by the catalogue — if it never arrived, say so
+  // rather than rendering an empty shop that looks deliberately empty.
+  if (catalogError) {
+    return (
+      <div>
+        <PageHeader eyebrow="Shop" title="All Collections" crumbs={[{ label: 'Collections' }]} />
+        <CatalogError />
+      </div>
+    )
+  }
+
   return (
     <div>
       <PageHeader
@@ -68,7 +80,7 @@ export default function Collections() {
         subtitle={
           bestsellerOnly
             ? 'The notebooks our customers keep coming back for.'
-            : 'Seven worlds to write in. Filter, sort and search to find the one that’s yours.'
+            : `${COLLECTIONS.length || ''} ${COLLECTIONS.length === 1 ? 'world' : 'worlds'} to write in. Filter, sort and search to find the one that’s yours.`.trim()
         }
         crumbs={[{ label: 'Collections' }]}
       />

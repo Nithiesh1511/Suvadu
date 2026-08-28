@@ -1,53 +1,47 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import {
-  SPECIAL_COLLECTIONS,
-  CUSTOMIZED_PRODUCT,
-  MATCHING_SET_PRODUCT,
-  type Product,
-} from '@/data/products'
+import { SPECIAL_COLLECTIONS, type Product } from '@/data/products'
 import { useCatalog } from '@/context/CatalogContext'
 import ProductCard from '@/components/ProductCard'
 import PageHeader from '@/components/PageHeader'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { ChevronDown } from '@/components/Icons'
 import { useSeo } from '@/lib/seo'
+import CatalogError from '@/components/CatalogError'
 import NotFound from './NotFound'
 
 type SortKey = 'newest' | 'price-asc' | 'price-desc'
 
 export default function CollectionDetail({ special }: { special?: boolean }) {
   const { slug = '' } = useParams()
-  const { collections, getProductsByCollection, products: catalog, loading } = useCatalog()
+  const { collections, getProductsByCollection, loading, error: catalogError } = useCatalog()
   const [sort, setSort] = useState<SortKey>('newest')
 
   const meta = special
     ? SPECIAL_COLLECTIONS.find((c) => c.slug === slug)
     : collections.find((c) => c.slug === slug)
 
+  // Special collections are ordinary collections with their own landing page —
+  // they list the products actually filed under them. Padding the list with
+  // `catalog.slice(0, 4)` used to put Daily Ruled Notebook on the matching-sets
+  // page, and a hardcoded stand-in product that duplicated a real row and
+  // linked to a slug with no page behind it.
   const products = useMemo<Product[]>(() => {
-    let list: Product[]
-    if (special) {
-      // Special collections feature the customizable / set products
-      if (slug === 'match-and-write') list = [MATCHING_SET_PRODUCT, ...catalog.slice(0, 4)]
-      else list = [CUSTOMIZED_PRODUCT, ...catalog.slice(0, 4)]
-    } else {
-      list = getProductsByCollection(slug)
-    }
-    const sorted = [...list]
+    const sorted = [...getProductsByCollection(slug)]
     switch (sort) {
       case 'price-asc': sorted.sort((a, b) => a.prices.A5 - b.prices.A5); break
       case 'price-desc': sorted.sort((a, b) => b.prices.A5 - a.prices.A5); break
       default: sorted.sort((a, b) => (Number(b.isNew) - Number(a.isNew)) || b.id.localeCompare(a.id))
     }
     return sorted
-  }, [special, slug, sort, catalog, getProductsByCollection])
+  }, [slug, sort, getProductsByCollection])
 
-  // SEO meta (brief §11) — unique per collection.
+  // SEO meta (brief §11) — unique per collection. As on the product page, this
+  // has to own the 404 title too, since <NotFound />'s own effect runs first.
   const metaDesc = meta ? ('details' in meta ? meta.details : meta.description) : undefined
-  useSeo(meta?.displayName ?? 'Collection', metaDesc)
+  useSeo(meta?.displayName ?? (loading ? 'Collection' : 'Page not found'), metaDesc)
 
-  if (!special && loading && !meta) {
+  if (loading && !meta) {
     return (
       <div>
         <PageHeader title="Loading…" crumbs={[{ label: 'Collections', to: '/collections' }, { label: '…' }]} />
@@ -55,6 +49,9 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
       </div>
     )
   }
+  // A special collection's meta is static, so only a main collection can go
+  // missing purely because the catalogue failed to load.
+  if (!meta && !special && catalogError) return <CatalogError />
   if (!meta) return <NotFound />
 
   const title = meta.displayName
@@ -77,7 +74,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
       <section className="container-suvadu py-12">
         <div className="mb-8 flex items-center justify-between">
           <p className="font-body text-sm font-light text-muted-foreground">
-            {products.length} {products.length === 1 ? 'product' : 'products'}
+            {loading ? 'Loading…' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
           </p>
           <label className="relative">
             <select
@@ -94,7 +91,12 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
           </label>
         </div>
 
-        {products.length === 0 ? (
+        {/* A special collection's title comes from static data and paints at
+            once, so without this the page flashes "No products here yet" for as
+            long as the catalogue takes to arrive. */}
+        {loading && products.length === 0 ? (
+          <ProductGridSkeleton count={4} />
+        ) : products.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border py-16 text-center">
             <p className="font-display text-xl text-plum">No products here yet</p>
             <p className="mx-auto mt-2 max-w-sm font-body text-sm font-light text-muted-foreground">
@@ -113,7 +115,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
         <div className="container-suvadu text-center">
           <h2 className="font-display text-3xl text-plum">Looking for something else?</h2>
           <p className="mx-auto mt-3 max-w-md font-body text-sm font-light text-muted-foreground">
-            Explore all seven collections or design a notebook that’s entirely your own.
+            Explore all our collections or design a notebook that’s entirely your own.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link to="/collections" className="btn-primary">All Collections</Link>

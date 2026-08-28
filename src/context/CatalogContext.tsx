@@ -9,6 +9,7 @@ import {
 } from '@/data/products'
 import { supabase, type CollectionRow, type ColourRow, type ProductRow } from '@/lib/supabase'
 import { logAdmin } from '@/lib/adminLog'
+import { aggregateReviewStats, type ReviewStat, type ReviewStatRow } from '@/lib/reviewStats'
 
 // ── Catalogue layer (Supabase-backed) ───────────────────────────────────────
 // Collections + products are read from the database, so admin-added products
@@ -86,7 +87,7 @@ function mapCollection(r: CollectionRow, count: number): Collection {
   }
 }
 
-function mapProduct(r: ProductRow, collectionName: string): Product {
+function mapProduct(r: ProductRow, collectionName: string, stat: ReviewStat | undefined): Product {
   return {
     id: r.id,
     slug: r.slug,
@@ -105,8 +106,12 @@ function mapProduct(r: ProductRow, collectionName: string): Product {
     colour: { name: r.colour_name, hex: r.colour_hex },
     pattern: r.pattern as Pattern,
     image: r.image ?? undefined,
-    rating: Number(r.rating),
-    reviews: r.reviews,
+    // Ratings come from approved reviews, never from the seeded
+    // products.rating / products.reviews columns. Those still hold the launch
+    // placeholder values (4.9 / 212 reviews), which is why product pages used
+    // to advertise a rating directly above "No reviews yet".
+    rating: stat?.average ?? 0,
+    reviews: stat?.count ?? 0,
     bestseller: r.bestseller,
     isNew: r.is_new,
     stock: r.stock ?? null,
@@ -126,14 +131,19 @@ async function uploadImage(name: string, dataUrl: string): Promise<string> {
 }
 
 const uploadProductImage = (id: string, dataUrl: string) => uploadImage(id, dataUrl)
+const uploadCollectionImage = (slug: string, dataUrl: string) => uploadImage(`collection-${slug}`, dataUrl)
 
 /** Shared by add/updateCollection. Unlike product covers, collection covers are
  *  kept inline as a base64 data URL in `collections.image_url` — no Storage
- *  object, so nothing to clean up when a collection changes or loses its image.
+ *  object. Keeping them inline meant every visitor downloaded the base64 —
+ *  ~385 KB for a single cover — inside the collections response, before any
+ *  collection could render, on every page that loads the catalogue, with no
+ *  caching and no way to resize it. They go to the same Storage bucket as
+ *  product covers now, so the row carries a URL.
  *  An existing http URL (seeded rows) is kept as-is; '' clears the image. */
-function resolveCollectionImage(image: string | undefined): string | null {
+async function resolveCollectionImage(slug: string, image: string | undefined): Promise<string | null> {
   if (!image) return null
-  if (image.startsWith('data:')) return image
+  if (image.startsWith('data:')) return uploadCollectionImage(slug, image)
   return image.trim() || null
 }
 
@@ -141,26 +151,41 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [collectionRows, setCollectionRows] = useState<CollectionRow[]>([])
   const [productRows, setProductRows] = useState<ProductRow[]>([])
   const [colourRows, setColourRows] = useState<ColourRow[]>([])
+  const [reviewStats, setReviewStats] = useState<Map<string, ReviewStat>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const [cols, prods, cls] = await Promise.all([
-      supabase.from('collections').select('*').order('sort_order', { ascending: true }),
-      supabase.from('products').select('*').order('created_at', { ascending: true }),
-      supabase.from('colours').select('*').order('sort_order', { ascending: true }),
-    ])
-    if (cols.error || prods.error) {
-      setError((cols.error ?? prods.error)?.message ?? 'Failed to load catalogue.')
+    try {
+      const [cols, prods, cls, revs] = await Promise.all([
+        supabase.from('collections').select('*').order('sort_order', { ascending: true }),
+        supabase.from('products').select('*').order('created_at', { ascending: true }),
+        supabase.from('colours').select('*').order('sort_order', { ascending: true }),
+        // One query for the whole catalogue's ratings — aggregated below rather
+        // than one request per card.
+        supabase.from('reviews').select('product_id, rating').eq('status', 'approved'),
+      ])
+      if (cols.error || prods.error) {
+        setError((cols.error ?? prods.error)?.message ?? 'Failed to load catalogue.')
+        return
+      }
+      setCollectionRows((cols.data as CollectionRow[]) ?? [])
+      setProductRows((prods.data as ProductRow[]) ?? [])
+      setColourRows((cls.data as ColourRow[]) ?? [])
+
+      // A ratings failure must not blank the catalogue — fall back to "no reviews".
+      setReviewStats(aggregateReviewStats((revs.data ?? []) as ReviewStatRow[]))
+    } catch (e) {
+      // A rejected request — offline, DNS failure, CORS — never produces an
+      // error object to inspect. Without this the promise rejects, `loading` is
+      // never cleared, and every page sits on "Loading…" for good.
+      setError((e as Error)?.message || 'Could not reach the shop.')
+    } finally {
+      // Always: a stuck spinner is worse than an honest failure.
       setLoading(false)
-      return
     }
-    setCollectionRows((cols.data as CollectionRow[]) ?? [])
-    setProductRows((prods.data as ProductRow[]) ?? [])
-    setColourRows((cls.data as ColourRow[]) ?? [])
-    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -179,8 +204,11 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   )
 
   const allProducts = useMemo<Product[]>(
-    () => productRows.map((r) => mapProduct(r, collectionNameBySlug.get(r.collection_slug) ?? r.collection_slug)),
-    [productRows, collectionNameBySlug],
+    () =>
+      productRows.map((r) =>
+        mapProduct(r, collectionNameBySlug.get(r.collection_slug) ?? r.collection_slug, reviewStats.get(r.id)),
+      ),
+    [productRows, collectionNameBySlug, reviewStats],
   )
 
   const products = useMemo<Product[]>(
@@ -264,7 +292,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         colour_hex: COLOURS[0].hex,
         pattern: collection.pattern,
         image: imageUrl,
-        rating: 5,
+        // Ratings are derived from approved reviews; never seed one.
+        rating: 0,
         reviews: 0,
         bestseller: input.bestseller,
         is_new: input.isNew,
@@ -286,7 +315,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       return {
         ok: true,
         message: `“${name}” added to ${collection.display_name}.`,
-        product: mapProduct(data as ProductRow, collection.display_name),
+        // Brand new — it cannot have reviews yet.
+        product: mapProduct(data as ProductRow, collection.display_name, undefined),
       }
     },
     [collectionRows, productRows],
@@ -353,6 +383,15 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       let n = 2
       while (existing.has(slug)) slug = `${base}-${n++}`
 
+      // Uploading can fail (bucket missing, offline) — report it the way the
+      // product form does rather than rejecting out of the admin's click handler.
+      let imageUrl: string | null
+      try {
+        imageUrl = await resolveCollectionImage(slug, input.image)
+      } catch (e) {
+        return { ok: false, message: `Image upload failed: ${(e as Error).message}` }
+      }
+
       const row = {
         slug,
         display_name: name,
@@ -362,7 +401,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         pattern: input.pattern,
         sort_order: collectionRows.length,
         is_special: false,
-        image_url: resolveCollectionImage(input.image),
+        image_url: imageUrl,
       }
       const { data, error } = await supabase.from('collections').insert(row).select().single()
       if (error) {
@@ -379,13 +418,20 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     const name = input.displayName.trim()
     if (!name) return { ok: false, message: 'Collection name is required.' }
 
+    let imageUrl: string | null
+    try {
+      imageUrl = await resolveCollectionImage(slug, input.image)
+    } catch (e) {
+      return { ok: false, message: `Image upload failed: ${(e as Error).message}` }
+    }
+
     const patch = {
       display_name: name,
       internal_name: input.internalName?.trim() || name,
       description: input.description.trim(),
       accent: input.accent,
       pattern: input.pattern,
-      image_url: resolveCollectionImage(input.image),
+      image_url: imageUrl,
     }
     const { data, error } = await supabase.from('collections').update(patch).eq('slug', slug).select().single()
     if (error) {

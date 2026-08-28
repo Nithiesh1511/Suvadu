@@ -66,7 +66,11 @@ function ProductCard({ product }: { product: Product }) {
       <div className="flex flex-1 flex-col px-1.5 pb-1.5 pt-4">
         <p className="font-body text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{product.collectionName}</p>
         <h3 className="mt-1 font-display text-lg leading-snug text-plum">{product.name}</h3>
-        <div className="mt-1.5"><Stars rating={product.rating} size={14} /></div>
+        {/* No stars until there is something real to average — an unrated
+            product used to show the seeded 4.9. */}
+        {product.reviews > 0 && (
+          <div className="mt-1.5"><Stars rating={product.rating} size={14} /></div>
+        )}
         <div className="mt-auto flex items-end justify-between pt-3">
           <p className="font-body text-base font-medium text-plum">
             {formatINR(product.prices.A5)}

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { SPECIAL_COLLECTIONS, CUSTOMIZED_PRODUCT, MATCHING_SET_PRODUCT } from '@/data/products'
+import { SPECIAL_COLLECTIONS } from '@/data/products'
 import PageHeader from '@/components/PageHeader'
 import NotebookCover from '@/components/NotebookCover'
 import { ArrowRight, Pen, Sparkle, Check } from '@/components/Icons'
@@ -76,11 +76,14 @@ export default function SpecialCollections() {
                 </li>
               ))}
             </ul>
+            {/* These point at the collections, not at one hardcoded product
+                slug — a slug that no longer has a row behind it lands the
+                shopper on a 404, which is exactly what used to happen here. */}
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={`/products/${CUSTOMIZED_PRODUCT.slug}`} className="btn-primary">
+              <Link to="/special-collections/made-for-you" className="btn-primary">
                 <Sparkle width={16} /> Personalise a Notebook
               </Link>
-              <Link to={`/products/${MATCHING_SET_PRODUCT.slug}`} className="btn-secondary">Shop Matching Sets</Link>
+              <Link to="/special-collections/match-and-write" className="btn-secondary">Shop Matching Sets</Link>
             </div>
             <p className="mt-5 flex items-center gap-2 font-body text-xs font-light text-muted-foreground">
               <Check width={15} className="text-royal" /> Custom sizes available — price on request.
