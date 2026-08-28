@@ -76,12 +76,19 @@ function Chip({ review, onOpen, focusable }: {
       tabIndex={focusable ? 0 : -1}
       aria-label={`Read the full review by ${review.name}`}
       className={cn(
-        'flex h-44 w-[16rem] shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 text-left shadow-card sm:w-[17rem]',
+        'group/chip relative flex h-[13.5rem] w-[16rem] shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 text-left shadow-card sm:w-[17rem]',
         'transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
         'hover:-translate-y-1.5 hover:border-royal/30 hover:shadow-lift focus-visible:-translate-y-1.5 focus-visible:border-royal/30',
       )}
     >
-      <span className="flex items-center gap-3">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-9 right-2 font-display text-[6rem] leading-none text-lilac transition-colors duration-300 group-hover/chip:text-royal/10"
+      >
+        ”
+      </span>
+
+      <span className="relative flex items-center gap-3">
         <Avatar name={review.name} />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-display text-sm text-plum">{review.name}</span>
@@ -92,8 +99,19 @@ function Chip({ review, onOpen, focusable }: {
         <Stars rating={review.rating} size={13} />
       </span>
 
-      <span className="mt-4 flex-1 font-body text-sm font-light leading-relaxed text-plum/90 line-clamp-4">
+      <span className="relative mt-4 flex-1 font-body text-sm font-light leading-relaxed text-plum/90 line-clamp-4">
         “{review.text}”
+      </span>
+
+      {/* The whole chip has always opened the full review; this says so out
+          loud, so a clipped quote reads as an invitation rather than a
+          dead end. */}
+      <span className="relative mt-3 flex items-center gap-1.5 border-t border-border pt-3 font-body text-xs font-medium text-royal">
+        Read it all
+        <ChevronRight
+          width={12}
+          className="transition-transform duration-300 group-hover/chip:translate-x-1"
+        />
       </span>
     </button>
   )
@@ -113,6 +131,21 @@ function ReviewDialog({ reviews, index, onClose, onStep, onJump }: {
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const review = reviews[index]
+
+  // A long review is a piece of reading, not a pull-quote: past a certain
+  // length it drops out of display type into body type with open leading,
+  // which is what makes it comfortable rather than merely large.
+  const long = review.text.length > 300
+  const paragraphs = useMemo(
+    () => review.text.split(/\n+/).map((line) => line.trim()).filter(Boolean),
+    [review.text],
+  )
+
+  // Stepping to the next review must start it at the top, not wherever the
+  // previous one was left scrolled to.
+  useEffect(() => {
+    panelRef.current?.scrollTo({ top: 0 })
+  }, [index])
 
   useEffect(() => {
     panelRef.current?.focus()
@@ -165,8 +198,21 @@ function ReviewDialog({ reviews, index, onClose, onStep, onJump }: {
           </span>
         </div>
 
-        <blockquote className="relative mt-6 font-display text-xl leading-snug text-plum sm:text-2xl">
-          “{review.text}”
+        <blockquote
+          className={cn(
+            'relative mt-6',
+            long
+              ? 'font-body text-[0.95rem] font-light leading-[1.85] text-plum/90 sm:text-base'
+              : 'font-display text-xl leading-snug text-plum sm:text-2xl',
+          )}
+        >
+          {paragraphs.map((line, i) => (
+            <p key={i} className={i ? 'mt-4' : undefined}>
+              {i === 0 && '“'}
+              {line}
+              {i === paragraphs.length - 1 && '”'}
+            </p>
+          ))}
         </blockquote>
 
         <div className="relative mt-7 flex items-center gap-4 border-t border-border pt-5">
@@ -188,6 +234,14 @@ function ReviewDialog({ reviews, index, onClose, onStep, onJump }: {
               <ChevronRight width={15} className="rotate-180" />
             </button>
 
+            {/* Dots only while they still read as a row: past that they stop
+                being a map and start being a fence, so a plain count says
+                more in less space. */}
+            {reviews.length > 8 ? (
+              <span className="min-w-[5rem] text-center font-body text-xs tracking-wide text-muted-foreground">
+                {index + 1} <span className="text-royal/40">/</span> {reviews.length}
+              </span>
+            ) : (
             <div className="flex items-center">
               {reviews.map((r, i) => (
                 // The dot stays 8px but the button around it is a real target:
@@ -212,6 +266,7 @@ function ReviewDialog({ reviews, index, onClose, onStep, onJump }: {
                 </button>
               ))}
             </div>
+            )}
 
             <button
               type="button"
