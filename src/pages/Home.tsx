@@ -5,7 +5,7 @@ import { useCatalog } from '@/context/CatalogContext'
 import { supabase, type BannerRow, type ReviewRow } from '@/lib/supabase'
 import ProductCard from '@/components/ProductCard'
 import NotebookCover from '@/components/NotebookCover'
-import Stars from '@/components/Stars'
+import Testimonials from '@/components/Testimonials'
 import { ProductGridSkeleton, CollectionGridSkeleton } from '@/components/Skeleton'
 import { ArrowRight, Truck, Leaf, Sparkle, Pen, Instagram } from '@/components/Icons'
 
@@ -250,21 +250,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. CUSTOMER REVIEWS */}
-      <section className="container-suvadu py-14 sm:py-20">
-        <SectionHead eyebrow="Kind words" title="Loved by writers across India" />
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {displayReviews.map((r, i) => (
-            <figure key={i} className="card-surface flex flex-col p-6">
-              <Stars rating={r.rating} />
-              <blockquote className="mt-4 flex-1 font-body text-sm font-light leading-relaxed text-plum/90">“{r.text}”</blockquote>
-              <figcaption className="mt-5 border-t border-border pt-4">
-                <span className="block font-display text-base text-plum">{r.name}</span>
-                <span className="block font-body text-xs text-muted-foreground">{r.location}</span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+      {/* 5. CUSTOMER REVIEWS — drifting ribbon, full-bleed, no heading of its own */}
+      <section className="relative overflow-hidden py-14 sm:py-20">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-grain opacity-80"
+          style={{ background: 'linear-gradient(180deg, rgba(243,232,255,0) 0%, rgba(243,232,255,0.7) 45%, rgba(243,232,255,0) 100%)' }}
+        />
+        <Testimonials reviews={displayReviews} />
       </section>
 
       {/* 6. NEWSLETTER */}

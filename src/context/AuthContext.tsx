@@ -26,6 +26,8 @@ interface AuthState {
   signOut: () => Promise<SignResult>
   updateProfile: (fields: Partial<Pick<ProfileRow, 'name' | 'mobile'>>) => Promise<SignResult>
   resetPassword: (email: string) => Promise<SignResult>
+  /** Sets a new password for the current (usually recovery-link) session. */
+  updatePassword: (password: string) => Promise<SignResult>
   resendConfirmation: (email: string) => Promise<SignResult>
 }
 
@@ -100,10 +102,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = useCallback<AuthState['resetPassword']>(async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/account`,
+      redirectTo: `${window.location.origin}/reset-password`,
     })
     if (error) return { ok: false, message: error.message }
     return { ok: true, message: 'If that email is registered, a password-reset link is on its way.' }
+  }, [])
+
+  const updatePassword = useCallback<AuthState['updatePassword']>(async (password) => {
+    // The recovery link puts a real (short-lived) session in place, so this is a
+    // plain updateUser — no separate token to pass.
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) return { ok: false, message: error.message }
+    return { ok: true, message: 'Password updated — you’re signed in.' }
   }, [])
 
   const resendConfirmation = useCallback<AuthState['resendConfirmation']>(async (email) => {
@@ -140,9 +150,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       updateProfile,
       resetPassword,
+      updatePassword,
       resendConfirmation,
     }),
-    [session, profile, loading, profileError, signUp, signIn, signOut, updateProfile, resetPassword, resendConfirmation],
+    [session, profile, loading, profileError, signUp, signIn, signOut, updateProfile, resetPassword, updatePassword, resendConfirmation],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

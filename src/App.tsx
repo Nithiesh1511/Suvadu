@@ -11,6 +11,7 @@ import FAQ from '@/pages/FAQ'
 import Cart from '@/pages/Cart'
 import Checkout from '@/pages/Checkout'
 import Account from '@/pages/Account'
+import ResetPassword from '@/pages/ResetPassword'
 import ProductDetail from '@/pages/ProductDetail'
 import Policy from '@/pages/Policy'
 import NotFound from '@/pages/NotFound'
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/account" element={<Account />} />
         <Route path="/account/wishlist" element={<Account tab="wishlist" />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/admin"
           element={

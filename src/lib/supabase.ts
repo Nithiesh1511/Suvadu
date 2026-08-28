@@ -16,6 +16,21 @@ if (!url || !anonKey) {
   )
 }
 
+// With detectSessionInUrl the client consumes and clears the URL hash/query the
+// moment it is constructed — before React ever mounts. Snapshot any error it
+// carries first, so /reset-password can tell "expired link" apart from "no link".
+function readRedirectError(): string | null {
+  if (typeof window === 'undefined') return null
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+  const query = new URLSearchParams(window.location.search)
+  return (
+    hash.get('error_description') ?? hash.get('error') ??
+    query.get('error_description') ?? query.get('error')
+  )
+}
+
+export const authRedirectError = readRedirectError()
+
 export const supabase = createClient(url, anonKey, {
   auth: {
     persistSession: true,

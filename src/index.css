@@ -164,6 +164,12 @@
       radial-gradient(110% 90% at 0% 100%, #ede0fb 0%, transparent 50%),
       linear-gradient(180deg, #fffdfb 0%, #faf5ff 100%);
   }
+  /* Fades a horizontally scrolling strip into the page at both edges, so a
+     marquee reads as endless instead of starting and stopping in mid-air. */
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+  }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
