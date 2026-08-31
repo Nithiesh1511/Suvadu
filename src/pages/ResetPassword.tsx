@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/components/Toast'
 import PageHeader from '@/components/PageHeader'
+import PasswordInput from '@/components/PasswordInput'
 import { authRedirectError } from '@/lib/supabase'
 import { User, Check } from '@/components/Icons'
 import { cn } from '@/lib/utils'
@@ -112,7 +113,11 @@ function Input({ label, value, onChange, type = 'text', required, autoComplete, 
   return (
     <label className={cn('block', className)}>
       <span className="mb-1.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">{label}</span>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} autoComplete={autoComplete} className="field" />
+      {type === 'password' ? (
+        <PasswordInput value={value} onChange={onChange} required={required} autoComplete={autoComplete} />
+      ) : (
+        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} autoComplete={autoComplete} className="field" />
+      )}
     </label>
   )
 }
