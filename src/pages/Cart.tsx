@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '@/context/StoreContext'
 import { useToast } from '@/components/Toast'
@@ -7,11 +7,20 @@ import PageHeader from '@/components/PageHeader'
 import { Plus, Minus, Trash, ArrowRight, Check, Close } from '@/components/Icons'
 import { formatINR } from '@/lib/utils'
 import { isAccessory } from '@/data/products'
+import { fetchWelcomeOffer, type WelcomeOffer } from '@/lib/welcome'
 
 export default function Cart() {
   const { cart, updateQty, removeFromCart, subtotal, discount, total, coupon, applyCoupon, removeCoupon } = useStore()
   const { notify } = useToast()
   const [code, setCode] = useState('')
+  // The suggested coupon, or null when there isn't a live one to suggest.
+  const [offer, setOffer] = useState<WelcomeOffer | null>(null)
+
+  useEffect(() => {
+    let active = true
+    fetchWelcomeOffer().then((o) => { if (active) setOffer(o) })
+    return () => { active = false }
+  }, [])
 
   const grandTotal = total
 
@@ -123,7 +132,15 @@ export default function Cart() {
                   <button type="submit" className="btn-secondary shrink-0">Apply</button>
                 </div>
               )}
-              {!coupon && <p className="mt-2 font-body text-xs font-light text-muted-foreground">Try <button type="button" onClick={() => setCode('SUVADU10')} className="text-royal underline">SUVADU10</button> for 10% off.</p>}
+              {/* Only suggest a code that is actually live. This used to hardcode
+                  "SUVADU10 for 10% off", so deactivating it, renaming it or
+                  changing its rate left the cart advertising an offer that
+                  Apply then rejected as invalid. */}
+              {!coupon && offer && (
+                <p className="mt-2 font-body text-xs font-light text-muted-foreground">
+                  Try <button type="button" onClick={() => setCode(offer.code)} className="text-royal underline">{offer.code}</button> for {offer.pct}% off.
+                </p>
+              )}
             </form>
 
             <dl className="mt-6 space-y-3 border-t border-border pt-5 font-body text-sm">
