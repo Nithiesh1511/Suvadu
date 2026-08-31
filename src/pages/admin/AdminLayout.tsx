@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import PageHeader from '@/components/PageHeader'
+import PasswordInput from '@/components/PasswordInput'
 import { useSeo } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 
@@ -104,7 +105,7 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
             </label>
             <label className="block">
               <span className="mb-1.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">Password</span>
-              <input className="field" type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError('') }} autoComplete="current-password" required />
+              <PasswordInput value={password} onChange={(v) => { setPassword(v); setError('') }} autoComplete="current-password" required />
             </label>
             {error && <p className="font-body text-sm font-medium text-rose-500">{error}</p>}
           </div>

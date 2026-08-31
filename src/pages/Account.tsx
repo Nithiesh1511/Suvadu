@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/components/Toast'
 import PageHeader from '@/components/PageHeader'
 import NotebookCover from '@/components/NotebookCover'
+import PasswordInput from '@/components/PasswordInput'
 import ProductImage from '@/components/ProductImage'
 import { useCatalog } from '@/context/CatalogContext'
 import { supabase } from '@/lib/supabase'
@@ -668,14 +669,18 @@ function Input({ label, value, onChange, type = 'text', required, className, aut
   return (
     <label className={cn('block', className)}>
       <span className="mb-1.5 block font-body text-xs font-medium uppercase tracking-wide text-plum">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        autoComplete={autoComplete}
-        className="field"
-      />
+      {type === 'password' ? (
+        <PasswordInput value={value} onChange={onChange} required={required} autoComplete={autoComplete} />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={required}
+          autoComplete={autoComplete}
+          className="field"
+        />
+      )}
     </label>
   )
 }

@@ -97,3 +97,12 @@ export const Sparkle = (p: I) => (
 export const Pen = (p: I) => (
   <svg {...base(p)}><path d="M12 19l7-7 3 3-7 7-3 0 0-3z" /><path d="M18 13l-1.5-1.5M2 2l7.5 7.5M2 2l1 6 6 1M2 2l6 1 1 6" /></svg>
 )
+export const Eye = (p: I) => (
+  <svg {...base(p)}><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="3" /></svg>
+)
+export const EyeOff = (p: I) => (
+  <svg {...base(p)}>
+    <path d="M10.6 6.2A9.9 9.9 0 0 1 12 6c6.4 0 10 6 10 6a17.6 17.6 0 0 1-2.5 3.1M6.4 7.9A17.4 17.4 0 0 0 2 12s3.6 6 10 6a9.7 9.7 0 0 0 4-.8" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" />
+  </svg>
+)
