@@ -5,12 +5,16 @@ import Footer from './Footer'
 import BackgroundFX from './BackgroundFX'
 import ErrorBoundary from './ErrorBoundary'
 import WhatsAppFab from './WhatsAppFab'
+import { useScrollAnimations } from '@/lib/motion'
 import { ROUTE_META, applyMeta } from '@/lib/seo'
 import { initGA, trackPageview } from '@/lib/analytics'
 
 export default function Layout() {
   const { pathname } = useLocation()
   const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/')
+  // Arms the scroll-reveal observers once for the whole app; they pick up each
+  // new route and every grid that arrives after its fetch resolves.
+  useScrollAnimations()
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     // Apply per-route SEO meta for static pages; dynamic detail pages set
@@ -27,10 +31,13 @@ export default function Layout() {
       <BackgroundFX />
       <Header />
       <main className="flex-1">
-        {/* Keyed on pathname so navigating away from an errored page recovers. */}
-        <ErrorBoundary key={pathname}>
-          <Outlet />
-        </ErrorBoundary>
+        {/* Keyed on pathname so navigating away from an errored page recovers —
+            and so the new route fades in rather than swapping in hard. */}
+        <div key={pathname} className="page-enter">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </div>
       </main>
       <Footer />
       {/* Storefront only — the admin console shares this Layout, and staff have

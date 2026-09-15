@@ -8,6 +8,9 @@ import NotebookCover from '@/components/NotebookCover'
 import Testimonials from '@/components/Testimonials'
 import { ProductGridSkeleton, CollectionGridSkeleton } from '@/components/Skeleton'
 import { ArrowRight, Truck, Leaf, Sparkle, Pen, Instagram } from '@/components/Icons'
+import Reveal from '@/components/Reveal'
+import { REVEAL, REVEAL_FADE, CASCADE } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 // Lazy so three.js stays out of the initial bundle.
 const NotebookPreview3D = lazy(() => import('@/components/NotebookPreview3D'))
@@ -29,7 +32,7 @@ function Stage3DFallback() {
 function Story3DBanner() {
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+      <Reveal className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
           <p className="eyebrow mb-3">Our story</p>
           <h2 className="font-display text-2xl leading-tight text-plum sm:text-4xl">A notebook is where ideas begin.</h2>
@@ -43,9 +46,9 @@ function Story3DBanner() {
         <Link to="/about" className="link-underline inline-flex items-center gap-1.5 pb-1">
           Read Our Story <ArrowRight width={15} />
         </Link>
-      </div>
+      </Reveal>
 
-      <div className="mt-10 overflow-hidden rounded-[2rem] border border-royal/10 shadow-lift ring-1 ring-white/60">
+      <div className={cn(REVEAL, 'mt-10 overflow-hidden rounded-[2rem] border border-royal/10 shadow-lift ring-1 ring-white/60')}>
         <WhenVisible fallback={<Stage3DFallback />}>
           <Suspense fallback={<Stage3DFallback />}>
             <NotebookPreview3D variant="showcase" className={STAGE_3D_H} />
@@ -85,7 +88,7 @@ export default function Home() {
       <section className="gradient-hero relative overflow-hidden bg-grain">
         <div className="container-suvadu grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
           <div className="animate-fade-up">
-            <p className="eyebrow mb-5">Suvadu Notebooks · Pan-India</p>
+            <p className="eyebrow mb-5">Suvadu Notebooks</p>
             <h1 className="text-balance font-display text-[2.75rem] leading-[1.05] text-plum xs:text-5xl sm:text-6xl lg:text-7xl">
               Make your <span className="italic text-royal">mark.</span>
             </h1>
@@ -125,7 +128,7 @@ export default function Home() {
 
       {/* Promotional banner (admin-managed) */}
       {banners.length > 0 && (
-        <section className="container-suvadu pt-12">
+        <section className={cn(REVEAL, 'container-suvadu pt-12')}>
           {banners.slice(0, 1).map((b) => {
             const Inner = (
               <div
@@ -140,7 +143,7 @@ export default function Home() {
               </div>
             )
             return b.link
-              ? <Link key={b.id} to={b.link} className="block transition hover:-translate-y-0.5">{Inner}</Link>
+              ? <Link key={b.id} to={b.link} className="hover-lift block">{Inner}</Link>
               : <div key={b.id}>{Inner}</div>
           })}
         </section>
@@ -149,6 +152,7 @@ export default function Home() {
       {/* 2. FEATURED COLLECTIONS */}
       <section className="container-suvadu py-14 sm:py-20">
         <SectionHead
+          reveal
           eyebrow="Curated for you"
           title="Featured Collections"
           subtitle={`${collections.length || ''} ${collections.length === 1 ? 'world' : 'worlds'} to write in — each with its own voice.`.trim()}
@@ -164,7 +168,8 @@ export default function Home() {
             <Link
               key={col.slug}
               to={`/collections/${col.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-border shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+              {...CASCADE}
+              className={cn(REVEAL, 'group relative overflow-hidden rounded-2xl border border-border shadow-card hover-lift hover:shadow-lift')}
             >
               {/* An admin-uploaded cover fills the frame; without one we fall back
                   to the generated notebook on the accent colour. */}
@@ -202,7 +207,7 @@ export default function Home() {
       {/* 3. BEST SELLERS */}
       <section className="bg-lilac/40 py-14 sm:py-20">
         <div className="container-suvadu">
-          <SectionHead eyebrow="Loved most" title="Best Sellers" subtitle="The notebooks our customers keep coming back for." />
+          <SectionHead reveal eyebrow="Loved most" title="Best Sellers" subtitle="The notebooks our customers keep coming back for." />
           <div className="mt-10">
             {catalogError ? (
               <CatalogRetryNotice />
@@ -214,9 +219,9 @@ export default function Home() {
               </div>
             )}
           </div>
-          <div className="mt-10 text-center">
+          <Reveal className="mt-10 text-center">
             <Link to="/collections?filter=bestseller" className="btn-primary btn-lg">Shop Best Sellers</Link>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -227,7 +232,7 @@ export default function Home() {
 
       {/* Value props */}
       <section className="container-suvadu pb-4">
-        <div className="grid gap-4 rounded-2xl border border-border bg-white p-6 shadow-card sm:grid-cols-3 sm:p-8">
+        <div className={cn(REVEAL, 'grid gap-4 rounded-2xl border border-border bg-white p-6 shadow-card sm:grid-cols-3 sm:p-8')}>
           {[
             { Icon: Sparkle, t: 'Premium quality', d: '100 GSM paper, lay-flat binding, soft-touch covers.' },
             { Icon: Pen, t: 'Make it yours', d: 'Add your name, text, font and colour on customised notebooks.' },
@@ -251,17 +256,19 @@ export default function Home() {
           className="pointer-events-none absolute inset-0 -z-10 bg-grain opacity-80"
           style={{ background: 'linear-gradient(180deg, rgba(243,232,255,0) 0%, rgba(243,232,255,0.7) 45%, rgba(243,232,255,0) 100%)' }}
         />
-        <Testimonials reviews={displayReviews} />
+        <div className={REVEAL_FADE}>
+          <Testimonials reviews={displayReviews} />
+        </div>
       </section>
 
       {/* 6. NEWSLETTER */}
-      <section className="container-suvadu pb-14 sm:pb-20">
+      <section className={cn(REVEAL, 'container-suvadu pb-14 sm:pb-20')}>
         <NewsletterBanner />
       </section>
 
       {/* 7. INSTAGRAM FEED */}
       <section className="container-suvadu pb-14 sm:pb-20">
-        <SectionHead eyebrow="@suvadu.notebooks" title="From the Suvadu journal" link={{ to: 'https://www.instagram.com/suvadu.notebooks/', label: 'Follow us', external: true }} />
+        <SectionHead reveal eyebrow="@suvadu.notebooks" title="From the Suvadu journal" link={{ to: 'https://www.instagram.com/suvadu.notebooks/', label: 'Follow us', external: true }} />
         <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {collections.concat(collections).slice(0, 6).map((c, i) => (
             <a
@@ -270,7 +277,8 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Follow @suvadu.notebooks on Instagram"
-              className="group relative aspect-square overflow-hidden rounded-xl"
+              {...CASCADE}
+              className={cn(REVEAL, 'group relative aspect-square overflow-hidden rounded-xl')}
               style={{ backgroundColor: c.accent }}
             >
               <NotebookCover colour={c.accent} pattern={c.pattern} label={c.displayName} rounded={false} className="!aspect-square" />
@@ -321,14 +329,16 @@ function WhenVisible({ children, fallback }: { children: ReactNode; fallback: Re
   return <div ref={ref}>{visible ? children : fallback}</div>
 }
 
-export function SectionHead({ eyebrow, title, subtitle, link }: {
+export function SectionHead({ eyebrow, title, subtitle, link, reveal }: {
   eyebrow?: string
   title: string
   subtitle?: string
   link?: { to: string; label: string; external?: boolean }
+  /** Rise into view with the section, rather than being painted with it. */
+  reveal?: boolean
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+    <div className={cn(reveal && REVEAL, 'flex flex-wrap items-end justify-between gap-x-4 gap-y-3')}>
       <div className="min-w-0">
         {eyebrow && <p className="eyebrow mb-3">{eyebrow}</p>}
         <h2 className="font-display text-2xl leading-tight text-plum sm:text-4xl">{title}</h2>

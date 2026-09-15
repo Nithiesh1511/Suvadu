@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader'
 import NotebookCover from '@/components/NotebookCover'
 import { Leaf, Pen, Sparkle, Truck, Check, ArrowRight } from '@/components/Icons'
 import { useCatalog } from '@/context/CatalogContext'
+import { REVEAL, CASCADE } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 /** Four covers beside the brand story. These used to be labelled "Inspire Ink",
@@ -32,7 +33,8 @@ function StoryCovers() {
         <Link
           key={col.slug}
           to={`/collections/${col.slug}`}
-          className={cn('transition duration-300 hover:-translate-y-1', offsets[i])}
+          {...CASCADE}
+          className={cn(REVEAL, 'hover-lift', offsets[i])}
         >
           <NotebookCover colour={col.accent} pattern={col.pattern} label={col.displayName} />
         </Link>
@@ -67,7 +69,7 @@ export default function About() {
 
       {/* Brand story */}
       <section className="container-suvadu grid items-center gap-12 py-16 lg:grid-cols-2">
-        <div>
+        <div className={REVEAL}>
           <p className="eyebrow mb-3">The beginning</p>
           <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">Brand Story</h2>
           <div className="mt-5 space-y-4 font-body text-base font-light leading-relaxed text-muted-foreground">
@@ -86,13 +88,13 @@ export default function About() {
       {/* Why Suvadu */}
       <section className="border-y border-border bg-lilac/30 py-16">
         <div className="container-suvadu">
-          <div className="max-w-2xl">
+          <div className={cn(REVEAL, 'max-w-2xl')}>
             <p className="eyebrow mb-3">What sets us apart</p>
             <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">Why Suvadu</h2>
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {VALUES.map(({ Icon, t, d }) => (
-              <div key={t} className="flex gap-4 rounded-2xl border border-border bg-white p-5 shadow-card sm:p-6">
+              <div key={t} {...CASCADE} className={cn(REVEAL, 'hover-lift flex gap-4 rounded-2xl border border-border bg-white p-5 shadow-card hover:shadow-lift sm:p-6')}>
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lilac text-royal"><Icon /></span>
                 <div className="min-w-0">
                   <h3 className="font-display text-lg text-plum sm:text-xl">{t}</h3>
@@ -106,7 +108,7 @@ export default function About() {
 
       {/* CTA */}
       <section className="container-suvadu pb-20">
-        <div className="relative overflow-hidden rounded-2xl bg-plum px-5 py-12 text-center text-white sm:rounded-3xl sm:px-12 sm:py-14">
+        <div className={cn(REVEAL, 'relative overflow-hidden rounded-2xl bg-plum px-5 py-12 text-center text-white sm:rounded-3xl sm:px-12 sm:py-14')}>
           <div className="pointer-events-none absolute inset-0 opacity-30 bg-grain" />
           <div className="relative mx-auto max-w-xl">
             <h2 className="font-display text-2xl text-white sm:text-4xl">Ready to make your mark?</h2>

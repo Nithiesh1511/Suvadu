@@ -10,6 +10,8 @@ import CatalogError from '@/components/CatalogError'
 import Stars from '@/components/Stars'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { ChevronDown, Close, Search } from '@/components/Icons'
+import Reveal from '@/components/Reveal'
+import { REVEAL, CASCADE } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 type SortKey = 'newest' | 'price-asc' | 'price-desc'
@@ -86,7 +88,7 @@ export default function Collections() {
       />
 
       {/* Collection chips */}
-      <section className="container-suvadu pt-12">
+      <section className={cn(REVEAL, 'container-suvadu pt-12')}>
         {/* Bleeds into the gutter on phones so the chip row scrolls edge to edge,
             while the first chip still lines up with the page content. */}
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
@@ -100,7 +102,7 @@ export default function Collections() {
       </section>
 
       {/* Toolbar: search + sort */}
-      <section className="container-suvadu mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className={cn(REVEAL, 'container-suvadu mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between')}>
         <label className="relative flex w-full items-center sm:max-w-xs">
           <Search className="pointer-events-none absolute left-4 text-muted-foreground" width={18} height={18} />
           <input
@@ -169,11 +171,13 @@ export default function Collections() {
       {!bestsellerOnly && category === 'all' && !query && reviews.length > 0 && (
         <section className="border-t border-border bg-lilac/20 py-16">
           <div className="container-suvadu">
-            <p className="eyebrow mb-3">Kind words</p>
-            <h2 className="font-display text-3xl text-plum">Loved by writers across India</h2>
+            <Reveal>
+              <p className="eyebrow mb-3">Kind words</p>
+              <h2 className="font-display text-3xl text-plum">Loved by writers across India</h2>
+            </Reveal>
             <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {reviews.map((r) => (
-                <figure key={r.id} className="card-surface flex flex-col p-6">
+                <figure key={r.id} {...CASCADE} className={cn(REVEAL, 'card-surface hover-lift flex flex-col p-6 hover:shadow-lift')}>
                   <Stars rating={r.rating} />
                   <blockquote className="mt-4 flex-1 font-body text-sm font-light leading-relaxed text-plum/90">“{r.text}”</blockquote>
                   <figcaption className="mt-5 border-t border-border pt-4">

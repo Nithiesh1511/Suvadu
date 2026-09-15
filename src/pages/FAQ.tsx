@@ -3,6 +3,7 @@ import { supabase, type FaqRow } from '@/lib/supabase'
 import PageHeader from '@/components/PageHeader'
 import { ChevronDown, Whatsapp } from '@/components/Icons'
 import { openWhatsApp } from '@/lib/contact'
+import { REVEAL, CASCADE } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export default function FAQ() {
@@ -37,7 +38,7 @@ export default function FAQ() {
 
       <section className="container-suvadu grid gap-10 py-12 lg:grid-cols-[220px_1fr]">
         {/* Category nav */}
-        <aside className="h-fit">
+        <aside className={cn(REVEAL, 'h-fit')}>
           <nav className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col">
             {categories.map((c) => (
               <button
@@ -67,7 +68,7 @@ export default function FAQ() {
                 {items.map((item) => {
                   const isOpen = open === item.id
                   return (
-                    <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-white shadow-card">
+                    <div key={item.id} {...CASCADE} className={cn(REVEAL, 'overflow-hidden rounded-2xl border border-border bg-white shadow-card')}>
                       <button
                         onClick={() => setOpen(isOpen ? null : item.id)}
                         className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left sm:gap-4 sm:px-5"
@@ -88,7 +89,7 @@ export default function FAQ() {
             </>
           )}
 
-          <div className="mt-8 rounded-2xl border border-border bg-lilac/30 p-6 text-center">
+          <div className={cn(REVEAL, 'mt-8 rounded-2xl border border-border bg-lilac/30 p-6 text-center')}>
             <p className="font-display text-xl text-plum">Still have a question?</p>
             <p className="mt-1 font-body text-sm font-light text-muted-foreground">Our team is happy to help.</p>
             <button type="button" onClick={() => openWhatsApp('Hi Suvadu! I have a question that wasn’t covered in your FAQ.')} className="btn-primary mt-4">

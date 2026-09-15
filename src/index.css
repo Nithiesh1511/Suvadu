@@ -27,6 +27,16 @@
   --ring: 97 48 146;
   --radius: 0.875rem;
 
+  /* Motion — durations, easing and cascade step, matching the reference
+     storefront (bluenova.in). See the MOTION section further down. */
+  --duration-short: 0.1s;
+  --duration-default: 0.2s;
+  --duration-medium: 0.3s;
+  --duration-long: 0.5s;
+  --duration-extra-long: 0.6s;
+  --ease-out-slow: cubic-bezier(0, 0, 0.3, 1);
+  --animation-step: 75ms;
+
   /* Typography */
   --font-display: 'DM Serif Display', Georgia, serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
@@ -91,15 +101,35 @@
      max-width stops a long label from pushing a narrow card sideways. */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-full font-body font-medium uppercase
-           transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+           disabled:cursor-not-allowed disabled:opacity-50;
     letter-spacing: 0.06em;
     font-size: 0.8125rem;
     padding: 0.75rem 1.6rem;
     min-height: 2.75rem;
     max-width: 100%;
+    /* Listed out rather than transition-all so the lift below runs on the
+       reference's button timing while colour and shadow keep pace. */
+    transition: transform var(--duration-default) var(--ease-out-slow),
+                background-color var(--duration-default) var(--ease-out-slow),
+                border-color var(--duration-default) var(--ease-out-slow),
+                color var(--duration-default) var(--ease-out-slow),
+                box-shadow var(--duration-default) var(--ease-out-slow),
+                opacity var(--duration-default) var(--ease-out-slow);
+  }
+  /* Lifts 0.25rem under the cursor and presses flat on click. This replaces the
+     old `active:scale-[0.98]`, which drove `transform` through Tailwind's own
+     custom properties and would have fought these rules. Gated on a real
+     pointer so a tap on a phone doesn't leave the button stuck mid-air. */
+  @media (hover: hover) {
+    .btn:hover:not(:disabled) {
+      transform: translateY(-0.25rem);
+    }
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(0);
   }
   .btn-primary {
-    @apply btn bg-royal text-white shadow-soft hover:bg-royal-700 hover:shadow-lift active:scale-[0.98];
+    @apply btn bg-royal text-white shadow-soft hover:bg-royal-700 hover:shadow-lift;
   }
   .btn-secondary {
     @apply btn border border-royal/40 bg-transparent text-royal hover:border-royal hover:bg-royal hover:text-white;
@@ -172,6 +202,92 @@
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ============================================================
+   MOTION — scroll reveal, cascade stagger, hover lift
+   Ported from the reference storefront (bluenova.in), which runs
+   Shopify Dawn's motion system: the same two keyframes, the same
+   0.6s cubic-bezier(0, 0, .3, 1), the same 75ms cascade step.
+
+   Every hide-until-revealed rule is scoped to .js-anim, which
+   src/lib/motion.ts puts on <html> as the bundle evaluates. If
+   that module never runs — or the visitor asked for reduced
+   motion — the page renders plainly instead of leaving whole
+   sections stranded at opacity 0.
+   ============================================================ */
+@keyframes sa-slide-in {
+  0%  { opacity: 0.01; transform: translateY(2rem); }
+  to  { opacity: 1;    transform: translateY(0); }
+}
+@keyframes sa-fade-in {
+  0%  { opacity: 0.01; }
+  to  { opacity: 1; }
+}
+
+.js-anim .scroll-trigger {
+  --animation-order: 0;
+}
+.js-anim .scroll-trigger.animate--fade-in {
+  opacity: 0.01;
+}
+.js-anim .scroll-trigger.animate--slide-in {
+  opacity: 0.01;
+  transform: translateY(2rem);
+}
+
+/* Revealed. The resting style is already the finished state and the keyframes
+   only fill `backwards` — which covers the cascade delay — so nothing is left
+   behind once the run ends. A lingering `transform` would quietly turn every
+   revealed section into a containing block for any fixed-position child. */
+.js-anim [data-sa-in].animate--fade-in {
+  opacity: 1;
+  animation: sa-fade-in var(--duration-extra-long) var(--ease-out-slow) backwards;
+  animation-delay: calc(var(--animation-order) * var(--animation-step));
+}
+.js-anim [data-sa-in].animate--slide-in {
+  opacity: 1;
+  transform: none;
+  animation: sa-slide-in var(--duration-extra-long) var(--ease-out-slow) backwards;
+  animation-delay: calc(var(--animation-order) * var(--animation-step));
+}
+
+/* Route change. The outgoing page is already unmounted by the time this runs,
+   so it's an entrance only — and opacity alone, because a transform here would
+   break the sticky header and any fixed overlay a page puts inside itself. */
+.js-anim .page-enter {
+  animation: sa-fade-in var(--duration-long) var(--ease-out-slow) both;
+}
+
+/* Hover lift. The reference switches this on site-wide from <body>; cards rise
+   0.75rem and settle to 0.5rem while held, buttons rise 0.25rem (see .btn).
+   Behind (hover: hover) so a tap on a phone doesn't leave a card floating. */
+.hover-lift {
+  transition: transform var(--duration-medium) var(--ease-out-slow),
+              box-shadow var(--duration-medium) var(--ease-out-slow);
+}
+@media (hover: hover) {
+  .hover-lift:hover {
+    transform: translateY(-0.75rem);
+  }
+}
+.hover-lift:active {
+  transform: translateY(-0.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-anim .scroll-trigger,
+  .js-anim [data-sa-in],
+  .js-anim .page-enter {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .hover-lift:hover,
+  .hover-lift:active,
+  .btn:hover:not(:disabled) {
+    transform: none;
+  }
 }
 
 /* ============================================================

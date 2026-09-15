@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useToast } from './Toast'
 import { supabase } from '@/lib/supabase'
-import { isEmail } from '@/lib/utils'
+import { REVEAL, CASCADE } from '@/lib/motion'
+import { cn, isEmail } from '@/lib/utils'
 import { Instagram, Facebook, Pinterest, ArrowRight } from './Icons'
 import Logo from './Logo'
 
@@ -50,7 +51,7 @@ export default function Footer() {
       <div className="container-suvadu py-12 sm:py-16">
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
           {/* Brand */}
-          <div>
+          <div {...CASCADE} className={REVEAL}>
             <Link to="/" aria-label="Suvadu — home" className="inline-block">
               <Logo className="h-14 sm:h-16" />
             </Link>
@@ -75,7 +76,7 @@ export default function Footer() {
           </div>
 
           {/* Shop */}
-          <nav>
+          <nav {...CASCADE} className={REVEAL}>
             <h4 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-plum">Explore</h4>
             <ul className="mt-5 space-y-3">
               {SHOP_LINKS.map((l) => (
@@ -87,7 +88,7 @@ export default function Footer() {
           </nav>
 
           {/* Legal */}
-          <nav>
+          <nav {...CASCADE} className={REVEAL}>
             <h4 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-plum">Policies</h4>
             <ul className="mt-5 space-y-3">
               {LEGAL_LINKS.map((l) => (
@@ -99,7 +100,7 @@ export default function Footer() {
           </nav>
 
           {/* Newsletter — spans both columns at sm so the field keeps its width */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div {...CASCADE} className={cn(REVEAL, 'sm:col-span-2 lg:col-span-1')}>
             <h4 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-plum">Stay in the loop</h4>
             <p className="mt-5 font-body text-sm font-light leading-relaxed text-muted-foreground">
               New collections, restocks and the occasional poem. No spam.
@@ -122,7 +123,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-center sm:flex-row sm:text-left">
+        <div className={cn(REVEAL, 'mt-14 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-center sm:flex-row sm:text-left')}>
           <p className="font-body text-xs font-light text-muted-foreground">
             {/* No link to /admin here: staff know the URL, and shoppers have no
                 reason to be shown the staff door on every page. */}
