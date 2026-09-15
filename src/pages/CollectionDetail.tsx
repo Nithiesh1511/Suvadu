@@ -6,6 +6,9 @@ import ProductCard from '@/components/ProductCard'
 import PageHeader from '@/components/PageHeader'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { ChevronDown } from '@/components/Icons'
+import Reveal from '@/components/Reveal'
+import { REVEAL } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import { useSeo } from '@/lib/seo'
 import CatalogError from '@/components/CatalogError'
 import NotFound from './NotFound'
@@ -72,7 +75,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
       />
 
       <section className="container-suvadu py-12">
-        <div className="mb-8 flex items-center justify-between">
+        <div className={cn(REVEAL, 'mb-8 flex items-center justify-between')}>
           <p className="font-body text-sm font-light text-muted-foreground">
             {loading ? 'Loading…' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
           </p>
@@ -112,7 +115,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
       </section>
 
       <section className="border-t border-border bg-lilac/30 py-14">
-        <div className="container-suvadu text-center">
+        <Reveal className="container-suvadu text-center">
           <h2 className="font-display text-3xl text-plum">Looking for something else?</h2>
           <p className="mx-auto mt-3 max-w-md font-body text-sm font-light text-muted-foreground">
             Explore all our collections or design a notebook that’s entirely your own.
@@ -121,7 +124,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
             <Link to="/collections" className="btn-primary">All Collections</Link>
             <Link to="/special-collections" className="btn-secondary">Personalise One</Link>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   )

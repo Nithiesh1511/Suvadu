@@ -3,6 +3,8 @@ import { SPECIAL_COLLECTIONS } from '@/data/products'
 import PageHeader from '@/components/PageHeader'
 import NotebookCover from '@/components/NotebookCover'
 import { ArrowRight, Pen, Sparkle, Check } from '@/components/Icons'
+import { REVEAL, CASCADE } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 const ACCENTS: Record<string, { colour: string; pattern: 'plain' | 'wave' | 'mono' }> = {
   'match-and-write': { colour: '#FF8DA1', pattern: 'wave' },
@@ -28,7 +30,8 @@ export default function SpecialCollections() {
               <Link
                 key={c.slug}
                 to={`/special-collections/${c.slug}`}
-                className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-white shadow-card transition hover:-translate-y-1 hover:shadow-lift"
+                {...CASCADE}
+                className={cn(REVEAL, 'group flex flex-col overflow-hidden rounded-3xl border border-border bg-white shadow-card hover-lift hover:shadow-lift')}
               >
                 <div className="flex aspect-[4/3] items-center justify-center" style={{ backgroundColor: a.colour + '33' }}>
                   <div className="w-36 rotate-[-4deg] transition-transform duration-500 group-hover:rotate-0 group-hover:scale-105">
@@ -52,13 +55,13 @@ export default function SpecialCollections() {
       {/* Personalisation feature band */}
       <section className="border-y border-border bg-gradient-to-b from-lilac/40 to-white py-12 sm:py-16">
         <div className="container-suvadu grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
-          <div className="relative mx-auto w-44 sm:w-60">
+          <div className={cn(REVEAL, 'relative mx-auto w-44 sm:w-60')}>
             <NotebookCover colour="#613092" pattern="plain" customText="For Ananya" customFont="Elegant Italic" className="shadow-lift" />
             <span className="absolute -right-4 -top-4 grid h-14 w-14 place-items-center rounded-full bg-white text-royal shadow-lift">
               <Pen />
             </span>
           </div>
-          <div>
+          <div className={REVEAL}>
             <p className="eyebrow mb-3">How personalisation works</p>
             <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">Three steps to a one-of-one notebook</h2>
             <ul className="mt-7 space-y-4">
@@ -67,7 +70,7 @@ export default function SpecialCollections() {
                 ['Add your details', 'Type a name or short message and choose a font — preview it live.'],
                 ['We craft & ship it', 'Your notebook is made to order and shipped pan-India, gift-ready.'],
               ].map(([t, d], i) => (
-                <li key={t} className="flex gap-4">
+                <li key={t} {...CASCADE} className={cn(REVEAL, 'flex gap-4')}>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-royal font-body text-sm font-medium text-white">{i + 1}</span>
                   <div>
                     <h3 className="font-display text-lg text-plum">{t}</h3>

@@ -56,7 +56,7 @@ export default function Header() {
       {/* Announcement bar */}
       <div className="bg-plum text-center text-white">
         <div className="container-suvadu flex items-center justify-center gap-2 py-2 text-[10px] font-light tracking-[0.1em] sm:text-[11px] sm:tracking-[0.18em]">
-          <span className="uppercase">Pan-India delivery via Shiprocket  ·  Crafted in India</span>
+          <span className="uppercase">Pan-India delivery  ·  Crafted in India</span>
         </div>
       </div>
 

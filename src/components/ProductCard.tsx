@@ -7,6 +7,7 @@ import { useToast } from './Toast'
 import ProductImage from './ProductImage'
 import Stars from './Stars'
 import { Heart } from './Icons'
+import { REVEAL, CASCADE } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 function ProductCard({ product }: { product: Product }) {
@@ -26,10 +27,16 @@ function ProductCard({ product }: { product: Product }) {
     notify(wished ? 'Removed from wishlist' : 'Saved to wishlist ♥')
   }
 
+  // Every card carries its own reveal and cascade slot, so any grid that renders
+  // ProductCard staggers itself on scroll without wiring up anything.
   return (
     <Link
       to={`/products/${product.slug}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+      {...CASCADE}
+      className={cn(
+        REVEAL,
+        'group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-card hover-lift hover:shadow-lift',
+      )}
     >
       <div className="relative overflow-hidden rounded-xl">
         <ProductImage

@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader'
 import { useStore } from '@/context/StoreContext'
 import { useToast } from '@/components/Toast'
 import { Heart } from '@/components/Icons'
+import { REVEAL, CASCADE } from '@/lib/motion'
 import { formatINR, cn } from '@/lib/utils'
 
 export default function Accessories() {
@@ -37,7 +38,8 @@ export default function Accessories() {
             return (
               <div
                 key={b.id}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-card transition hover:-translate-y-1 hover:shadow-lift"
+                {...CASCADE}
+                className={cn(REVEAL, 'group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-card hover-lift hover:shadow-lift')}
               >
                 <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden rounded-xl" style={{ backgroundColor: b.colour.hex + '40' }}>
                   <div className="relative h-[78%] w-12 rounded-t-md shadow-card sm:w-14" style={{ backgroundColor: b.colour.hex }}>

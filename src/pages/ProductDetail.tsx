@@ -21,6 +21,7 @@ import PageHeader from '@/components/PageHeader'
 import JsonLd from '@/components/JsonLd'
 import Stars from '@/components/Stars'
 import { Heart, Share, Plus, Minus, Close, ChevronDown, Pen } from '@/components/Icons'
+import { REVEAL } from '@/lib/motion'
 import { formatINR, cn } from '@/lib/utils'
 import { openWhatsApp } from '@/lib/contact'
 import { useSeo, SITE_URL } from '@/lib/seo'
@@ -494,7 +495,7 @@ export default function ProductDetail() {
 
       {/* Related products */}
       <section className="container-suvadu py-16 sm:py-20">
-        <h2 className="font-display text-2xl text-plum sm:text-3xl">You may also like</h2>
+        <h2 className={cn(REVEAL, 'font-display text-2xl text-plum sm:text-3xl')}>You may also like</h2>
         <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {(related.length ? related : fallbackRelated).map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
