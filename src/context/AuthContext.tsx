@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = useCallback<AuthState['resetPassword']>(async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}reset-password`,
     })
     if (error) return { ok: false, message: error.message }
     return { ok: true, message: 'If that email is registered, a password-reset link is on its way.' }

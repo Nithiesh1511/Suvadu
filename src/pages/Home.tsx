@@ -5,6 +5,7 @@ import { useCatalog } from '@/context/CatalogContext'
 import { supabase, type BannerRow, type ReviewRow } from '@/lib/supabase'
 import ProductCard from '@/components/ProductCard'
 import NotebookCover from '@/components/NotebookCover'
+import ProductImage from '@/components/ProductImage'
 import Testimonials from '@/components/Testimonials'
 import { ProductGridSkeleton, CollectionGridSkeleton } from '@/components/Skeleton'
 import { ArrowRight, Truck, Leaf, Sparkle, Pen, Instagram } from '@/components/Icons'
@@ -379,9 +380,11 @@ function HeroCovers() {
       {positions.map((pos, i) => {
         const col = shown[i]
         const cover = col
-          ? <NotebookCover colour={col.accent} pattern={col.pattern} label={col.displayName} />
+          ? <ProductImage image={col.image} alt={col.displayName} colour={col.accent} pattern={col.pattern} label={col.displayName} />
           : <NotebookCover colour={fallback[i].colour} pattern={fallback[i].pattern} />
-        const cls = `${pos} shadow-lift transition-transform duration-500 hover:-translate-y-2`
+        // Pale accents (several collections are near-white) vanish against the
+        // light hero gradient, so every cover gets an edge of its own.
+        const cls = `${pos} overflow-hidden rounded-2xl shadow-lift ring-1 ring-plum/10 transition-transform duration-500 hover:-translate-y-2`
         return col
           ? <Link key={col.slug} to={`/collections/${col.slug}`} className={cls}>{cover}</Link>
           : <div key={i} aria-hidden className={cls}>{cover}</div>

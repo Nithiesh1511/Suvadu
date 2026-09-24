@@ -24,7 +24,7 @@ import { Heart, Share, Plus, Minus, Close, ChevronDown, Pen } from '@/components
 import { REVEAL } from '@/lib/motion'
 import { formatINR, cn } from '@/lib/utils'
 import { openWhatsApp } from '@/lib/contact'
-import { useSeo, SITE_URL } from '@/lib/seo'
+import { useSeo, siteOrigin } from '@/lib/seo'
 import CatalogError from '@/components/CatalogError'
 import NotFound from './NotFound'
 
@@ -179,7 +179,7 @@ export default function ProductDetail() {
       priceCurrency: 'INR',
       price: basePrice ?? prod.prices.A5 ?? prod.prices.A4 ?? 0,
       availability: outOfStock ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
-      url: `${SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/products/${prod.slug}`,
+      url: `${siteOrigin()}/products/${prod.slug}`,
     },
   }
 

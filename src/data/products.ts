@@ -357,7 +357,7 @@ export interface FaqItem {
 }
 export const FAQ: Record<string, FaqItem[]> = {
   Shipping: [
-    { q: 'Where do you ship?', a: 'We ship pan-India via Shiprocket. Most metros receive orders in 2–4 business days; other locations in 4–7 days.' },
+    { q: 'Where do you ship?', a: 'We ship pan-India. Most metros receive orders in 2–4 business days; other locations in 4–7 days.' },
     { q: 'How much does shipping cost?', a: 'Shipping is free across India — the price you see is the price you pay, with no separate delivery charge at checkout.' },
     { q: 'Can I track my order?', a: 'Yes. Once shipped you’ll receive a tracking link by SMS and email, and you can track it under My Account → Order History.' },
   ],
