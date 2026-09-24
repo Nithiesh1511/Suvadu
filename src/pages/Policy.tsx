@@ -35,7 +35,7 @@ const POLICIES: Record<Kind, PolicyDoc> = {
     sections: [
       { h: 'Processing time', p: ['Ready-to-ship products are dispatched within 1–2 business days.', 'Personalised and made-to-order items take 3–5 business days to craft before dispatch.'] },
       { h: 'Delivery time', p: ['Metro cities: typically 2–4 business days after dispatch.', 'Other locations: typically 4–7 business days after dispatch.'] },
-      { h: 'Charges & tracking', p: ['We ship pan-India via Shiprocket. The amount shown at checkout is the final total — there are no separate shipping charges.', 'Once dispatched, you’ll receive a tracking link by SMS and email, also available under My Account → Order History.'] },
+      { h: 'Charges & tracking', p: ['We ship pan-India. The amount shown at checkout is the final total — there are no separate shipping charges.', 'Once dispatched, you’ll receive a tracking link by SMS and email, also available under My Account → Order History.'] },
       { h: 'Delays', p: ['Occasionally, delivery may be affected by weather, festivals or courier disruptions. We’ll keep you informed if your order is impacted.'] },
     ],
   },

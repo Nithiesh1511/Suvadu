@@ -11,9 +11,14 @@ const SITE = 'SUVADU Notebooks'
 // origin at runtime so previews still work.
 export const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') || ''
 
-function siteOrigin(): string {
+// Path prefix the app is served under ('' at a domain root, '/Suvadu' on
+// GitHub Pages). Router paths are relative to it.
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+// Absolute URL of the site root, including BASE_PATH.
+export function siteOrigin(): string {
   if (SITE_URL) return SITE_URL
-  return typeof window !== 'undefined' ? window.location.origin : ''
+  return typeof window !== 'undefined' ? window.location.origin + BASE_PATH : ''
 }
 
 function upsertMeta(selector: string, attr: 'name' | 'property', key: string, content: string) {
@@ -47,7 +52,8 @@ export function applyMeta(title: string, description?: string, image?: string) {
   if (desc) upsertMeta('meta[name="description"]', 'name', 'description', desc)
 
   // Canonical: strip query/hash so filtered listing URLs don't fork into dupes.
-  const canonical = siteOrigin() + (typeof window !== 'undefined' ? window.location.pathname : '')
+  const path = typeof window !== 'undefined' ? window.location.pathname : ''
+  const canonical = siteOrigin() + (BASE_PATH && path.startsWith(BASE_PATH) ? path.slice(BASE_PATH.length) : path)
   upsertCanonical(canonical)
 
   // Open Graph + Twitter.
