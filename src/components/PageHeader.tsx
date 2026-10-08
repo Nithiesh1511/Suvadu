@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ChevronRight } from './Icons'
+import { ChevronRight, Spark4 } from './Icons'
 import JsonLd from './JsonLd'
 import { cn } from '@/lib/utils'
 
@@ -30,9 +30,20 @@ export default function PageHeader({ title, subtitle, eyebrow, crumbs }: {
   } : null
 
   return (
-    <section className="gradient-hero border-b border-border">
+    <section className="gradient-hero relative overflow-hidden border-b border-border">
       {breadcrumbLd && <JsonLd data={breadcrumbLd} />}
-      <div className={cn('container-suvadu', bare ? 'py-4' : 'py-10 sm:py-16')}>
+      {/* Ruled paper, a pair of rings and a sparkle — the same hand as the home hero.
+          Skipped on the slim breadcrumb-only variant, which has no room for them. */}
+      {!bare && (
+        <>
+          <div aria-hidden className="paper-rules pointer-events-none absolute inset-0 opacity-60" />
+          <span aria-hidden className="pointer-events-none absolute -right-28 -top-32 h-80 w-80 rounded-full border border-royal/10" />
+          <span aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-52 w-52 rounded-full border border-dashed border-royal/20" />
+          <Spark4 className="twinkle pointer-events-none absolute right-[16%] top-[30%] hidden h-4 w-4 text-royal-300 sm:block" />
+          <Spark4 className="twinkle pointer-events-none absolute right-[8%] bottom-[22%] hidden h-3 w-3 text-royal-400 sm:block" style={{ animationDelay: '1.6s' }} />
+        </>
+      )}
+      <div className={cn('container-suvadu relative', bare ? 'py-4' : 'py-10 sm:py-16')}>
         {crumbs && crumbs.length > 0 && (
           <nav className={cn('flex flex-wrap items-center gap-x-1.5 gap-y-1 font-body text-xs text-muted-foreground', !bare && 'mb-5')} aria-label="Breadcrumb">
             <Link to="/" className="hover:text-royal">Home</Link>
