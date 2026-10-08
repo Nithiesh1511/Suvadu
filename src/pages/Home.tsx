@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { REVIEWS } from '@/data/products'
 import { useCatalog } from '@/context/CatalogContext'
@@ -7,58 +7,14 @@ import ProductCard from '@/components/ProductCard'
 import NotebookCover from '@/components/NotebookCover'
 import ProductImage from '@/components/ProductImage'
 import Testimonials from '@/components/Testimonials'
+import FlyingNotebookStage from '@/components/flying-notebook/FlyingNotebookStage'
+import { useToast } from '@/components/Toast'
 import { ProductGridSkeleton, CollectionGridSkeleton } from '@/components/Skeleton'
-import { ArrowRight, Truck, Leaf, Sparkle, Pen, Instagram } from '@/components/Icons'
+import { ArrowRight, Truck, Leaf, Sparkle, Spark4, Pen, Instagram } from '@/components/Icons'
 import Reveal from '@/components/Reveal'
 import { REVEAL, REVEAL_FADE, CASCADE } from '@/lib/motion'
-import { cn } from '@/lib/utils'
-
-// Lazy so three.js stays out of the initial bundle.
-const NotebookPreview3D = lazy(() => import('@/components/NotebookPreview3D'))
-
-// Full-width banner, sized like the promotional banners above.
-const STAGE_3D_H = 'h-[420px] sm:h-[500px] lg:h-[580px]'
-
-function Stage3DFallback() {
-  return (
-    <div className={`grid ${STAGE_3D_H} place-items-center bg-lilac/40 font-body text-sm font-light text-muted-foreground`}>
-      Loading 3D preview…
-    </div>
-  )
-}
-
-/** "Our story": the copy reads first, then the 3D notebook takes a full-width
- *  banner to itself. The notebook sits dead centre on its stage — as in the
- *  prototype — so nothing is overlaid on top of it. */
-function Story3DBanner() {
-  return (
-    <div>
-      <Reveal className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-        <div className="min-w-0">
-          <p className="eyebrow mb-3">Our story</p>
-          <h2 className="font-display text-2xl leading-tight text-plum sm:text-4xl">A notebook is where ideas begin.</h2>
-          <p className="mt-3 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
-            SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
-          </p>
-          <p className="mt-3 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
-            From minimal aesthetics to fully personalised covers, every Suvadu notebook is made to help you make your mark.
-          </p>
-        </div>
-        <Link to="/about" className="link-underline inline-flex items-center gap-1.5 pb-1">
-          Read Our Story <ArrowRight width={15} />
-        </Link>
-      </Reveal>
-
-      <div className={cn(REVEAL, 'mt-10 overflow-hidden rounded-[2rem] border border-royal/10 shadow-lift ring-1 ring-white/60')}>
-        <WhenVisible fallback={<Stage3DFallback />}>
-          <Suspense fallback={<Stage3DFallback />}>
-            <NotebookPreview3D variant="showcase" className={STAGE_3D_H} />
-          </Suspense>
-        </WhenVisible>
-      </div>
-    </div>
-  )
-}
+import { cn, isEmail } from '@/lib/utils'
+import { fetchWelcomeOffer, type WelcomeOffer } from '@/lib/welcome'
 
 export default function Home() {
   const { collections, getBestSellers, loading, error: catalogError } = useCatalog()
@@ -85,42 +41,77 @@ export default function Home() {
 
   return (
     <div>
-      {/* 1. HERO BANNER */}
-      <section className="gradient-hero relative overflow-hidden bg-grain">
-        <div className="container-suvadu grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
+      {/* 1. HERO — the flying notebook's first stage */}
+      <section className="gradient-hero relative overflow-hidden">
+        <div aria-hidden className="paper-rules pointer-events-none absolute inset-0" />
+        <Spark4 className="twinkle pointer-events-none absolute left-[9%] top-[16%] h-4 w-4 text-royal-300" />
+        <Spark4 className="twinkle pointer-events-none absolute left-[46%] top-[9%] h-3 w-3 text-royal-400" style={{ animationDelay: '1.4s' }} />
+        <Spark4 className="twinkle pointer-events-none absolute bottom-[14%] left-[40%] h-5 w-5 text-royal-200" style={{ animationDelay: '2.6s' }} />
+
+        <div className="container-suvadu relative grid items-center gap-x-10 gap-y-2 pb-14 pt-10 lg:grid-cols-[1.02fr_1fr] lg:pb-20 lg:pt-14">
           <div className="animate-fade-up">
-            <p className="eyebrow mb-5">Suvadu Notebooks</p>
-            <h1 className="text-balance font-display text-[2.75rem] leading-[1.05] text-plum xs:text-5xl sm:text-6xl lg:text-7xl">
-              Make your <span className="italic text-royal">mark.</span>
+            <p className="eyebrow-chip mb-6"><Spark4 width={13} height={13} /> Suvadu Notebooks</p>
+            <h1 className="text-balance font-display text-[2.75rem] leading-[1.02] text-plum xs:text-5xl sm:text-6xl lg:text-[5.25rem]">
+              Make your<br />
+              <span className="relative inline-block italic text-ink">
+                mark.
+                <svg className="ink-underline" viewBox="0 0 220 22" aria-hidden>
+                  <path d="M4 15C38 4 74 20 112 11S182 4 216 12" pathLength="1" />
+                </svg>
+              </span>
             </h1>
+
+            {/* Small screens: the notebook sits between headline and copy, inside the first screenful. */}
+            <div className="relative mx-auto my-5 h-[290px] w-full max-w-[340px] lg:hidden">
+              <div aria-hidden className="hero-orb"><div className="hero-disc" /></div>
+              <FlyingNotebookStage id="hero-m" fit={0.92} rotY={0.5} leaveAt={0.55} className="absolute inset-0">
+                <StageFallback />
+              </FlyingNotebookStage>
+            </div>
+
             <p className="mt-6 max-w-md font-body text-base font-light leading-relaxed text-muted-foreground sm:text-lg">
               Minimal, aesthetic notebooks crafted for the thinking mind. Premium paper, considered covers, and the option to make every page unmistakably yours.
             </p>
-            <div className="mt-8">
-              <Link to="/collections" className="btn-primary btn-lg">Shop Now</Link>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link to="/collections" className="btn-primary btn-lg">Shop Now <ArrowRight width={16} /></Link>
+              <Link to="/special-collections" className="btn-secondary btn-lg">Personalise yours</Link>
             </div>
-            <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 font-body text-sm text-muted-foreground">
-              <span className="flex items-center gap-2"><Truck width={18} className="shrink-0 text-royal" /> Pan-India delivery</span>
-              <span className="flex items-center gap-2"><Pen width={18} className="shrink-0 text-royal" /> Personalisation available</span>
-              <span className="flex items-center gap-2"><Leaf width={18} className="shrink-0 text-royal" /> 100 GSM premium paper</span>
-            </div>
+            <ul className="mt-9 flex flex-wrap gap-2.5 font-body text-[13px] text-plum/80">
+              {[
+                { Icon: Truck, t: 'Pan-India delivery' },
+                { Icon: Pen, t: 'Personalisation available' },
+                { Icon: Leaf, t: '100 GSM premium paper' },
+              ].map(({ Icon, t }) => (
+                <li key={t} className="inline-flex items-center gap-2 rounded-full border border-royal/15 bg-white/70 px-3.5 py-2 backdrop-blur">
+                  <Icon width={16} className="shrink-0 text-royal" /> {t}
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Hero visual — fanned notebooks. Labelled with real collections: they
-              used to read "Inspire Ink", "Her Journal" and "Midnight", none of
-              which the shop sells, so the first thing the hero did was advertise
-              four things you couldn't buy. */}
-          <HeroCovers />
+          {/* Desktop showcase: the notebook on a lilac disc, collections peeking out behind it. */}
+          <div className="relative mx-auto hidden h-[500px] w-full max-w-[560px] lg:block xl:h-[540px]">
+            <div aria-hidden className="hero-orb"><div className="hero-disc" /><div className="hero-ring" /></div>
+            <HeroCovers />
+            <FlyingNotebookStage id="hero" fit={0.9} rotY={0.5} leaveAt={0.82} className="absolute inset-x-[12%] inset-y-[5%]">
+              <StageFallback />
+            </FlyingNotebookStage>
+            {/* The book fills most of the disc, so the chips live in the strips above
+                and below it rather than behind it. */}
+            <span className="chip-float absolute -bottom-1 left-[6%]"><Leaf width={15} className="text-royal" /> 100 GSM paper</span>
+            <span className="chip-float absolute right-[2%] top-[1%]" style={{ animationDelay: '2.2s' }}><Sparkle width={15} className="text-royal" /> Lay-flat binding</span>
+            <span className="chip-float absolute left-[5%] top-[-1%]" style={{ animationDelay: '4s' }}><Pen width={15} className="text-royal" /> Made to trace</span>
+          </div>
         </div>
       </section>
 
-      {/* marquee */}
-      <div className="overflow-hidden border-y border-border bg-plum py-3 text-white">
+      {/* marquee — a stitched strip */}
+      <div className="strip-stitch overflow-hidden py-3.5 text-white">
         <div className="flex w-max animate-marquee gap-12 whitespace-nowrap font-display text-lg italic">
           {Array.from({ length: 2 }).map((_, k) => (
             <span key={k} className="flex gap-12">
               {['Make your mark.', 'Premium paper.', 'Personalise it.', 'For the thinking mind.', 'Gift-ready.', 'Crafted in India.'].map((t) => (
-                <span key={t} className="flex items-center gap-12"><span>{t}</span><span className="text-royal-300">✦</span></span>
+                <span key={t} className="flex items-center gap-12"><span>{t}</span><Spark4 width={14} height={14} className="text-royal-300" /></span>
               ))}
             </span>
           ))}
@@ -151,7 +142,7 @@ export default function Home() {
       )}
 
       {/* 2. FEATURED COLLECTIONS */}
-      <section className="container-suvadu py-14 sm:py-20">
+      <section className="container-suvadu py-16 sm:py-24">
         <SectionHead
           reveal
           eyebrow="Curated for you"
@@ -162,41 +153,48 @@ export default function Home() {
         {catalogError ? (
           <CatalogRetryNotice />
         ) : loading ? (
-          <div className="mt-10"><CollectionGridSkeleton count={6} /></div>
+          <div className="mt-12"><CollectionGridSkeleton count={6} /></div>
         ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((col) => (
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {featured.map((col, i) => (
             <Link
               key={col.slug}
               to={`/collections/${col.slug}`}
               {...CASCADE}
-              className={cn(REVEAL, 'group relative overflow-hidden rounded-2xl border border-border shadow-card hover-lift hover:shadow-lift')}
+              className={cn(REVEAL, 'group relative overflow-hidden rounded-3xl border border-border bg-white shadow-card hover-lift hover:shadow-lift')}
             >
               {/* An admin-uploaded cover fills the frame; without one we fall back
                   to the generated notebook on the accent colour. */}
-              <div className="flex aspect-[16/10] items-center justify-center overflow-hidden" style={{ backgroundColor: col.accent }}>
+              <div className="relative flex aspect-[16/10] items-center justify-center overflow-hidden" style={{ backgroundColor: col.accent }}>
                 {col.image ? (
                   <img
                     src={col.image}
                     alt={col.displayName}
                     loading="lazy"
                     decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
                   />
                 ) : (
                   <div className="w-28 rotate-[-4deg] transition-transform duration-500 group-hover:rotate-0 group-hover:scale-105">
                     <NotebookCover colour={col.accent} pattern={col.pattern} label={col.displayName} />
                   </div>
                 )}
+                <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-plum/25 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                <span className="absolute left-4 top-4 rounded-full bg-white/85 px-3 py-1.5 font-body text-[11px] font-medium leading-none tracking-[0.2em] text-royal shadow-card backdrop-blur">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
               </div>
-              <div className="bg-white p-6">
-                <div className="flex items-center justify-between">
+              <div className="relative bg-white p-6">
+                <div className="flex items-center justify-between gap-3">
                   <h3 className="font-display text-2xl text-plum">{col.displayName}</h3>
-                  <span className="badge-soft">{col.count} {col.count === 1 ? 'product' : 'products'}</span>
+                  <span className="badge-soft shrink-0">{col.count} {col.count === 1 ? 'product' : 'products'}</span>
                 </div>
                 <p className="mt-2 font-body text-sm font-light leading-relaxed text-muted-foreground">{col.description}</p>
-                <span className="mt-4 inline-flex items-center gap-1.5 font-body text-xs font-medium uppercase tracking-cta text-royal">
-                  View Collection <ArrowRight width={15} className="transition-transform group-hover:translate-x-1" />
+                <span className="mt-5 inline-flex items-center gap-2 font-body text-xs font-medium uppercase tracking-cta text-royal">
+                  View Collection
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-lilac text-royal transition-all duration-300 group-hover:bg-royal group-hover:text-white">
+                    <ArrowRight width={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                  </span>
                 </span>
               </div>
             </Link>
@@ -205,11 +203,12 @@ export default function Home() {
         )}
       </section>
 
-      {/* 3. BEST SELLERS */}
-      <section className="bg-lilac/40 py-14 sm:py-20">
-        <div className="container-suvadu">
+      {/* 3. BEST SELLERS — a scalloped page-edge band */}
+      <section className="band-wavy relative bg-gradient-to-b from-lilac/80 via-lilac/50 to-lilac/80 py-24 sm:py-32">
+        <div aria-hidden className="bg-grain pointer-events-none absolute inset-0 opacity-80" />
+        <div className="container-suvadu relative">
           <SectionHead reveal eyebrow="Loved most" title="Best Sellers" subtitle="The notebooks our customers keep coming back for." />
-          <div className="mt-10">
+          <div className="mt-12">
             {catalogError ? (
               <CatalogRetryNotice />
             ) : loading ? (
@@ -220,38 +219,34 @@ export default function Home() {
               </div>
             )}
           </div>
-          <Reveal className="mt-10 text-center">
+          <Reveal className="mt-12 text-center">
             <Link to="/collections?filter=bestseller" className="btn-primary btn-lg">Shop Best Sellers</Link>
           </Reveal>
         </div>
       </section>
 
-      {/* 4. ABOUT SUVADU (short) */}
-      <section className="container-suvadu py-14 sm:py-20">
-        <Story3DBanner />
-      </section>
+      {/* 4. OUR STORY — the flying notebook's second stage: it lands here, opens, and writes. */}
+      <StorySection />
 
       {/* Value props */}
-      <section className="container-suvadu pb-4">
-        <div className={cn(REVEAL, 'grid gap-4 rounded-2xl border border-border bg-white p-6 shadow-card sm:grid-cols-3 sm:p-8')}>
+      <section className="container-suvadu pb-6 pt-2">
+        <div className="grid gap-5 sm:grid-cols-3">
           {[
             { Icon: Sparkle, t: 'Premium quality', d: '100 GSM paper, lay-flat binding, soft-touch covers.' },
             { Icon: Pen, t: 'Make it yours', d: 'Add your name, text, font and colour on customised notebooks.' },
             { Icon: Truck, t: 'Pan-India delivery', d: 'Fast, tracked shipping via Shiprocket to your door.' },
           ].map(({ Icon, t, d }) => (
-            <div key={t} className="flex gap-4">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lilac text-royal"><Icon /></span>
-              <div>
-                <h3 className="font-display text-lg text-plum">{t}</h3>
-                <p className="mt-1 font-body text-sm font-light text-muted-foreground">{d}</p>
-              </div>
+            <div key={t} {...CASCADE} className={cn(REVEAL, 'value-card p-7')}>
+              <span className="medallion"><Icon width={22} height={22} /></span>
+              <h3 className="mt-5 font-display text-xl text-plum">{t}</h3>
+              <p className="mt-2 font-body text-sm font-light leading-relaxed text-muted-foreground">{d}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* 5. CUSTOMER REVIEWS — drifting ribbon, full-bleed, no heading of its own */}
-      <section className="relative overflow-hidden py-14 sm:py-20">
+      <section className="relative overflow-hidden py-16 sm:py-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 bg-grain opacity-80"
@@ -263,14 +258,14 @@ export default function Home() {
       </section>
 
       {/* 6. NEWSLETTER */}
-      <section className={cn(REVEAL, 'container-suvadu pb-14 sm:pb-20')}>
+      <section className={cn(REVEAL, 'container-suvadu pb-16 sm:pb-24')}>
         <NewsletterBanner />
       </section>
 
       {/* 7. INSTAGRAM FEED */}
-      <section className="container-suvadu pb-14 sm:pb-20">
+      <section className="container-suvadu pb-16 sm:pb-24">
         <SectionHead reveal eyebrow="@suvadu.notebooks" title="From the Suvadu journal" link={{ to: 'https://www.instagram.com/suvadu.notebooks/', label: 'Follow us', external: true }} />
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {collections.concat(collections).slice(0, 6).map((c, i) => (
             <a
               key={i}
@@ -279,7 +274,7 @@ export default function Home() {
               rel="noopener noreferrer"
               aria-label="Follow @suvadu.notebooks on Instagram"
               {...CASCADE}
-              className={cn(REVEAL, 'group relative aspect-square overflow-hidden rounded-xl')}
+              className={cn(REVEAL, 'group relative aspect-square overflow-hidden rounded-2xl')}
               style={{ backgroundColor: c.accent }}
             >
               <NotebookCover colour={c.accent} pattern={c.pattern} label={c.displayName} rounded={false} className="!aspect-square" />
@@ -294,8 +289,83 @@ export default function Home() {
   )
 }
 
-// Renders children only once the placeholder scrolls near the viewport, so the
-// heavy three.js chunk is fetched on intent (scroll) rather than on every load.
+/** Shown where the flying notebook will land until the 3D chunk arrives — and for good if
+ *  the browser has no WebGL. Fades out once the real notebook is drawing. */
+function StageFallback() {
+  return (
+    <div aria-hidden className="flying-notebook-stage__fallback pointer-events-none absolute inset-0 grid place-items-center">
+      <div className="w-[48%] max-w-[190px] rotate-[-4deg] drop-shadow-2xl">
+        <NotebookCover colour="#4E2675" pattern="mono" label="Make your mark" />
+      </div>
+    </div>
+  )
+}
+
+const STORY_CHAPTERS = [
+  { n: '01', t: 'Paper you’ll want to write on', d: '100 GSM premium paper and lay-flat binding, so every page stays open for whatever you’re thinking.' },
+  { n: '02', t: 'Covers with a soft touch', d: 'Minimal, aesthetic covers in a calm palette — considered enough to carry everywhere.' },
+  { n: '03', t: 'Yours, down to the name', d: 'Add your own name, text, font and colour on a customised notebook, and make the first mark yourself.' },
+]
+
+/** "Our story". On desktop the notebook is pinned to the middle of the screen,
+ *  on a desk that sticks with it, while three chapters scroll past on the left —
+ *  so the book has time to land, open, and write out its message. On a phone the
+ *  desk is simply a block between the intro and the chapters. */
+function StorySection() {
+  return (
+    <section id="story" className="container-suvadu py-16 sm:py-24">
+      <div className="grid gap-x-14 gap-y-10 lg:grid-cols-[0.82fr_1.18fr]">
+        <Reveal className="lg:col-start-1 lg:row-start-1">
+          <p className="eyebrow mb-4">Our story</p>
+          <h2 className="font-display text-3xl leading-[1.08] text-plum sm:text-5xl">
+            A notebook is where <span className="italic text-ink">ideas</span> begin.
+          </h2>
+          <p className="mt-5 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
+            SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
+          </p>
+          <p className="mt-3 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
+            From minimal aesthetics to fully personalised covers, every Suvadu notebook is made to help you make your mark.
+          </p>
+          <Link to="/about" className="link-underline mt-6 inline-flex items-center gap-1.5 pb-1">
+            Read Our Story <ArrowRight width={15} />
+          </Link>
+        </Reveal>
+
+        {/* The desk column is as tall as the chapters beside it; the notebook pins
+            to the middle of it for as long as it lasts. */}
+        <div className="relative lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <div className="desk desk-sticky h-[400px] sm:h-[460px]">
+            <span aria-hidden className="desk__ring" style={{ width: '58%', aspectRatio: '1' }} />
+            <span aria-hidden className="desk__ring" style={{ width: '82%', aspectRatio: '1' }} />
+            <span aria-hidden className="desk__ring" style={{ width: '110%', aspectRatio: '1' }} />
+            <Spark4 className="twinkle absolute left-[12%] top-[16%] h-5 w-5 text-royal-300" />
+            <Spark4 className="twinkle absolute right-[14%] top-[24%] h-3.5 w-3.5 text-royal-400" style={{ animationDelay: '1.6s' }} />
+            <Spark4 className="twinkle absolute bottom-[26%] left-[9%] h-3.5 w-3.5 text-royal-400" style={{ animationDelay: '3.1s' }} />
+            <Spark4 className="twinkle absolute bottom-[20%] right-[11%] h-5 w-5 text-royal-300" style={{ animationDelay: '0.8s' }} />
+            <StageFallback />
+            <p className="absolute inset-x-0 bottom-5 text-center font-body text-[11px] font-medium uppercase tracking-[0.2em] text-royal/60">
+              Tap the notebook to open or close it
+            </p>
+          </div>
+          <FlyingNotebookStage id="story" open pin fit={0.88} rotY={0} className="absolute inset-0" />
+        </div>
+
+        <ol className="space-y-5 lg:col-start-1 lg:row-start-2 lg:space-y-[16vh] lg:pb-[12vh]">
+          {STORY_CHAPTERS.map((c) => (
+            <li key={c.n} {...CASCADE} className={cn(REVEAL, 'chapter flex items-start gap-5 p-6 sm:gap-7 sm:p-8')}>
+              <span className="numeral shrink-0 text-6xl sm:text-7xl">{c.n}</span>
+              <div className="min-w-0 pt-1">
+                <h3 className="font-display text-2xl text-plum">{c.t}</h3>
+                <p className="mt-2 font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">{c.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
 /** The catalogue didn't load. Say so inline — the rest of the home page is
  *  static and still worth reading — and give the shopper a retry. */
 function CatalogRetryNotice() {
@@ -313,23 +383,6 @@ function CatalogRetryNotice() {
   )
 }
 
-function WhenVisible({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || visible) return
-    if (typeof IntersectionObserver === 'undefined') { setVisible(true); return }
-    const io = new IntersectionObserver(
-      (entries) => { if (entries.some((e) => e.isIntersecting)) { setVisible(true); io.disconnect() } },
-      { rootMargin: '200px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [visible])
-  return <div ref={ref}>{visible ? children : fallback}</div>
-}
-
 export function SectionHead({ eyebrow, title, subtitle, link, reveal }: {
   eyebrow?: string
   title: string
@@ -341,9 +394,9 @@ export function SectionHead({ eyebrow, title, subtitle, link, reveal }: {
   return (
     <div className={cn(reveal && REVEAL, 'flex flex-wrap items-end justify-between gap-x-4 gap-y-3')}>
       <div className="min-w-0">
-        {eyebrow && <p className="eyebrow mb-3">{eyebrow}</p>}
-        <h2 className="font-display text-2xl leading-tight text-plum sm:text-4xl">{title}</h2>
-        {subtitle && <p className="mt-3 max-w-xl font-body text-sm font-light text-muted-foreground sm:text-base">{subtitle}</p>}
+        {eyebrow && <p className="eyebrow mb-4">{eyebrow}</p>}
+        <h2 className="font-display text-3xl leading-[1.08] text-plum sm:text-5xl">{title}</h2>
+        {subtitle && <p className="mt-4 max-w-xl font-body text-sm font-light text-muted-foreground sm:text-base">{subtitle}</p>}
       </div>
       {link && (
         link.external ? (
@@ -356,27 +409,25 @@ export function SectionHead({ eyebrow, title, subtitle, link, reveal }: {
   )
 }
 
-/** The fanned notebooks in the hero, labelled with collections that exist.
- *  Falls back to unlabelled covers until the catalogue lands, rather than
- *  inventing names to fill the space. */
+/** Collections peeking out from behind the notebook on the hero disc, labelled
+ *  with collections that exist. Falls back to unlabelled covers until the
+ *  catalogue lands, rather than inventing names to fill the space. */
 function HeroCovers() {
   const { collections } = useCatalog()
   const positions = [
-    'absolute left-[6%] top-10 w-48 -rotate-[10deg]',
-    'absolute left-[34%] top-0 z-10 w-52 rotate-[3deg]',
-    'absolute right-[4%] top-14 w-48 rotate-[11deg]',
-    'absolute bottom-2 left-[26%] z-20 w-44 -rotate-[3deg]',
+    'absolute -left-3 top-[22%] z-[1] w-32 -rotate-[12deg] xl:w-36',
+    'absolute -right-4 top-[9%] z-[1] w-32 rotate-[10deg] xl:w-36',
+    'absolute -right-1 bottom-[5%] z-[1] w-28 -rotate-[6deg] xl:w-32',
   ]
   const fallback = [
     { colour: '#E6E6FA', pattern: 'plain' as const },
-    { colour: '#613092', pattern: 'mono' as const },
     { colour: '#FF8DA1', pattern: 'floral' as const },
     { colour: '#36454F', pattern: 'dots' as const },
   ]
-  const shown = collections.slice(0, 4)
+  const shown = collections.slice(0, 3)
 
   return (
-    <div className="relative hidden h-[440px] lg:block">
+    <>
       {positions.map((pos, i) => {
         const col = shown[i]
         const cover = col
@@ -389,7 +440,7 @@ function HeroCovers() {
           ? <Link key={col.slug} to={`/collections/${col.slug}`} className={cls}>{cover}</Link>
           : <div key={i} aria-hidden className={cls}>{cover}</div>
       })}
-    </div>
+    </>
   )
 }
 
@@ -405,23 +456,22 @@ function NewsletterBanner() {
   }, [])
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-plum px-5 py-12 text-center text-white sm:rounded-3xl sm:px-12 sm:py-14">
-      <div className="pointer-events-none absolute inset-0 opacity-30 bg-grain" />
+    <div className="news-banner overflow-hidden rounded-2xl px-5 py-14 text-center text-white shadow-lift sm:rounded-3xl sm:px-12 sm:py-16">
+      <Spark4 className="twinkle pointer-events-none absolute left-[8%] top-[18%] h-4 w-4 text-royal-200" />
+      <Spark4 className="twinkle pointer-events-none absolute bottom-[22%] right-[9%] h-5 w-5 text-royal-300" style={{ animationDelay: '1.8s' }} />
+      <Spark4 className="twinkle pointer-events-none absolute right-[22%] top-[14%] h-3 w-3 text-royal-200" style={{ animationDelay: '3s' }} />
       <div className="relative mx-auto max-w-2xl">
         <p className="font-body text-[11px] font-medium uppercase tracking-[0.18em] text-royal-200 sm:text-xs sm:tracking-[0.24em]">Join the Suvadu circle</p>
-        <h2 className="mt-4 font-display text-2xl text-white sm:text-4xl">
+        <h2 className="mt-4 font-display text-3xl text-white sm:text-5xl">
           {offer ? `Get ${offer.pct}% off your first notebook` : 'Never miss a new collection'}
         </h2>
-        <p className="mt-3 font-body text-sm font-light text-white/70">Subscribe for new collections, restocks and a little inspiration.</p>
+        <p className="mt-4 font-body text-sm font-light text-white/70 sm:text-base">Subscribe for new collections, restocks and a little inspiration.</p>
         <NewsletterForm offer={offer} />
       </div>
     </div>
   )
 }
 
-import { useToast } from '@/components/Toast'
-import { isEmail } from '@/lib/utils'
-import { fetchWelcomeOffer, type WelcomeOffer } from '@/lib/welcome'
 function NewsletterForm({ offer }: { offer: WelcomeOffer | null }) {
   const { notify } = useToast()
   const [email, setEmail] = useState('')
@@ -471,7 +521,7 @@ function NewsletterForm({ offer }: { offer: WelcomeOffer | null }) {
   return (
     // Stacks below xs: an email field and a "Subscribing…" button can't share a
     // 300px-wide pill without the input collapsing to a few characters.
-    <form onSubmit={submit} className="mx-auto mt-7 flex max-w-md flex-col gap-2 rounded-2xl bg-white p-2 xs:flex-row xs:gap-0 xs:rounded-full xs:p-1.5">
+    <form onSubmit={submit} className="mx-auto mt-8 flex max-w-md flex-col gap-2 rounded-2xl bg-white p-2 shadow-lift xs:flex-row xs:gap-0 xs:rounded-full xs:p-1.5">
       <label htmlFor="home-newsletter" className="sr-only">Email address for newsletter</label>
       <input
         id="home-newsletter"

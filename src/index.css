@@ -160,8 +160,15 @@
     @apply rounded-2xl border border-border bg-card shadow-card;
   }
 
+  /* A hairline ornament leads every eyebrow — the first stroke of a sentence. */
   .eyebrow {
-    @apply font-body text-xs font-medium uppercase tracking-[0.22em] text-royal;
+    @apply inline-flex items-center gap-2.5 align-top font-body text-xs font-medium uppercase tracking-[0.22em] text-royal;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 1.5rem;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(97, 48, 146, 0), currentColor);
   }
 
   /* text-base below sm is deliberate: iOS Safari force-zooms the viewport when a
@@ -362,127 +369,359 @@
   .bg-fx__spark { opacity: 0.3; }
 }
 
-/* ── 3D notebook preview (NotebookPreview3D) ──────────────────────────────── */
-/* Matches the client's Three.js prototype: the notebook sits centred on a lilac
-   stage, brand tag top-left, close button top-right, and the drag hint stacked
-   over the "Open the notebook" button on the bottom centre line. */
-.nb3d {
-  /* Set from JS — how far the camera lifted the book above the control strip,
-     so the handwriting overlay tracks the page it is being written on. */
-  --nb3d-lift: 0%;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: clamp(300px, 62vw, 440px);
-  border-radius: 1.5rem;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse 68% 52% at 50% 24%, #FFFFFF 0%, rgba(255, 255, 255, 0) 64%),
-    radial-gradient(ellipse 92% 62% at 50% 104%, rgba(97, 48, 146, 0.18) 0%, rgba(97, 48, 146, 0) 62%),
-    linear-gradient(168deg, #FBF7FF 0%, #F3E8FF 54%, #E7D6F9 100%);
-  box-shadow: inset 0 0 190px rgba(44, 26, 62, 0.10);
-}
-/* The canvas is appended after the chrome in DOM order, so keep the chrome above it. */
-.nb3d canvas { display: block; touch-action: none; }
-.nb3d__tag,
-.nb3d__hint,
-.nb3d__open,
-.nb3d__close,
-.nb3d__overlay { z-index: 1; }
+/* ============================================================
+   THEME — "paper & ink"
+   The brand's own materials, used as the design language: ruled
+   paper with a margin line, ink strokes, stitched binding,
+   scalloped page edges, and a sparkle for every spark of an idea.
+   Everything here is decoration — it carries no information and
+   is hidden from assistive tech where it is markup.
+   ============================================================ */
 
-/* Showcase: the same stage, sized by a full-width banner rather than a fixed ratio. */
-.nb3d--showcase {
-  min-height: 0;
-  border-radius: inherit;
+/* Scrollbar in brand colours. */
+html { scrollbar-width: thin; scrollbar-color: #9a66c7 #f6f1fb; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: #f6f1fb; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9a66c7, #613092);
+  border: 2.5px solid #f6f1fb;
+  border-radius: 999px;
 }
-.nb3d--showcase .nb3d__overlay { top: calc(50% - var(--nb3d-lift)); }
-/* The banner supplies its own heading, so the built-in brand tag stands down. */
-.nb3d--showcase .nb3d__tag { display: none; }
 
-.nb3d__tag {
-  position: absolute; top: 26px; left: 30px;
-  color: #4E2675; font-family: 'DM Serif Display', serif; font-size: 22px; opacity: 0.95;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+/* Reading progress — a thin ink line across the very top of the page. */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  height: 3px;
+  background: linear-gradient(90deg, #9a66c7, #613092 55%, #f0a9c8);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
   pointer-events: none;
 }
-.nb3d__tag span {
-  display: block; font-family: 'DM Sans', sans-serif; font-size: 11px;
-  letter-spacing: 0.14em; text-transform: uppercase; color: #613092; opacity: 0.58; margin-top: 4px;
+
+/* ── Stand-in shown where the flying notebook will land, until the 3D chunk arrives ──── */
+.flying-notebook-stage__fallback { transition: opacity 0.7s ease; }
+html[data-flying-notebook='ready'] .flying-notebook-stage__fallback { opacity: 0; pointer-events: none; }
+
+/* ── Ruled paper ───────────────────────────────────────────────────────────── */
+.paper-rules {
+  background-image: repeating-linear-gradient(180deg, transparent 0 41px, rgba(97, 48, 146, 0.075) 41px 42px);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 72%, transparent 100%);
 }
-.nb3d__hint {
-  position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 8px; white-space: nowrap;
-  color: #4E2675; font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase;
-  font-weight: 500; opacity: 0.62; pointer-events: none; transition: opacity 0.4s ease;
+/* The margin rule down the left of every notebook page. */
+.paper-rules::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: clamp(14px, 6.5vw, 108px);
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(154, 102, 199, 0.4) 25%, rgba(154, 102, 199, 0.4) 75%, transparent);
 }
-.nb3d__hint svg { width: 18px; height: 18px; }
-.nb3d__hint.nb3d--hidden { opacity: 0; }
-.nb3d__open {
-  position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%);
-  background: linear-gradient(135deg, #4E2675 0%, #2C1A3E 100%);
-  color: #fff; border: 1px solid rgba(243, 232, 255, 0.16);
-  padding: 12px 26px; border-radius: 999px; white-space: nowrap;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.03em;
-  cursor: pointer;
-  box-shadow: 0 10px 30px -8px rgba(97, 48, 146, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  display: flex; align-items: center; gap: 8px;
-  transition: transform 0.2s ease, opacity 0.4s ease, background 0.2s ease, box-shadow 0.2s ease;
+
+/* ── Hero showcase: disc, orbit ring, floating chips ───────────────────────── */
+/* One circle, sized by the height of its box, so the disc and its ring stay round
+   whatever shape the showcase is — wide on desktop, squat on a phone. */
+.hero-orb {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  height: 96%;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
 }
-.nb3d__open:hover {
-  transform: translateX(-50%) translateY(-2px);
-  background: linear-gradient(135deg, #613092 0%, #3A1C58 100%);
-  box-shadow: 0 16px 38px -10px rgba(97, 48, 146, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.hero-disc {
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, #ffffff 0%, #f6edff 38%, #e6d3f8 100%);
+  box-shadow:
+    inset 0 0 90px rgba(97, 48, 146, 0.14),
+    0 50px 100px -50px rgba(97, 48, 146, 0.55);
 }
-.nb3d__open.nb3d--hidden { opacity: 0; pointer-events: none; }
-.nb3d__open svg { width: 15px; height: 15px; opacity: 0.9; }
-.nb3d__close {
-  position: absolute; top: 26px; right: 30px;
-  background: rgba(97, 48, 146, 0.10); color: #4E2675;
+.hero-disc::after {
+  content: '';
+  position: absolute;
+  inset: 9%;
+  border-radius: 50%;
+  border: 1px solid rgba(97, 48, 146, 0.1);
+}
+.hero-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(97, 48, 146, 0.3);
+  animation: spin-slow 70s linear infinite;
+}
+.hero-ring::before {
+  content: '';
+  position: absolute;
+  top: 7%;
+  left: 14%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #9a66c7;
+  box-shadow: 0 0 0 5px rgba(154, 102, 199, 0.18), 0 0 18px rgba(154, 102, 199, 0.7);
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+
+.chip-float {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font: 500 0.75rem/1 'DM Sans', system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  color: #4e2675;
+  box-shadow: 0 14px 30px -14px rgba(97, 48, 146, 0.5);
+  animation: float-y 6.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-11px); }
+}
+
+/* Hand-drawn stroke under a word. Draws itself in once on load. */
+.ink-underline {
+  position: absolute;
+  left: -3%;
+  bottom: -0.16em;
+  width: 106%;
+  height: auto;
+  aspect-ratio: 220 / 22;
+  overflow: visible;
+  pointer-events: none;
+}
+.ink-underline path {
+  fill: none;
+  stroke: #9a66c7;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.js-anim .ink-underline path { animation: ink-draw 1.2s 0.7s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html:not(.js-anim) .ink-underline path { stroke-dashoffset: 0; }
+@keyframes ink-draw { to { stroke-dashoffset: 0; } }
+
+/* Gradient ink for the italic accent in headings. */
+.text-ink {
+  background: linear-gradient(100deg, #4e2675 0%, #7d45ae 55%, #9a66c7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── Stitched strip (the marquee) ──────────────────────────────────────────── */
+.strip-stitch {
+  position: relative;
+  background: linear-gradient(90deg, #2c1a3e 0%, #3a1c58 50%, #2c1a3e 100%);
+}
+.strip-stitch::before,
+.strip-stitch::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1.5px dashed rgba(214, 188, 236, 0.32);
+  pointer-events: none;
+}
+.strip-stitch::before { top: 5px; }
+.strip-stitch::after { bottom: 5px; }
+
+/* ── Scalloped band — page-edge top and bottom, cut with a mask so whatever is
+      behind the page (the aurora) shows through the scallops ──────────────── */
+.band-wavy {
+  --wave-h: 34px;
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 40' preserveAspectRatio='none'%3E%3Cpath d='M0 20C150 2 300 2 450 16S750 38 900 24 1250 4 1440 18V40H0Z'/%3E%3C/svg%3E") top / 100% var(--wave-h) no-repeat,
+    linear-gradient(#000 0 0) 0 calc(var(--wave-h) - 1px) / 100% calc(100% - 2 * var(--wave-h) + 2px) no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 40' preserveAspectRatio='none'%3E%3Cpath d='M0 0H1440V22C1290 38 1140 38 990 24S690 2 540 16 190 36 0 20Z'/%3E%3C/svg%3E") bottom / 100% var(--wave-h) no-repeat;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 40' preserveAspectRatio='none'%3E%3Cpath d='M0 20C150 2 300 2 450 16S750 38 900 24 1250 4 1440 18V40H0Z'/%3E%3C/svg%3E") top / 100% var(--wave-h) no-repeat,
+    linear-gradient(#000 0 0) 0 calc(var(--wave-h) - 1px) / 100% calc(100% - 2 * var(--wave-h) + 2px) no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 40' preserveAspectRatio='none'%3E%3Cpath d='M0 0H1440V22C1290 38 1140 38 990 24S690 2 540 16 190 36 0 20Z'/%3E%3C/svg%3E") bottom / 100% var(--wave-h) no-repeat;
+}
+@media (min-width: 768px) { .band-wavy { --wave-h: 52px; } }
+
+/* ── Story desk — the lilac stage the pinned notebook writes on ────────────── */
+.desk {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2rem;
+  background:
+    radial-gradient(62% 52% at 50% 38%, #ffffff 0%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(92% 62% at 50% 112%, rgba(97, 48, 146, 0.24) 0%, rgba(97, 48, 146, 0) 62%),
+    linear-gradient(165deg, #fbf7ff 0%, #f3e8ff 55%, #e4d0f8 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(97, 48, 146, 0.09),
+    0 44px 90px -52px rgba(97, 48, 146, 0.55);
+}
+.desk::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(97, 48, 146, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(75% 75% at 50% 50%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(75% 75% at 50% 50%, #000 30%, transparent 100%);
+}
+.desk__ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(97, 48, 146, 0.13);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* A sparkle that breathes in and out. */
+.twinkle { animation: twinkle-pop 4.8s ease-in-out infinite; }
+@keyframes twinkle-pop {
+  0%, 100% { opacity: 0.25; transform: scale(0.7) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.12) rotate(18deg); }
+}
+
+/* ── Numbered chapters beside the pinned notebook ──────────────────────────── */
+.chapter {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 50px -30px rgba(97, 48, 146, 0.4), inset 0 0 0 1px rgba(97, 48, 146, 0.06);
+  transition: transform var(--duration-medium) var(--ease-out-slow), box-shadow var(--duration-medium) var(--ease-out-slow);
+}
+@media (hover: hover) {
+  .chapter:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -30px rgba(97, 48, 146, 0.5), inset 0 0 0 1px rgba(97, 48, 146, 0.1); }
+}
+.numeral {
+  font-family: var(--font-display);
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(97, 48, 146, 0.4);
+}
+
+/* ── Value cards ───────────────────────────────────────────────────────────── */
+.value-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(var(--border));
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf7ff 100%);
+  box-shadow: 0 10px 30px -18px rgba(44, 26, 62, 0.25);
+  transition: transform var(--duration-medium) var(--ease-out-slow), box-shadow var(--duration-medium) var(--ease-out-slow);
+}
+.value-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, #9a66c7, #613092, #f0a9c8);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.5s var(--ease-out-slow);
+}
+@media (hover: hover) {
+  .value-card:hover { transform: translateY(-6px); box-shadow: 0 30px 50px -28px rgba(97, 48, 146, 0.5); }
+  .value-card:hover::before { transform: scaleX(1); }
+}
+.medallion {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  color: #fff;
+  background: radial-gradient(circle at 30% 25%, #9a66c7 0%, #613092 70%);
+  box-shadow: 0 10px 22px -8px rgba(97, 48, 146, 0.65), inset 0 0 0 4px rgba(255, 255, 255, 0.18);
+}
+
+/* ── Newsletter banner ─────────────────────────────────────────────────────── */
+.news-banner {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(110% 130% at 0% 0%, #5b2a8a 0%, rgba(91, 42, 138, 0) 55%),
+    radial-gradient(90% 120% at 100% 100%, rgba(125, 69, 174, 0.55) 0%, rgba(125, 69, 174, 0) 60%),
+    #2c1a3e;
+}
+.news-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: repeating-radial-gradient(circle at 88% 12%, transparent 0 40px, rgba(214, 188, 236, 0.1) 40px 41px);
+  -webkit-mask-image: radial-gradient(70% 90% at 88% 12%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(70% 90% at 88% 12%, #000 0%, transparent 75%);
+}
+/* A stitched border just inside the edge, like the binding of a cover. */
+.news-banner::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  z-index: -1;
+  border: 1.5px dashed rgba(214, 188, 236, 0.26);
+  border-radius: calc(1rem + 2px);
+  pointer-events: none;
+}
+@media (min-width: 640px) { .news-banner::after { border-radius: calc(1.5rem - 4px); inset: 12px; } }
+
+/* ── Footer scallop + page-header paper ────────────────────────────────────── */
+.footer-scallop {
+  height: 22px;
+  background:
+    radial-gradient(circle at 11px 0, transparent 10.5px, #f6f1fb 11px) 0 0 / 22px 22px repeat-x;
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ring,
+  .chip-float,
+  .twinkle { animation: none !important; }
+  .twinkle { opacity: 0.6; }
+  .ink-underline path { animation: none !important; stroke-dashoffset: 0; }
+}
+
+/* ── Hero eyebrow chip + the story desk's sticky behaviour ─────────────────── */
+.eyebrow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 1rem 0.45rem 0.8rem;
   border: 1px solid rgba(97, 48, 146, 0.18);
-  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  backdrop-filter: blur(6px);
-  transition: opacity 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font: 500 0.6875rem/1 'DM Sans', system-ui, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #613092;
+  box-shadow: 0 8px 22px -12px rgba(97, 48, 146, 0.45);
 }
-.nb3d__close.nb3d--visible { opacity: 1; pointer-events: auto; }
-.nb3d__close:hover { background: rgba(97, 48, 146, 0.20); border-color: rgba(97, 48, 146, 0.32); }
-.nb3d__close svg { width: 16px; height: 16px; }
-.nb3d__overlay {
-  position: absolute; left: 50%; top: 50%; width: 46%; max-width: 380px;
-  transform: translate(-50%, -50%); text-align: left; opacity: 0;
-  transition: opacity 0.4s ease; pointer-events: none;
-}
-.nb3d__overlay.nb3d--visible { opacity: 1; }
-/* The lines are revealed by widening them from 0 while the pen rides the right
-   edge — both driven from JS, so the nib and the ink stay in step. */
-.nb3d__line,
-.nb3d__measure {
-  font-family: 'Caveat', cursive; font-weight: 600; color: #3F2160;
-  font-size: clamp(20px, 2.4vw, 30px); line-height: 1.47; white-space: nowrap;
-  text-shadow: 0 1px 1px rgba(97, 48, 146, 0.14);
-}
-.nb3d__line { overflow: hidden; width: 0; }
-/* Measured for width only — never painted, never read out. */
-.nb3d__measure { position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; }
-.nb3d__pen {
-  position: absolute; top: 0; left: 0; width: 26px; height: 26px;
-  transform: translate(-4px, 4px) rotate(28deg);
-  opacity: 0; transition: opacity 0.2s ease;
-  filter: drop-shadow(0 3px 4px rgba(44, 26, 62, 0.42));
-}
-.nb3d__pen.nb3d--active { opacity: 1; }
-.nb3d__sign {
-  margin-top: 10px; font-family: 'DM Serif Display', serif; font-style: italic;
-  font-size: 17px; color: #4E2675; opacity: 0; transition: opacity 0.6s ease;
-}
-.nb3d__sign.nb3d--show { opacity: 0.9; }
-/* Phone-width: no room for a hint above the button, and the handwriting needs a
-   bigger share of the frame. Chrome pulls in so it clears the rounded corners. */
-@media (max-width: 560px) {
-  .nb3d__tag { top: 18px; left: 20px; font-size: 19px; }
-  .nb3d__close { top: 16px; right: 18px; width: 34px; height: 34px; }
-  .nb3d__hint { display: none; }
-  .nb3d__open { bottom: 22px; padding: 11px 22px; }
-  .nb3d__overlay { width: 68%; max-width: none; }
+
+/* On desktop the desk sticks to the middle of the screen while the chapters
+   scroll past it; the flying notebook pins to the same line (see HEADER_H in FlyingNotebook.tsx),
+   so the book always sits dead centre on the desk. */
+.desk-sticky { --desk-h: min(calc(100svh - 7rem), 52rem); }
+@media (min-width: 1024px) {
+  /* .desk.desk-sticky: needs the extra specificity to beat the h-[…] utilities. */
+  .desk.desk-sticky {
+    position: sticky;
+    height: var(--desk-h);
+    top: calc(50svh + 2.25rem - var(--desk-h) / 2);
+  }
 }

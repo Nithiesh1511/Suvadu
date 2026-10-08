@@ -5,6 +5,8 @@ import Footer from './Footer'
 import BackgroundFX from './BackgroundFX'
 import ErrorBoundary from './ErrorBoundary'
 import WhatsAppFab from './WhatsAppFab'
+import FlyingNotebookHost from './flying-notebook/FlyingNotebookHost'
+import ScrollProgress from './ScrollProgress'
 import { useScrollAnimations } from '@/lib/motion'
 import { ROUTE_META, applyMeta } from '@/lib/seo'
 import { initGA, trackPageview } from '@/lib/analytics'
@@ -27,8 +29,11 @@ export default function Layout() {
   }, [pathname])
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden">
+    // `clip`, not `hidden`: hidden turns this wrapper into a scroll container,
+    // which silently breaks every `position: sticky` descendant (the story desk).
+    <div className="flex min-h-screen flex-col overflow-x-clip">
       <BackgroundFX />
+      {!isAdmin && <ScrollProgress />}
       <Header />
       <main className="flex-1">
         {/* Keyed on pathname so navigating away from an errored page recovers —
@@ -43,6 +48,8 @@ export default function Layout() {
       {/* Storefront only — the admin console shares this Layout, and staff have
           no use for a customer chat button bouncing over their tables. */}
       {!isAdmin && <WhatsAppFab />}
+      {/* The flying notebook — storefront only, and a lazy chunk. */}
+      {!isAdmin && <FlyingNotebookHost />}
     </div>
   )
 }

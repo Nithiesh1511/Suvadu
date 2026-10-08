@@ -47,8 +47,14 @@ export default function Footer() {
   }
 
   return (
-    <footer className="mt-16 border-t border-border bg-gradient-to-b from-lilac/40 to-white sm:mt-24">
-      <div className="container-suvadu py-12 sm:py-16">
+    <footer className="relative mt-16 overflow-hidden border-t border-dashed border-royal/20 bg-gradient-to-b from-lilac/50 to-white sm:mt-24">
+      {/* Ruled paper fading in from the top, and the tagline set huge and faint
+          along the foot — the last line of the notebook. */}
+      <div aria-hidden className="paper-rules pointer-events-none absolute inset-0 opacity-50" />
+      <p aria-hidden className="pointer-events-none absolute inset-x-0 bottom-3 select-none text-center font-display text-[clamp(3.5rem,13vw,10rem)] italic leading-none text-royal/[0.045]">
+        Make your mark.
+      </p>
+      <div className="container-suvadu relative py-12 sm:py-16">
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
           {/* Brand */}
           <div {...CASCADE} className={REVEAL}>

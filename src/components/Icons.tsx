@@ -94,6 +94,12 @@ export const Truck = (p: I) => (
 export const Sparkle = (p: I) => (
   <svg {...base(p)}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2" /></svg>
 )
+/** Solid four-point star — the theme's ornament (eyebrows, marquee, confetti). */
+export const Spark4 = (p: I) => (
+  <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden {...p}>
+    <path d="M12 1.5c.7 5.6 2.9 8.8 10.5 10.5-7.6 1.7-9.8 4.9-10.5 10.5C11.3 16.9 9.1 13.7 1.5 12 9.1 10.3 11.3 7.1 12 1.5Z" />
+  </svg>
+)
 export const Pen = (p: I) => (
   <svg {...base(p)}><path d="M12 19l7-7 3 3-7 7-3 0 0-3z" /><path d="M18 13l-1.5-1.5M2 2l7.5 7.5M2 2l1 6 6 1M2 2l6 1 1 6" /></svg>
 )

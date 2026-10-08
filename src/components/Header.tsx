@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useStore } from '@/context/StoreContext'
 import { useCatalog } from '@/context/CatalogContext'
 import { cn } from '@/lib/utils'
-import { Search, Heart, Cart, User, Menu, Close } from './Icons'
+import { Search, Heart, Cart, User, Menu, Close, Spark4 } from './Icons'
 import Logo from './Logo'
 
 const NAV = [
@@ -54,16 +54,18 @@ export default function Header() {
   return (
     <>
       {/* Announcement bar */}
-      <div className="bg-plum text-center text-white">
-        <div className="container-suvadu flex items-center justify-center gap-2 py-2 text-[10px] font-light tracking-[0.1em] sm:text-[11px] sm:tracking-[0.18em]">
-          <span className="uppercase">Pan-India delivery  ·  Crafted in India</span>
+      <div className="bg-gradient-to-r from-plum via-royal-800 to-plum text-center text-white">
+        <div className="container-suvadu flex items-center justify-center gap-2.5 py-2 text-[10px] font-light tracking-[0.1em] sm:text-[11px] sm:tracking-[0.18em]">
+          <span className="uppercase">Pan-India delivery</span>
+          <Spark4 width={9} height={9} className="text-royal-300" />
+          <span className="uppercase">Crafted in India</span>
         </div>
       </div>
 
       <header
         className={cn(
           'sticky top-0 z-50 w-full border-b transition-all duration-300',
-          scrolled ? 'border-border bg-white/85 backdrop-blur-lg shadow-card' : 'border-transparent bg-background',
+          scrolled ? 'border-border bg-white/95 backdrop-blur-lg shadow-card' : 'border-transparent bg-background',
         )}
       >
         <div className="container-suvadu flex h-16 items-center justify-between gap-2 sm:gap-4 lg:h-[72px]">
