@@ -70,7 +70,7 @@ export default function Header() {
       >
         <div className="container-suvadu flex h-16 items-center justify-between gap-2 sm:gap-4 lg:h-[72px]">
           {/* Logo */}
-          <Link to="/" aria-label="Suvadu — home" className="shrink-0">
+          <Link to="/" aria-label="Suvadu - home" className="shrink-0">
             <Logo className="h-8 sm:h-10" />
           </Link>
 
@@ -98,7 +98,7 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Right icons — Wishlist and Account fold away on small phones (five
+          {/* Right icons - Wishlist and Account fold away on small phones (five
               40px targets plus the wordmark don't fit a 360px viewport); both
               are reachable from the drawer below. */}
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">

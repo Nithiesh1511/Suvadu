@@ -75,7 +75,7 @@ function onIntersection(entries: IntersectionObserverEntry[], observer: Intersec
  * effects twice in development, so the first observer is created, handed every
  * trigger on the page, and then disconnected. Bookkeeping that outlived it
  * would make the second observer skip all of those elements as "already
- * handled" and leave them stranded at opacity 0 for good — which is exactly
+ * handled" and leave them stranded at opacity 0 for good - which is exactly
  * what happened to every block that was already on the page at first paint.
  */
 function observeTree(root: Element | Document, observer: IntersectionObserver, seen: WeakSet<Element>) {
@@ -92,7 +92,7 @@ function observeTree(root: Element | Document, observer: IntersectionObserver, s
 
 /**
  * Starts the reveal observers for the lifetime of the app. Mount once, in the
- * layout — the MutationObserver covers route changes and late-arriving data,
+ * layout - the MutationObserver covers route changes and late-arriving data,
  * so pages don't have to re-arm anything themselves.
  */
 export function useScrollAnimations(): void {
@@ -127,13 +127,13 @@ export function useScrollAnimations(): void {
 
 /** Rises 2rem into place as it enters the viewport. The default. */
 export const REVEAL = 'scroll-trigger animate--slide-in'
-/** Fades in without moving — for bands that already carry their own motion. */
+/** Fades in without moving - for bands that already carry their own motion. */
 export const REVEAL_FADE = 'scroll-trigger animate--fade-in'
 /** Spread onto siblings in a grid or list to stagger them 75ms apart. */
 export const CASCADE = { 'data-cascade': '' } as const
 
 /**
- * Set as early as the bundle is evaluated — before React's first paint — so the
+ * Set as early as the bundle is evaluated - before React's first paint - so the
  * "hidden until revealed" rules only ever apply when this module is live. If
  * the script fails to load, or the visitor asked for reduced motion, the page
  * renders plainly instead of leaving content stuck at opacity 0.

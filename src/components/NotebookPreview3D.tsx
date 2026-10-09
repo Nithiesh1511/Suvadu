@@ -20,7 +20,7 @@ const ROYAL_400 = '#9A66C7'
 const ROYAL_200 = '#D6BCEC'
 const INK_DEEP = '#1E1130'
 
-// Panel opacity — these fade the boards themselves (cover / flyleaf / page
+// Panel opacity - these fade the boards themselves (cover / flyleaf / page
 // block), not the artwork printed on them. 1 = fully solid.
 const COVER_OPACITY = 0.94
 const PAGE_OPACITY = 0.97
@@ -87,7 +87,7 @@ export default function NotebookPreview3D({
     // ---------- Renderer / Scene / Camera ----------
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    // Write linear-to-nothing, as r128 did — see LEGACY_LIGHT_SCALE above.
+    // Write linear-to-nothing, as r128 did - see LEGACY_LIGHT_SCALE above.
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -130,7 +130,7 @@ export default function NotebookPreview3D({
     key.position.set(3.5, 5, 4)
     key.castShadow = true
     // A showcase renders the book much larger, so soft-shadow stair-stepping
-    // shows at 1024 — give it a finer map and a tighter bias.
+    // shows at 1024 - give it a finer map and a tighter bias.
     const shadowRes = variant === 'showcase' ? 2048 : 1024
     key.shadow.mapSize.set(shadowRes, shadowRes)
     key.shadow.bias = -0.0005
@@ -154,7 +154,7 @@ export default function NotebookPreview3D({
 
     // ---------- Textures (canvas-drawn) ----------
     const textures: THREE.Texture[] = []
-    /** A texture backed by a canvas we can redraw — once the webfonts land and
+    /** A texture backed by a canvas we can redraw - once the webfonts land and
      *  again once the wordmark has been keyed to white ink. */
     type Redrawable = { tex: THREE.CanvasTexture; redraw: () => void }
     function canvasTexture(w: number, h: number, draw: (ctx: CanvasRenderingContext2D, W: number, H: number) => void): Redrawable {
@@ -162,7 +162,7 @@ export default function NotebookPreview3D({
       const ctx = c.getContext('2d')!
       draw(ctx, w, h)
       const tex = new THREE.CanvasTexture(c)
-      // Left unconverted on purpose — the prototype's r128 sampled canvas
+      // Left unconverted on purpose - the prototype's r128 sampled canvas
       // colours raw, and the palette was tuned against that.
       tex.colorSpace = THREE.NoColorSpace
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
@@ -189,7 +189,7 @@ export default function NotebookPreview3D({
 
     // The wordmark art is purple-on-white JPG, so it can't be stamped straight
     // onto a plum cover. Key it: alpha comes from the inverse of each pixel's
-    // luminance, so the paper drops out and the stroke survives — in white ink.
+    // luminance, so the paper drops out and the stroke survives - in white ink.
     let logoInk: HTMLCanvasElement | null = null
     function keyToWhiteInk(img: HTMLImageElement): HTMLCanvasElement | null {
       const w = 800
@@ -213,12 +213,12 @@ export default function NotebookPreview3D({
         ctx.putImageData(data, 0, 0)
         return c
       } catch {
-        return null // tainted canvas — the serif fallback below carries the cover
+        return null // tainted canvas - the serif fallback below carries the cover
       }
     }
 
     function drawFrontCover(ctx: CanvasRenderingContext2D, W: number, H: number) {
-      // Deep plum base with a diagonal royal wash — reads as dyed cloth rather
+      // Deep plum base with a diagonal royal wash - reads as dyed cloth rather
       // than flat paint.
       const base = ctx.createLinearGradient(0, 0, W * 0.9, H)
       base.addColorStop(0, ROYAL_700); base.addColorStop(0.45, PLUM); base.addColorStop(1, INK_DEEP)
@@ -249,7 +249,7 @@ export default function NotebookPreview3D({
       roundRectPath(ctx, 49, 49, W - 98, H - 98, 20); ctx.stroke()
       ctx.restore()
 
-      // Wordmark in white ink, straight on the cloth — no card needed.
+      // Wordmark in white ink, straight on the cloth - no card needed.
       const ly = 230
       let lh: number
       if (logoInk) {
@@ -307,7 +307,7 @@ export default function NotebookPreview3D({
     function drawRuledPage(ctx: CanvasRenderingContext2D, W: number, H: number) {
       ctx.fillStyle = PAGE; ctx.fillRect(0, 0, W, H)
 
-      // Warm paper wash — lilac settles into the gutter, light lifts to the fore-edge.
+      // Warm paper wash - lilac settles into the gutter, light lifts to the fore-edge.
       const wash = ctx.createLinearGradient(0, 0, W, 0)
       wash.addColorStop(0, 'rgba(97,48,146,0.09)')
       wash.addColorStop(0.22, 'rgba(97,48,146,0.02)')
@@ -384,7 +384,7 @@ export default function NotebookPreview3D({
     const materials: THREE.Material[] = [groundMat]
 
     /** Builds a panel material and applies panel-level opacity. depthWrite stays
-     *  on so the boards still occlude each other correctly when translucent —
+     *  on so the boards still occlude each other correctly when translucent -
      *  without it the inside cover bleeds through the front cover. */
     function panelMat(opts: THREE.MeshStandardMaterialParameters, opacity: number) {
       const m = new THREE.MeshStandardMaterial(opts)
@@ -400,7 +400,7 @@ export default function NotebookPreview3D({
     const book = new THREE.Group()
     scene.add(book)
 
-    // Pages board (fixed) — holds the ruled page that gets written on.
+    // Pages board (fixed) - holds the ruled page that gets written on.
     const pagesMaterials = [
       panelMat({ map: pageEdge.tex, roughness: 0.95 }, PAGE_OPACITY),
       panelMat({ map: spine.tex, roughness: 0.48, metalness: 0.14 }, COVER_OPACITY),
@@ -421,7 +421,7 @@ export default function NotebookPreview3D({
     pageStack.castShadow = true
     book.add(pageStack)
 
-    // Flyleaf — the blank page that flips to reveal the written page beneath.
+    // Flyleaf - the blank page that flips to reveal the written page beneath.
     const flyPivot = new THREE.Object3D()
     flyPivot.position.set(-W / 2, 0, D / 2 + FLY_D / 2 + 0.003)
     book.add(flyPivot)
@@ -439,7 +439,7 @@ export default function NotebookPreview3D({
     flyMesh.castShadow = true
     flyPivot.add(flyMesh)
 
-    // Cover pivot — hinged at the left edge, swings open.
+    // Cover pivot - hinged at the left edge, swings open.
     const coverPivot = new THREE.Object3D()
     coverPivot.position.set(-W / 2, 0, D / 2 + FLY_D + COVER_D / 2 + 0.006)
     book.add(coverPivot)
@@ -460,7 +460,7 @@ export default function NotebookPreview3D({
     book.rotation.y = REST_Y
 
     // ---------- Late redraws ----------
-    // The cover art is set in type, so re-render it once the webfonts resolve —
+    // The cover art is set in type, so re-render it once the webfonts resolve -
     // and again once the wordmark has been keyed to white ink.
     function redrawArt() {
       if (disposed) return
@@ -480,7 +480,7 @@ export default function NotebookPreview3D({
     // ---------- Camera framing (showcase) ----------
     // The book stays on the stage's centre line, as in the prototype. The card
     // variant keeps the original hand-tuned distance; the showcase solves for the
-    // distance that fits the book — closed, or opened flat — into the banner once
+    // distance that fits the book - closed, or opened flat - into the banner once
     // the control strip along the bottom is accounted for.
     const CARD_Z = 7.2
     const BASE_Y = 0.35
@@ -492,8 +492,8 @@ export default function NotebookPreview3D({
     // Deliberately tighter than the book's true open reach (~1.5W once the cover
     // has swung past vertical and the flyleaf beyond it). Fitting all of that in
     // would push the camera far enough back to halve the book on a phone; letting
-    // the swung cover run off the left edge keeps the page — and the handwriting
-    // on it — at a readable size.
+    // the swung cover run off the left edge keeps the page - and the handwriting
+    // on it - at a readable size.
     const OPEN_HALF_W = W * 1.02
     // A touch higher again, so the book sits above the banner's midline and the
     // floor shadow has room to read beneath it.
@@ -501,7 +501,7 @@ export default function NotebookPreview3D({
     const tanHalfV = Math.tan((camera.fov * Math.PI) / 360)
 
     // Strip along the bottom reserved for the drag hint stacked over the "Open the
-    // notebook" button — measured rather than guessed, so it tracks the chrome as
+    // notebook" button - measured rather than guessed, so it tracks the chrome as
     // it reflows (the hint drops out entirely on a phone). Cached, because
     // applyOffsets writes a custom property every frame and reading layout back
     // in the same frame would thrash it.
@@ -662,7 +662,7 @@ export default function NotebookPreview3D({
       }
     }
 
-    /** Snaps both lines to their full measured width — used when the frame
+    /** Snaps both lines to their full measured width - used when the frame
      *  resizes after the writing has already played out. */
     function settleWriting() {
       const w1 = measure1Ref.current?.getBoundingClientRect().width ?? 0
@@ -841,7 +841,7 @@ export default function NotebookPreview3D({
       <div ref={overlayRef} className="nb3d__overlay">
         <div ref={line1Ref} className="nb3d__line">Make your mark.</div>
         <div ref={line2Ref} className="nb3d__line">Mark your Suvadu.</div>
-        <div ref={signRef} className="nb3d__sign">— Suvadu.</div>
+        <div ref={signRef} className="nb3d__sign">- Suvadu.</div>
         {/* The nib that draws the two lines above. */}
         <svg ref={penRef} className="nb3d__pen" viewBox="0 0 24 24" fill="none" aria-hidden>
           <defs>

@@ -112,18 +112,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       let changed = false
       const next: CartItem[] = []
       for (const item of prev) {
-        // Accessories aren't rows in the catalogue table — look them up in the
+        // Accessories aren't rows in the catalogue table - look them up in the
         // static registry too, or every bookmark reads as "deleted" and is
         // dropped from the cart on the next page load.
         const p = allProducts.find((x) => x.id === item.product.id) ?? getAccessoryById(item.product.id)
         if (!p) {
-          // Product no longer in the catalogue — remove it from the cart.
+          // Product no longer in the catalogue - remove it from the cart.
           changed = true
           continue
         }
         const base = p.prices[item.size]
         if (base == null) {
-          // The size this item used is no longer offered — drop it.
+          // The size this item used is no longer offered - drop it.
           changed = true
           continue
         }
@@ -176,10 +176,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   function applyCoupon(code: string) {
     const normalized = code.trim().toUpperCase()
     if (!normalized) return { ok: false, message: 'Enter a coupon code.' }
-    if (!ratesLoaded) return { ok: false, message: 'Still loading offers — please try again in a moment.' }
+    if (!ratesLoaded) return { ok: false, message: 'Still loading offers - please try again in a moment.' }
     if (couponRates[normalized] != null) {
       setCoupon(normalized)
-      return { ok: true, message: `Coupon ${normalized} applied — ${Math.round(couponRates[normalized] * 100)}% off!` }
+      return { ok: true, message: `Coupon ${normalized} applied - ${Math.round(couponRates[normalized] * 100)}% off!` }
     }
     return { ok: false, message: 'That coupon code isn’t valid.' }
   }

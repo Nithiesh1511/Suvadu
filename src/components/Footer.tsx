@@ -41,7 +41,7 @@ export default function Footer() {
     // upsert so a repeat sign-up doesn't error on the primary-key conflict.
     const { error } = await supabase.from('newsletter_subscribers').upsert({ email: value }, { onConflict: 'email' })
     setBusy(false)
-    if (error) { notify('Could not subscribe right now — please try again.'); return }
+    if (error) { notify('Could not subscribe right now - please try again.'); return }
     notify('Thanks for subscribing!')
     setEmail('')
   }
@@ -49,7 +49,7 @@ export default function Footer() {
   return (
     <footer className="relative mt-16 overflow-hidden border-t border-dashed border-royal/20 bg-gradient-to-b from-lilac/50 to-white sm:mt-24">
       {/* Ruled paper fading in from the top, and the tagline set huge and faint
-          along the foot — the last line of the notebook. */}
+          along the foot - the last line of the notebook. */}
       <div aria-hidden className="paper-rules pointer-events-none absolute inset-0 opacity-50" />
       <p aria-hidden className="pointer-events-none absolute inset-x-0 bottom-3 select-none text-center font-display text-[clamp(3.5rem,13vw,10rem)] italic leading-none text-royal/[0.045]">
         Make your mark.
@@ -58,7 +58,7 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
           {/* Brand */}
           <div {...CASCADE} className={REVEAL}>
-            <Link to="/" aria-label="Suvadu — home" className="inline-block">
+            <Link to="/" aria-label="Suvadu - home" className="inline-block">
               <Logo className="h-14 sm:h-16" />
             </Link>
             <p className="mt-4 font-display text-xl italic text-royal">Make your mark.</p>
@@ -105,7 +105,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* Newsletter — spans both columns at sm so the field keeps its width */}
+          {/* Newsletter - spans both columns at sm so the field keeps its width */}
           <div {...CASCADE} className={cn(REVEAL, 'sm:col-span-2 lg:col-span-1')}>
             <h4 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-plum">Stay in the loop</h4>
             <p className="mt-5 font-body text-sm font-light leading-relaxed text-muted-foreground">

@@ -1,5 +1,5 @@
 -- ============================================================================
--- SUVADU Notebooks — Admin Panel schema (Dev Brief §9/§10)
+-- SUVADU Notebooks - Admin Panel schema (Dev Brief §9/§10)
 -- Run in the Supabase SQL Editor after 0001_init.sql and 0002_razorpay.sql.
 -- Safe to re-run (IF NOT EXISTS / DROP POLICY IF EXISTS / ON CONFLICT DO NOTHING).
 -- Relies on public.is_admin() from 0001_init.sql.
@@ -170,16 +170,16 @@ on conflict (code) do nothing;
 
 -- Reviews (approved testimonials shown on the home page)
 insert into public.reviews (author_name, rating, text, location, status) values
-  ('Ananya R.', 5, 'The paper quality is unreal — no bleed-through with my fountain pen. The lilac cover is even prettier in person.', 'Bengaluru', 'approved'),
+  ('Ananya R.', 5, 'The paper quality is unreal - no bleed-through with my fountain pen. The lilac cover is even prettier in person.', 'Bengaluru', 'approved'),
   ('Karthik M.', 5, 'Ordered a personalised set for my partner. The name foil looked premium and packaging was gift-ready. Will reorder.', 'Chennai', 'approved'),
   ('Sneha P.', 4, 'Beautiful minimal design. Lay-flat binding makes journaling a joy. Shipping was quick across India.', 'Pune', 'approved'),
   ('Devika S.', 5, 'Suvadu nails the aesthetic. The Calm Collection sits perfectly on my desk and writing in it feels special.', 'Kochi', 'approved')
 on conflict do nothing;
 
--- FAQs (§7.5 — 5 categories)
+-- FAQs (§7.5 - 5 categories)
 insert into public.faqs (category, question, answer, sort_order) values
   ('Shipping', 'Where do you ship?', 'We ship pan-India via Shiprocket. Most metros receive orders in 2–4 business days; other locations in 4–7 days.', 0),
-  ('Shipping', 'How much does shipping cost?', 'Shipping is calculated at checkout based on your pincode. Orders above a set value ship free — the threshold is shown in your cart.', 1),
+  ('Shipping', 'How much does shipping cost?', 'Shipping is calculated at checkout based on your pincode. Orders above a set value ship free - the threshold is shown in your cart.', 1),
   ('Shipping', 'Can I track my order?', 'Yes. Once shipped you’ll receive a tracking link by SMS and email, and you can track it under My Account → Order History.', 2),
   ('Customization', 'What can I personalise?', 'On Customized Notebooks you can add a name or short text, choose a font, and pick a cover colour. Live preview updates as you edit.', 0),
   ('Customization', 'Is there a price difference for custom sizes?', 'Custom sizes on the Customized Notebook are priced on request. A5 and A4 prices are shown on the product page.', 1),
@@ -187,10 +187,10 @@ insert into public.faqs (category, question, answer, sort_order) values
   ('Returns', 'What is your return window?', 'Non-personalised products can be returned within 7 days of delivery if unused and in original packaging. See our Return & Refund Policy.', 0),
   ('Returns', 'Are personalised notebooks returnable?', 'Personalised items are made-to-order and can’t be returned unless they arrive damaged or defective.', 1),
   ('Returns', 'How are refunds processed?', 'Approved refunds are credited to your original payment method within 5–7 business days.', 2),
-  ('Payments', 'Which payment methods do you accept?', 'We accept UPI, Debit Card, Credit Card and Net Banking via Razorpay — a PCI-compliant, secure gateway.', 0),
+  ('Payments', 'Which payment methods do you accept?', 'We accept UPI, Debit Card, Credit Card and Net Banking via Razorpay - a PCI-compliant, secure gateway.', 0),
   ('Payments', 'Is my payment secure?', 'Yes. Payments are processed over HTTPS through Razorpay. We never store your full card details.', 1),
   ('Payments', 'Do you accept Cash on Delivery?', 'Currently we accept prepaid orders only to keep prices and quality consistent.', 2),
   ('Orders', 'Can I modify or cancel my order?', 'You can cancel before dispatch from My Account → Order History. Personalised orders can’t be modified once production starts.', 0),
   ('Orders', 'Do I need an account to order?', 'You can browse and add to cart freely. An account is required to save a wishlist, customizations and view order history.', 1),
-  ('Orders', 'I have a coupon — where do I apply it?', 'Enter your coupon in the Cart page’s “Apply Coupon” field. Valid codes apply the discount to your total instantly.', 2)
+  ('Orders', 'I have a coupon - where do I apply it?', 'Enter your coupon in the Cart page’s “Apply Coupon” field. Valid codes apply the discount to your total instantly.', 2)
 on conflict do nothing;

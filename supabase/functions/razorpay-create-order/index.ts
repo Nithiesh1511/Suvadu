@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     }
 
     if (Math.round(priced.value.total) !== Math.round(Number(order.total))) {
-      // Never silently charge a different amount than the shopper was shown —
+      // Never silently charge a different amount than the shopper was shown -
       // send them back to the cart, where the reconciler refreshes prices.
       await discardOrder()
       return json(

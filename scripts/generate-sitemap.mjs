@@ -1,4 +1,4 @@
-// Generates public/sitemap.xml (brief §11 — auto-generated XML sitemap).
+// Generates public/sitemap.xml (brief §11 - auto-generated XML sitemap).
 // Run with: npm run gen:sitemap (also runs as part of `npm run build`).
 //
 // Pulls the LIVE catalogue (collections + products) from Supabase so admin-added
@@ -28,7 +28,7 @@ const ORIGIN = (process.env.VITE_SITE_URL || 'https://suvadu.example.com').repla
 const SUPA_URL = process.env.VITE_SUPABASE_URL
 const SUPA_KEY = process.env.VITE_SUPABASE_ANON_KEY
 
-// Public, indexable static pages (transactional routes excluded — see robots.txt).
+// Public, indexable static pages (transactional routes excluded - see robots.txt).
 const STATIC = [
   '/', '/collections', '/special-collections', '/accessories',
   '/about', '/faq',

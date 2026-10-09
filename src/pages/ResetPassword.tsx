@@ -13,7 +13,7 @@ const MIN_LENGTH = 6
 // ── Set a new password ──────────────────────────────────────────────────────
 // Landing page for the Supabase recovery email (resetPasswordForEmail sends the
 // user here). Clicking that link hands the client a short-lived session, so by
-// the time auth bootstrap finishes a session either exists — the link was good —
+// the time auth bootstrap finishes a session either exists - the link was good -
 // or it doesn't, and the link was expired/already used.
 export default function ResetPassword() {
   const { session, loading, updatePassword } = useAuth()

@@ -7,7 +7,7 @@ import { Plus, Trash } from '@/components/Icons'
 import { AdminCard, AdminField, AdminInput, AdminToggle, StatusBadge } from './ui'
 
 export default function AdminCoupons() {
-  useSeo('Admin — Coupons', 'Manage SUVADU discount coupons.')
+  useSeo('Admin - Coupons', 'Manage SUVADU discount coupons.')
   const { notify } = useToast()
   const [coupons, setCoupons] = useState<CouponRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,7 +98,7 @@ export default function AdminCoupons() {
                   <tr key={c.code} className="border-b border-border/60 last:border-0">
                     <td className="py-2.5 pr-4 font-medium text-plum">{c.code}</td>
                     <td className="py-2.5 pr-4 text-plum">{c.discount_pct}%</td>
-                    <td className="py-2.5 pr-4 text-muted-foreground">{c.expires_at ? new Date(c.expires_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                    <td className="py-2.5 pr-4 text-muted-foreground">{c.expires_at ? new Date(c.expires_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</td>
                     <td className="py-2.5 pr-4"><StatusBadge status={c.active ? 'active' : 'inactive'} /></td>
                     <td className="py-2.5 text-right">
                       <div className="inline-flex items-center gap-3">

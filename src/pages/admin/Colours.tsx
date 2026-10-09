@@ -6,7 +6,7 @@ import { Plus, Trash } from '@/components/Icons'
 import { AdminCard, AdminField, AdminInput, StatusBadge } from './ui'
 
 export default function AdminColours() {
-  useSeo('Admin — Colours', 'Manage SUVADU cover colours.')
+  useSeo('Admin - Colours', 'Manage SUVADU cover colours.')
   const { notify } = useToast()
   const [colours, setColours] = useState<ColourRow[]>([])
   const [loading, setLoading] = useState(true)

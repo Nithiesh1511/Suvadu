@@ -36,7 +36,7 @@ export default function Layout() {
       {!isAdmin && <ScrollProgress />}
       <Header />
       <main className="flex-1">
-        {/* Keyed on pathname so navigating away from an errored page recovers —
+        {/* Keyed on pathname so navigating away from an errored page recovers -
             and so the new route fades in rather than swapping in hard. */}
         <div key={pathname} className="page-enter">
           <ErrorBoundary>
@@ -45,10 +45,10 @@ export default function Layout() {
         </div>
       </main>
       <Footer />
-      {/* Storefront only — the admin console shares this Layout, and staff have
+      {/* Storefront only - the admin console shares this Layout, and staff have
           no use for a customer chat button bouncing over their tables. */}
       {!isAdmin && <WhatsAppFab />}
-      {/* The flying notebook — storefront only, and a lazy chunk. */}
+      {/* The flying notebook - storefront only, and a lazy chunk. */}
       {!isAdmin && <FlyingNotebookHost />}
     </div>
   )

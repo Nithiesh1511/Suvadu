@@ -1,5 +1,5 @@
 /* ============================================================
-   The Suvadu flying notebook — overlay chrome
+   The Suvadu flying notebook - overlay chrome
    Stacking: page content < flying-notebook canvas (35) < hit area (36) < WhatsApp (40)
    < header (50) … and, while summoned, scrim (61) < canvas (62) < hit / panel (63+)
    so the book flies under the nav, but over everything when it is called up.
@@ -60,7 +60,7 @@
   outline-offset: 4px;
 }
 
-/* "Tap me" speech tab — beside the docked book, on hover/focus and once, on
+/* "Tap me" speech tab - beside the docked book, on hover/focus and once, on
    first visit, to say it can be opened. */
 .flying-notebook-tip {
   position: absolute;
@@ -214,7 +214,7 @@
   .flying-notebook-tip__dot { animation: none; }
 }
 
-/* The glass disc the docked book sits on — sized and placed from JS, faded in as
+/* The glass disc the docked book sits on - sized and placed from JS, faded in as
    the book settles into the corner, so the dock reads as a deliberate widget. */
 .flying-notebook-plate {
   position: absolute;

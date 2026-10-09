@@ -1,5 +1,5 @@
 -- ============================================================================
--- SUVADU Notebooks — initial schema
+-- SUVADU Notebooks - initial schema
 -- Run this in the Supabase SQL Editor (Dashboard → SQL Editor → New query).
 -- Safe to re-run: uses IF NOT EXISTS / CREATE OR REPLACE / DROP POLICY IF EXISTS.
 -- ============================================================================

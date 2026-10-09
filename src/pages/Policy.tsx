@@ -13,7 +13,7 @@ const POLICIES: Record<Kind, PolicyDoc> = {
     sections: [
       { h: 'Information we collect', p: ['Contact and delivery details you provide at checkout (name, email, mobile, address).', 'Order and customization details, including any text or names added to personalised products.', 'Usage data such as pages viewed and products browsed, used to improve the store.'] },
       { h: 'How we use your information', p: ['To process, ship and support your orders.', 'To send order updates and, with your consent, marketing emails you can unsubscribe from at any time.', 'To analyse site performance via Google Analytics 4 in an aggregated form.'] },
-      { h: 'Payments', p: ['Payments are processed securely by Razorpay. We never see or store your full card details — these are handled directly by our PCI-DSS compliant payment partner.'] },
+      { h: 'Payments', p: ['Payments are processed securely by Razorpay. We never see or store your full card details - these are handled directly by our PCI-DSS compliant payment partner.'] },
       { h: 'Your rights', p: ['You may request access to, correction of, or deletion of your personal data by contacting us. You can manage your saved details anytime from My Account.'] },
     ],
   },
@@ -35,7 +35,7 @@ const POLICIES: Record<Kind, PolicyDoc> = {
     sections: [
       { h: 'Processing time', p: ['Ready-to-ship products are dispatched within 1–2 business days.', 'Personalised and made-to-order items take 3–5 business days to craft before dispatch.'] },
       { h: 'Delivery time', p: ['Metro cities: typically 2–4 business days after dispatch.', 'Other locations: typically 4–7 business days after dispatch.'] },
-      { h: 'Charges & tracking', p: ['We ship pan-India. The amount shown at checkout is the final total — there are no separate shipping charges.', 'Once dispatched, you’ll receive a tracking link by SMS and email, also available under My Account → Order History.'] },
+      { h: 'Charges & tracking', p: ['We ship pan-India. The amount shown at checkout is the final total - there are no separate shipping charges.', 'Once dispatched, you’ll receive a tracking link by SMS and email, also available under My Account → Order History.'] },
       { h: 'Delays', p: ['Occasionally, delivery may be affected by weather, festivals or courier disruptions. We’ll keep you informed if your order is impacted.'] },
     ],
   },

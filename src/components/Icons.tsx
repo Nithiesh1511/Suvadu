@@ -66,7 +66,7 @@ export const Zoom = (p: I) => (
 export const Whatsapp = (p: I) => (
   <svg {...base(p)}><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.2-5.3A8.5 8.5 0 1 1 21 11.5Z" /><path d="M8.5 8.8c0 3 2.2 5.2 5.2 5.2.5 0 1.3-.5 1.3-1.1 0-.3-1.5-1-1.8-1s-.6.7-.9.7c-.7 0-2.2-1.5-2.2-2.2 0-.3.7-.6.7-.9s-.7-1.8-1-1.8c-.6 0-1.1.8-1.1 1.3Z" /></svg>
 )
-/** Solid WhatsApp mark — reads far better than the outline glyph when reversed
+/** Solid WhatsApp mark - reads far better than the outline glyph when reversed
  *  out in white on the floating chat button. */
 export const WhatsappSolid = (p: I) => (
   <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor" aria-hidden {...p}>
@@ -94,7 +94,7 @@ export const Truck = (p: I) => (
 export const Sparkle = (p: I) => (
   <svg {...base(p)}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2" /></svg>
 )
-/** Solid four-point star — the theme's ornament (eyebrows, marquee, confetti). */
+/** Solid four-point star - the theme's ornament (eyebrows, marquee, confetti). */
 export const Spark4 = (p: I) => (
   <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden {...p}>
     <path d="M12 1.5c.7 5.6 2.9 8.8 10.5 10.5-7.6 1.7-9.8 4.9-10.5 10.5C11.3 16.9 9.1 13.7 1.5 12 9.1 10.3 11.3 7.1 12 1.5Z" />

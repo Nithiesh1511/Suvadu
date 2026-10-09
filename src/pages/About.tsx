@@ -7,7 +7,7 @@ import { REVEAL, CASCADE } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 /** Four covers beside the brand story. These used to be labelled "Inspire Ink",
- *  "Her Journal" and "Midnight" — names that exist nowhere else in the shop, so
+ *  "Her Journal" and "Midnight" - names that exist nowhere else in the shop, so
  *  anyone who went looking for them found nothing. Show real collections, and
  *  make them links, since that's what a reader will try to do with them. */
 function StoryCovers() {
@@ -51,7 +51,7 @@ const PLACEHOLDER_COVERS = [
 ]
 
 const VALUES = [
-  { Icon: Leaf, t: 'Considered materials', d: 'Premium 100 GSM paper, soft-touch covers and lay-flat binding — chosen so writing feels effortless.' },
+  { Icon: Leaf, t: 'Considered materials', d: 'Premium 100 GSM paper, soft-touch covers and lay-flat binding - chosen so writing feels effortless.' },
   { Icon: Pen, t: 'Made personal', d: 'From a single name to a full custom cover, your notebook should feel unmistakably yours.' },
   { Icon: Sparkle, t: 'Quietly beautiful', d: 'Minimal, aesthetic design that earns a permanent place on your desk and in your bag.' },
   { Icon: Truck, t: 'Made in India', d: 'Designed and crafted locally, shipped pan-India with care and tracking.' },
@@ -63,7 +63,7 @@ export default function About() {
       <PageHeader
         eyebrow="Our story"
         title="A notebook is where ideas begin."
-        subtitle="SUVADU makes premium, minimal notebooks for the thinking mind — and helps you make every page your own."
+        subtitle="SUVADU makes premium, minimal notebooks for the thinking mind - and helps you make every page your own."
         crumbs={[{ label: 'About Us' }]}
       />
 
@@ -74,12 +74,12 @@ export default function About() {
           <h2 className="font-display text-3xl leading-tight text-plum sm:text-4xl">Brand Story</h2>
           <div className="mt-5 space-y-4 font-body text-base font-light leading-relaxed text-muted-foreground">
             <p>
-              SUVADU began with a simple belief — that the things you write <em>in</em> should feel as considered as the things you write. We were tired of notebooks that looked beautiful but felt ordinary the moment you opened them.
+              SUVADU began with a simple belief - that the things you write <em>in</em> should feel as considered as the things you write. We were tired of notebooks that looked beautiful but felt ordinary the moment you opened them.
             </p>
             <p>
-              So we started over. We obsessed over paper weight until ink sat just right. We tested covers until they felt good in the hand. And we made it possible to add your name, your words, your colour — because a notebook you love is a notebook you’ll actually fill.
+              So we started over. We obsessed over paper weight until ink sat just right. We tested covers until they felt good in the hand. And we made it possible to add your name, your words, your colour - because a notebook you love is a notebook you’ll actually fill.
             </p>
-            <p className="font-display text-xl italic text-royal">“Make your mark.” It isn’t just our tagline — it’s the whole point.</p>
+            <p className="font-display text-xl italic text-royal">“Make your mark.” It isn’t just our tagline - it’s the whole point.</p>
           </div>
         </div>
         <StoryCovers />

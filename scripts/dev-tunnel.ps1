@@ -46,4 +46,4 @@ Write-Host '  Live URL : ' -NoNewline; Write-Host "https://$Domain" -ForegroundC
 Write-Host '  Admin    : ' -NoNewline; Write-Host "https://$Domain/admin" -ForegroundColor Green
 Write-Host '  Inspector: http://127.0.0.1:4040'
 Write-Host ''
-Write-Host '  (Two new windows opened — Vite and ngrok. Close them to stop.)' -ForegroundColor DarkGray
+Write-Host '  (Two new windows opened - Vite and ngrok. Close them to stop.)' -ForegroundColor DarkGray

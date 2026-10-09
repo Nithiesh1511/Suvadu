@@ -53,7 +53,7 @@ function Avatar({ name, size = 34 }: { name: string; size?: number }) {
 }
 
 /** Drift speed in px/sec. A card plus its gap is ~288px, so this reads as one
- *  card every eleven seconds — an unhurried pace you can read along with rather
+ *  card every eleven seconds - an unhurried pace you can read along with rather
  *  than one that walks a card out of view mid-sentence. */
 const DRIFT = 26
 /** How long the drift stays out of the way after a deliberate nudge, so a
@@ -72,7 +72,7 @@ function Chip({ review, onOpen, focusable }: {
       type="button"
       onClick={onOpen}
       // The mirror half is aria-hidden, so its buttons must leave the tab order
-      // too — a focusable node inside aria-hidden is a dead end for a reader.
+      // too - a focusable node inside aria-hidden is a dead end for a reader.
       tabIndex={focusable ? 0 : -1}
       aria-label={`Read the full review by ${review.name}`}
       className={cn(
@@ -118,7 +118,7 @@ function Chip({ review, onOpen, focusable }: {
 }
 
 /** The full review, opened from a chip's "Read it all". Nothing is truncated
- *  here — this is where a long review finally gets to be read whole — and the
+ *  here - this is where a long review finally gets to be read whole - and the
  *  reader can walk the rest of the deck without going back to the ribbon. */
 const dialogArrow = 'grid h-9 w-9 shrink-0 place-items-center rounded-full border border-royal/25 text-royal transition hover:border-royal hover:bg-royal hover:text-white active:scale-95'
 
@@ -409,7 +409,7 @@ export default function Testimonials({ reviews }: { reviews: Testimonial[] }) {
     vp.scrollLeft = dragStart.current.scroll - dx
 
     // Velocity in px/sec of scrollLeft travel, measured against the clock rather
-    // than assuming a frame interval — that's what makes the flick feel true.
+    // than assuming a frame interval - that's what makes the flick feel true.
     const now = performance.now()
     const dt = now - lastMove.current.t
     if (dt > 0) {
@@ -475,7 +475,7 @@ export default function Testimonials({ reviews }: { reviews: Testimonial[] }) {
           <div className="flex w-max">
             {[0, 1].map((copy) => (
               // The trailing gap lives inside each half (`pr-4`) and the outer
-              // flex has none of its own — any gap between the halves would make
+              // flex has none of its own - any gap between the halves would make
               // the two 50%s unequal and the wrap would visibly jump.
               <div key={copy} aria-hidden={copy === 1} className="flex shrink-0 gap-4 pr-4">
                 {slots.map(({ review, key }, i) => (

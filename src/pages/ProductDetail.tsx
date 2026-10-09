@@ -55,7 +55,7 @@ export default function ProductDetail() {
   }, [product])
 
   // The product arrives asynchronously, so neither of these can be a useState
-  // initialiser — on first render there is no product to read a default from,
+  // initialiser - on first render there is no product to read a default from,
   // and a lazy initialiser only ever runs once. Hold the shopper's explicit
   // pick instead, and fall back to the product's own value until they make one.
   const [pickedSize, setPickedSize] = useState<SizeKey | null>(null)
@@ -68,12 +68,12 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [thumb, setThumb] = useState(0)
   const [zoom, setZoom] = useState(false)
-  // Cursor position over the cover, in %, while hovering — null when not hovering.
+  // Cursor position over the cover, in %, while hovering - null when not hovering.
   const [lens, setLens] = useState<{ x: number; y: number } | null>(null)
   // Personalise your cover: open by default for custom products
   const [showPersonalise, setShowPersonalise] = useState(isCustom)
 
-  // The product loads async from the DB, so isCustom is false on first render —
+  // The product loads async from the DB, so isCustom is false on first render -
   // open the personalise panel once we know it's a customized product.
   useEffect(() => { if (isCustom) setShowPersonalise(true) }, [isCustom])
 
@@ -91,7 +91,7 @@ export default function ProductDetail() {
   const [cFont, setCFont] = useState(FONT_OPTIONS[0])
 
   // Route param changes reuse this component rather than remounting it, so every
-  // choice has to be reset by hand — otherwise the next product opens with the
+  // choice has to be reset by hand - otherwise the next product opens with the
   // last one's page count, ruling, quantity and personalisation still applied,
   // and `thumb` points at a swatch that no longer matches the rendered cover.
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function ProductDetail() {
   )
   const fallbackRelated = useMemo(() => products.filter((p) => p.slug !== slug).slice(0, 4), [slug, products])
 
-  // Delivery estimate — 4 days out, matching the 2–4 day metro window quoted in
+  // Delivery estimate - 4 days out, matching the 2–4 day metro window quoted in
   // the shipping FAQ. Computed once per mount so it can't shift mid-session.
   const deliveryDate = useMemo(() => {
     const d = new Date()
@@ -120,9 +120,9 @@ export default function ProductDetail() {
     return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })
   }, [])
 
-  // SEO meta (brief §11) — unique title + description per product, plus the cover
+  // SEO meta (brief §11) - unique title + description per product, plus the cover
   // image (when present) so shared links unfurl with a picture. Child effects run
-  // before parent ones, so the <NotFound /> below can't set its own title here —
+  // before parent ones, so the <NotFound /> below can't set its own title here -
   // this has to say "Page not found" or the tab, bookmark and history entry all
   // keep claiming to be a product that doesn't exist.
   useSeo(
@@ -141,7 +141,7 @@ export default function ProductDetail() {
   // Distinguish "this product doesn't exist" from "we couldn't load anything".
   if (!product && catalogError) return <CatalogError />
   if (!product) return <NotFound />
-  const prod = product // narrowed (non-undefined) — safe to capture in closures below
+  const prod = product // narrowed (non-undefined) - safe to capture in closures below
 
   const wished = isWished(prod.id)
   const basePrice = product.prices[size]
@@ -157,11 +157,11 @@ export default function ProductDetail() {
 
   const previewText = cName || cText
   const thumbs = buildThumbs(colour, product.pattern)
-  // An admin-uploaded photo is a single view — the colour thumbs only make sense
+  // An admin-uploaded photo is a single view - the colour thumbs only make sense
   // for the generated cover, where each one is a real alternative.
   const showThumbs = !product.image
 
-  // Product structured data (brief §11 — Product schema).
+  // Product structured data (brief §11 - Product schema).
   const productLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -169,7 +169,7 @@ export default function ProductDetail() {
     description: prod.description,
     category: prod.collectionName,
     brand: { '@type': 'Brand', name: 'SUVADU Notebooks' },
-    // Only advertise an aggregateRating when there are real reviews — emitting
+    // Only advertise an aggregateRating when there are real reviews - emitting
     // reviewCount: 0 is invalid schema and risks a structured-data penalty.
     ...(prod.reviews > 0
       ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: prod.rating, reviewCount: prod.reviews } }
@@ -185,7 +185,7 @@ export default function ProductDetail() {
 
   function handleAddToCart(redirect = false) {
     if (onRequest) {
-      notify('This size is priced on request — we’ll be in touch with a quote.')
+      notify('This size is priced on request - we’ll be in touch with a quote.')
       return
     }
     if (outOfStock) {
@@ -340,7 +340,7 @@ export default function ProductDetail() {
                 {product.description}
               </p>
 
-              {/* Choices — two quiet rows */}
+              {/* Choices - two quiet rows */}
               <div className="mt-12 space-y-6">
                 {sizeOptions.length > 1 && (
                   <Choice
@@ -364,7 +364,7 @@ export default function ProductDetail() {
                 />
               </div>
 
-              {/* Personalisation — customized products only (brief §7.2) */}
+              {/* Personalisation - customized products only (brief §7.2) */}
               {isCustom && showPersonalise && (
                 <div className="mt-10 border-t border-border pt-8">
                   <h2 className="flex items-center gap-2 font-display text-xl text-plum">
@@ -388,7 +388,7 @@ export default function ProductDetail() {
                   </div>
 
                   <div className="mt-5">
-                    <span className="mb-2.5 block font-body text-xs font-light text-muted-foreground">Cover colour — {colour.name}</span>
+                    <span className="mb-2.5 block font-body text-xs font-light text-muted-foreground">Cover colour - {colour.name}</span>
                     <div className="flex flex-wrap gap-2.5">
                       {colours.map((c) => (
                         <button
@@ -410,7 +410,7 @@ export default function ProductDetail() {
                 </div>
               )}
 
-              {/* Availability only speaks up when it matters — "In stock" on every
+              {/* Availability only speaks up when it matters - "In stock" on every
                   product is noise. */}
               {(outOfStock || lowStock) && (
                 <p className={cn('mt-8 font-body text-sm', outOfStock ? 'text-rose-600' : 'text-amber-600')}>
@@ -447,7 +447,7 @@ export default function ProductDetail() {
 
               {onRequest ? (
                 <p className="mt-6 font-body text-xs font-light leading-relaxed text-muted-foreground">
-                  Priced on request —{' '}
+                  Priced on request -{' '}
                   <button type="button" onClick={() => openWhatsApp(`Hi Suvadu! I'd like a quote for: ${prod.name}`)} className="link-underline">
                     message us on WhatsApp
                   </button>{' '}
@@ -472,14 +472,14 @@ export default function ProductDetail() {
                   </ul>
                 </Disclosure>
                 <Disclosure title="Size & paper">
-                  <p>{size} — {SIZE_INFO[size].dims}. 100 GSM premium paper with lay-flat thread binding, {pages} pages, {ruling.toLowerCase()}.</p>
+                  <p>{size} - {SIZE_INFO[size].dims}. 100 GSM premium paper with lay-flat thread binding, {pages} pages, {ruling.toLowerCase()}.</p>
                   {sizeOptions.length > 1 && (
                     <p className="mt-2">{SIZE_INFO[size].note}</p>
                   )}
                 </Disclosure>
                 <Disclosure title="Shipping & returns">
                   <p>
-                    Free delivery across India, tracked via Shiprocket — 2–4 business days to metros, 4–7 elsewhere.
+                    Free delivery across India, tracked via Shiprocket - 2–4 business days to metros, 4–7 elsewhere.
                     Unused, non-personalised notebooks can be returned within 7 days. Personalised items are made to
                     order and can only be returned if they arrive damaged.
                   </p>
@@ -560,7 +560,7 @@ function Choice<T extends string | number>({ label, options, value, onChange }: 
   )
 }
 
-/** Native <details> — no state, no library, keyboard-accessible for free. */
+/** Native <details> - no state, no library, keyboard-accessible for free. */
 function Disclosure({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <details className="group border-b border-border">

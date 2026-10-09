@@ -59,7 +59,7 @@ export function loadRazorpay(): Promise<boolean> {
 }
 
 /** An Edge Function that answers 4xx/5xx reaches supabase-js as a generic
- *  "non-2xx status code" with no body — useless in a toast. The response itself
+ *  "non-2xx status code" with no body - useless in a toast. The response itself
  *  is on `error.context`, and our functions always reply `{ error: "..." }`, so
  *  read the real sentence back out before it reaches the shopper. */
 async function functionError(error: unknown, fallback: string): Promise<Error> {
@@ -69,7 +69,7 @@ async function functionError(error: unknown, fallback: string): Promise<Error> {
       const body = await context.clone().json()
       if (body?.error) return new Error(String(body.error))
     } catch {
-      // Not JSON (a gateway error page, a timeout) — fall through.
+      // Not JSON (a gateway error page, a timeout) - fall through.
     }
   }
   const message = (error as Error)?.message

@@ -1,5 +1,5 @@
 /**
- * Ambient animated background — drifting aurora orbs in the SUVADU palette,
+ * Ambient animated background - drifting aurora orbs in the SUVADU palette,
  * a soft grain overlay, and slowly twinkling sparkles. Decorative only:
  * fixed behind all content, non-interactive, and disabled for users who
  * prefer reduced motion (see .bg-fx rules in index.css).

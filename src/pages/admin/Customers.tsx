@@ -5,7 +5,7 @@ import { formatINR } from '@/lib/utils'
 import { AdminCard, StatusBadge } from './ui'
 
 export default function AdminCustomers() {
-  useSeo('Admin — Customers', 'View SUVADU customer accounts.')
+  useSeo('Admin - Customers', 'View SUVADU customer accounts.')
   const [profiles, setProfiles] = useState<ProfileRow[]>([])
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
@@ -57,7 +57,7 @@ export default function AdminCustomers() {
                     {p.is_admin && <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 font-body text-[10px] font-medium uppercase text-royal">Admin</span>}
                     <span className="ml-2 break-anywhere font-body text-xs font-light text-muted-foreground">{p.email}</span>
                   </div>
-                  <span className="font-body text-xs font-light text-muted-foreground">{p.mobile || '—'}</span>
+                  <span className="font-body text-xs font-light text-muted-foreground">{p.mobile || '-'}</span>
                 </button>
                 {isOpen && (
                   <div className="border-t border-border px-4 py-3">

@@ -5,7 +5,7 @@ import wordmark from '@/assets/suvadu-logo.jpg'
 // The 3D notebook from the client's Three.js prototype, rebuilt as a plain model
 // the flying notebook engine can drive: a continuous `open` amount (rather than a canned
 // open/close sequence) so it can be scrubbed, reversed or interrupted at any
-// moment, plus a handwriting layer that writes onto the page itself — so the
+// moment, plus a handwriting layer that writes onto the page itself - so the
 // message tilts, moves and flies with the book instead of floating over it.
 
 const PURPLE = '#613092'
@@ -18,7 +18,7 @@ const ROYAL_200 = '#D6BCEC'
 const INK_DEEP = '#1E1130'
 const INK_PEN = '#3F2160'
 
-// Panel opacity — these fade the boards themselves (cover / flyleaf / page
+// Panel opacity - these fade the boards themselves (cover / flyleaf / page
 // block), not the artwork printed on them. 1 = fully solid.
 const COVER_OPACITY = 0.94
 const PAGE_OPACITY = 0.97
@@ -66,7 +66,7 @@ export interface NotebookModel {
   /** 0 = blank page, 1 = fully written. Returns the nib in book-local space,
    *  or null once the pen is lifted. */
   setInk(p: number): THREE.Vector3 | null
-  /** Re-render the cover and page art — call once fonts and the wordmark land. */
+  /** Re-render the cover and page art - call once fonts and the wordmark land. */
   redrawArt(): void
   dispose(): void
 }
@@ -86,7 +86,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
     const ctx = c.getContext('2d')!
     draw(ctx, w, h)
     const tex = new THREE.CanvasTexture(c)
-    // Left unconverted on purpose — the palette was tuned against raw sampling.
+    // Left unconverted on purpose - the palette was tuned against raw sampling.
     tex.colorSpace = THREE.NoColorSpace
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
     textures.push(tex)
@@ -112,7 +112,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
 
   // The wordmark art is purple-on-white JPG, so it can't be stamped straight
   // onto a plum cover. Key it: alpha comes from the inverse of each pixel's
-  // luminance, so the paper drops out and the stroke survives — in white ink.
+  // luminance, so the paper drops out and the stroke survives - in white ink.
   let logoInk: HTMLCanvasElement | null = null
   function keyToWhiteInk(img: HTMLImageElement): HTMLCanvasElement | null {
     const w = 800
@@ -135,12 +135,12 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
       ctx.putImageData(data, 0, 0)
       return c
     } catch {
-      return null // tainted canvas — the serif fallback carries the cover
+      return null // tainted canvas - the serif fallback carries the cover
     }
   }
 
   function drawFrontCover(ctx: CanvasRenderingContext2D, W: number, H: number) {
-    // Deep plum base with a diagonal royal wash — reads as dyed cloth.
+    // Deep plum base with a diagonal royal wash - reads as dyed cloth.
     const base = ctx.createLinearGradient(0, 0, W * 0.9, H)
     base.addColorStop(0, ROYAL_700); base.addColorStop(0.45, PLUM); base.addColorStop(1, INK_DEEP)
     ctx.fillStyle = base; ctx.fillRect(0, 0, W, H)
@@ -225,7 +225,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
   function drawRuledPage(ctx: CanvasRenderingContext2D, W: number, H: number) {
     ctx.fillStyle = PAGE; ctx.fillRect(0, 0, W, H)
 
-    // Warm paper wash — lilac settles into the gutter, light lifts to the fore-edge.
+    // Warm paper wash - lilac settles into the gutter, light lifts to the fore-edge.
     const wash = ctx.createLinearGradient(0, 0, W, 0)
     wash.addColorStop(0, 'rgba(97,48,146,0.09)')
     wash.addColorStop(0.22, 'rgba(97,48,146,0.02)')
@@ -282,7 +282,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
     for (let y = 0; y < h; y += 3) ctx.fillRect(0, y, w, 1)
   }
 
-  // The inside of the front cover — a royal-purple endpaper with a fine dot grid
+  // The inside of the front cover - a royal-purple endpaper with a fine dot grid
   // and a hairline frame, so the open spread has a rich edge to rest against
   // instead of one more pale sheet beside the page.
   function drawEndpaper(ctx: CanvasRenderingContext2D, W: number, H: number) {
@@ -309,7 +309,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
   const materials: THREE.Material[] = []
 
   /** Builds a panel material and applies panel-level opacity. depthWrite stays
-   *  on so the boards still occlude each other correctly when translucent —
+   *  on so the boards still occlude each other correctly when translucent -
    *  without it the inside cover bleeds through the front cover. */
   function panelMat(opts: THREE.MeshStandardMaterialParameters, opacity: number) {
     const m = new THREE.MeshStandardMaterial(opts)
@@ -325,7 +325,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
   // ---------- Geometry ----------
   const group = new THREE.Group()
 
-  // Pages board (fixed) — holds the ruled page that gets written on.
+  // Pages board (fixed) - holds the ruled page that gets written on.
   const pagesMaterials = [
     panelMat({ map: pageEdge.tex, roughness: 0.95 }, PAGE_OPACITY),
     panelMat({ map: spine.tex, roughness: 0.48, metalness: 0.14 }, COVER_OPACITY),
@@ -346,7 +346,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
   pageStack.castShadow = true
   group.add(pageStack)
 
-  // Flyleaf — the blank page that flips to reveal the written page beneath.
+  // Flyleaf - the blank page that flips to reveal the written page beneath.
   const flyPivot = new THREE.Object3D()
   flyPivot.position.set(-BOOK_W / 2, 0, D / 2 + FLY_D / 2 + 0.003)
   group.add(flyPivot)
@@ -364,7 +364,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
   flyMesh.castShadow = true
   flyPivot.add(flyMesh)
 
-  // Cover pivot — hinged at the left edge, swings open.
+  // Cover pivot - hinged at the left edge, swings open.
   const coverPivot = new THREE.Object3D()
   coverPivot.position.set(-BOOK_W / 2, 0, D / 2 + FLY_D + COVER_D / 2 + 0.006)
   group.add(coverPivot)
@@ -382,7 +382,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
 
   // ---------- Handwriting layer ----------
   let lines: readonly [string, string] = ['Make your mark.', 'Mark your Suvadu.']
-  let sign = '— Suvadu.'
+  let sign = '- Suvadu.'
   let widths: [number, number] = [0, 0]
   let lastInk = -1
 
@@ -408,7 +408,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
 
   function inkFont(px: number) { return `600 ${px}px Caveat, "Segoe Script", cursive` }
 
-  /** Sizes each line to the page and caches its width — the pen needs both. */
+  /** Sizes each line to the page and caches its width - the pen needs both. */
   function measure() {
     inkCtx.font = inkFont(INK_FONT)
     const maxW = PAGE_TEX_W - INK_X - 120
@@ -426,8 +426,11 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
     const natural = inkCtx.measureText(text).width
     const scale = natural > maxW ? maxW / natural : 1
     inkCtx.save()
+    // Glyphs like "?" overhang their advance width, so once the line is fully
+    // written, extend the clip past it instead of shaving off the last stroke.
+    const done = revealX >= natural * scale - 0.5
     inkCtx.beginPath()
-    inkCtx.rect(INK_X - 12, 0, revealX + 12, INK_H)
+    inkCtx.rect(INK_X - 12, 0, revealX + 12 + (done ? 60 : 0), INK_H)
     inkCtx.clip()
     inkCtx.translate(INK_X, baseline)
     inkCtx.scale(scale, scale)
@@ -497,7 +500,7 @@ export function createNotebook(renderer: THREE.WebGLRenderer): NotebookModel {
   }
 
   // ---------- Late redraws ----------
-  // The cover art is set in type, so re-render it once the webfonts resolve —
+  // The cover art is set in type, so re-render it once the webfonts resolve -
   // and again once the wordmark has been keyed to white ink.
   function redrawArt() {
     if (disposed) return

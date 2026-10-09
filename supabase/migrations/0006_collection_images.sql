@@ -1,5 +1,5 @@
 -- ============================================================================
--- 0006 — Collection cover images
+-- 0006 - Collection cover images
 --
 -- Adds an optional cover image per collection, managed from Admin → Collections.
 -- The image is stored inline as a base64 data URL (`data:image/jpeg;base64,...`)

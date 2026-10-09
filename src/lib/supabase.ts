@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
 // ── Supabase client ─────────────────────────────────────────────────────────
-// The URL + anon (publishable) key are public by design — access is gated by
+// The URL + anon (publishable) key are public by design - access is gated by
 // Row-Level Security on the server, not by hiding the key. They come from Vite
 // env vars (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) set in .env.local.
 
@@ -17,7 +17,7 @@ if (!url || !anonKey) {
 }
 
 // With detectSessionInUrl the client consumes and clears the URL hash/query the
-// moment it is constructed — before React ever mounts. Snapshot any error it
+// moment it is constructed - before React ever mounts. Snapshot any error it
 // carries first, so /reset-password can tell "expired link" apart from "no link".
 function readRedirectError(): string | null {
   if (typeof window === 'undefined') return null

@@ -6,7 +6,7 @@ import wordmark from '@/assets/suvadu-logo.jpg'
  *
  * The source art is a JPG on a white ground, so `mix-blend-multiply` drops the
  * white and lets whatever is behind it show through (the warm page background,
- * the lilac footer gradient). Size it with a height class — width follows.
+ * the lilac footer gradient). Size it with a height class - width follows.
  */
 export default function Logo({ className }: { className?: string }) {
   return (

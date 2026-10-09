@@ -1,4 +1,4 @@
-# SUVADU Notebooks — robots.txt (brief §11)
+# SUVADU Notebooks - robots.txt (brief §11)
 User-agent: *
 Allow: /
 

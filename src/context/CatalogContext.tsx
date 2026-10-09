@@ -134,9 +134,9 @@ const uploadProductImage = (id: string, dataUrl: string) => uploadImage(id, data
 const uploadCollectionImage = (slug: string, dataUrl: string) => uploadImage(`collection-${slug}`, dataUrl)
 
 /** Shared by add/updateCollection. Unlike product covers, collection covers are
- *  kept inline as a base64 data URL in `collections.image_url` — no Storage
- *  object. Keeping them inline meant every visitor downloaded the base64 —
- *  ~385 KB for a single cover — inside the collections response, before any
+ *  kept inline as a base64 data URL in `collections.image_url` - no Storage
+ *  object. Keeping them inline meant every visitor downloaded the base64 -
+ *  ~385 KB for a single cover - inside the collections response, before any
  *  collection could render, on every page that loads the catalogue, with no
  *  caching and no way to resize it. They go to the same Storage bucket as
  *  product covers now, so the row carries a URL.
@@ -163,7 +163,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         supabase.from('collections').select('*').order('sort_order', { ascending: true }),
         supabase.from('products').select('*').order('created_at', { ascending: true }),
         supabase.from('colours').select('*').order('sort_order', { ascending: true }),
-        // One query for the whole catalogue's ratings — aggregated below rather
+        // One query for the whole catalogue's ratings - aggregated below rather
         // than one request per card.
         supabase.from('reviews').select('product_id, rating').eq('status', 'approved'),
       ])
@@ -175,10 +175,10 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       setProductRows((prods.data as ProductRow[]) ?? [])
       setColourRows((cls.data as ColourRow[]) ?? [])
 
-      // A ratings failure must not blank the catalogue — fall back to "no reviews".
+      // A ratings failure must not blank the catalogue - fall back to "no reviews".
       setReviewStats(aggregateReviewStats((revs.data ?? []) as ReviewStatRow[]))
     } catch (e) {
-      // A rejected request — offline, DNS failure, CORS — never produces an
+      // A rejected request - offline, DNS failure, CORS - never produces an
       // error object to inspect. Without this the promise rejects, `loading` is
       // never cleared, and every page sits on "Loading…" for good.
       setError((e as Error)?.message || 'Could not reach the shop.')
@@ -286,7 +286,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         price_a4: input.priceA4,
         price_custom: input.priceCustom ?? null,
         custom_price_on_request: input.type === 'customized' && input.priceCustom == null,
-        description: input.description.trim() || `${name} — part of the ${collection.display_name}.`,
+        description: input.description.trim() || `${name} - part of the ${collection.display_name}.`,
         specs: ['100 GSM premium paper', '160 pages', 'Lay-flat binding'],
         colour_name: COLOURS[0].name,
         colour_hex: COLOURS[0].hex,
@@ -315,7 +315,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       return {
         ok: true,
         message: `“${name}” added to ${collection.display_name}.`,
-        // Brand new — it cannot have reviews yet.
+        // Brand new - it cannot have reviews yet.
         product: mapProduct(data as ProductRow, collection.display_name, undefined),
       }
     },
@@ -383,7 +383,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       let n = 2
       while (existing.has(slug)) slug = `${base}-${n++}`
 
-      // Uploading can fail (bucket missing, offline) — report it the way the
+      // Uploading can fail (bucket missing, offline) - report it the way the
       // product form does rather than rejecting out of the admin's click handler.
       let imageUrl: string | null
       try {

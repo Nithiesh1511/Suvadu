@@ -17,7 +17,7 @@ async function uploadBannerImage(id: string, file: File): Promise<string> {
 }
 
 export default function AdminBanners() {
-  useSeo('Admin — Banners', 'Manage SUVADU promotional banners.')
+  useSeo('Admin - Banners', 'Manage SUVADU promotional banners.')
   const { notify } = useToast()
   const [banners, setBanners] = useState<BannerRow[]>([])
   const [loading, setLoading] = useState(true)

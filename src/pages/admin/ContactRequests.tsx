@@ -5,7 +5,7 @@ import { useSeo } from '@/lib/seo'
 import { AdminCard, StatusBadge } from './ui'
 
 export default function AdminContactRequests() {
-  useSeo('Admin — Contact Requests', 'View and resolve contact form submissions.')
+  useSeo('Admin - Contact Requests', 'View and resolve contact form submissions.')
   const { notify } = useToast()
   const [rows, setRows] = useState<ContactRequestRow[]>([])
   const [loading, setLoading] = useState(true)

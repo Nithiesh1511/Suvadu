@@ -41,7 +41,7 @@ export default function AdminLayout() {
       <PageHeader eyebrow="Admin Console" title="SUVADU Admin" crumbs={[{ label: 'Admin' }]} />
       <section className="container-suvadu grid gap-6 py-6 sm:gap-8 sm:py-8 lg:grid-cols-[220px_1fr]">
         <aside className="h-fit lg:sticky lg:top-24">
-          {/* A horizontal scroller below lg — twelve modules can't stack usefully
+          {/* A horizontal scroller below lg - twelve modules can't stack usefully
               on a phone, and shrink-0 keeps each label from being compressed. */}
           <nav className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-border bg-white p-2 shadow-card lg:flex-col lg:overflow-visible">
             {NAV.map((item) => (
@@ -78,7 +78,7 @@ export default function AdminLayout() {
 
 /* ---------- Gate screens ---------- */
 function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) => Promise<{ ok: boolean; message: string }> }) {
-  useSeo('Admin — Sign in', 'Sign in to the SUVADU admin console.')
+  useSeo('Admin - Sign in', 'Sign in to the SUVADU admin console.')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')

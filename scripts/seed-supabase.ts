@@ -2,8 +2,8 @@
  * One-time seed: pushes the static catalogue (collections + products) into
  * Supabase so the live store reads from the DB instead of localStorage.
  *
- * The catalogue is imported from src/data/products.ts — the single source of
- * truth — so this never drifts from what the app used to render.
+ * The catalogue is imported from src/data/products.ts - the single source of
+ * truth - so this never drifts from what the app used to render.
  *
  * Usage (PowerShell):
  *   $env:SUPABASE_SERVICE_ROLE_KEY="<your service_role key>"; npm run seed:supabase
@@ -11,7 +11,7 @@
  *   SUPABASE_SERVICE_ROLE_KEY="<your service_role key>" npm run seed:supabase
  *
  * The service_role key BYPASSES Row-Level Security (needed to write the seed).
- * Keep it secret — never commit it or ship it to the client.
+ * Keep it secret - never commit it or ship it to the client.
  */
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -37,7 +37,7 @@ function readEnvLocal(key: string): string | undefined {
   }
 }
 
-// Strip stray wrapping quotes / angle brackets / whitespace — a common
+// Strip stray wrapping quotes / angle brackets / whitespace - a common
 // copy-paste slip that otherwise surfaces as a confusing "Invalid API key".
 function clean(v: string | undefined): string | undefined {
   return v?.trim().replace(/^['"<]+/, '').replace(/['">]+$/, '').trim()
@@ -64,7 +64,7 @@ try {
     process.exit(1)
   }
 } catch {
-  /* not a JWT we can read — let the API reject it with its own message */
+  /* not a JWT we can read - let the API reject it with its own message */
 }
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
@@ -136,6 +136,6 @@ async function main() {
 main().catch((err) => {
   console.error('✗ Seed failed:', err.message ?? err)
   // Set exitCode instead of process.exit() so pending network handles close
-  // cleanly — a hard exit mid-request crashes libuv on Windows (async.c assert).
+  // cleanly - a hard exit mid-request crashes libuv on Windows (async.c assert).
   process.exitCode = 1
 })

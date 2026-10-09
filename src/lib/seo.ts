@@ -83,19 +83,19 @@ export function useSeo(title: string, description?: string, image?: string) {
  *  useSeo() and are intentionally absent here so Layout never overwrites them. */
 export const ROUTE_META: Record<string, { title: string; description: string }> = {
   '/': {
-    title: 'SUVADU Notebooks — Make your mark.',
+    title: 'SUVADU Notebooks - Make your mark.',
     description:
       'Premium, minimal notebooks for the thinking mind. Customisable covers, matching sets and pan-India delivery. Make your mark.',
   },
   '/collections': {
     title: 'All Collections',
     description:
-      'Browse every SUVADU notebook collection — filter, sort and search premium 100 GSM notebooks across seven curated worlds.',
+      'Browse every SUVADU notebook collection - filter, sort and search premium 100 GSM notebooks across seven curated worlds.',
   },
   '/special-collections': {
     title: 'Special Collections',
     description:
-      'Matching sets and personalised notebooks — Match & Write, Made For You and Create & Carry. Make it unmistakably yours.',
+      'Matching sets and personalised notebooks - Match & Write, Made For You and Create & Carry. Make it unmistakably yours.',
   },
   '/accessories': {
     title: 'Accessories',
@@ -104,7 +104,7 @@ export const ROUTE_META: Record<string, { title: string; description: string }> 
   '/about': {
     title: 'About Us',
     description:
-      'The SUVADU story — premium notebooks crafted for the thinking mind, made to help you make your mark.',
+      'The SUVADU story - premium notebooks crafted for the thinking mind, made to help you make your mark.',
   },
   '/faq': {
     title: 'FAQ',
@@ -116,7 +116,7 @@ export const ROUTE_META: Record<string, { title: string; description: string }> 
   },
   '/checkout': {
     title: 'Checkout',
-    description: 'Secure checkout for your SUVADU order — UPI, cards and net banking via Razorpay.',
+    description: 'Secure checkout for your SUVADU order - UPI, cards and net banking via Razorpay.',
   },
   '/account': {
     title: 'My Account',
@@ -124,7 +124,7 @@ export const ROUTE_META: Record<string, { title: string; description: string }> 
   },
   '/account/wishlist': {
     title: 'My Wishlist',
-    description: 'Your saved SUVADU notebooks — add them to your cart any time.',
+    description: 'Your saved SUVADU notebooks - add them to your cart any time.',
   },
   '/privacy-policy': {
     title: 'Privacy Policy',

@@ -11,7 +11,7 @@ const STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered'
 type OrderWithItems = OrderRow & { order_items: OrderItemRow[] }
 
 export default function AdminOrders() {
-  useSeo('Admin — Orders', 'Manage SUVADU orders.')
+  useSeo('Admin - Orders', 'Manage SUVADU orders.')
   const { notify } = useToast()
   const [orders, setOrders] = useState<OrderWithItems[]>([])
   const [loading, setLoading] = useState(true)
@@ -89,11 +89,11 @@ export default function AdminOrders() {
                         <p className="font-body text-xs font-medium uppercase tracking-wide text-muted-foreground">Deliver to</p>
                         <p className="mt-2 break-anywhere font-body text-sm font-light text-plum/80">
                           {o.address?.name}<br />
-                          {o.address?.address}, {o.address?.city}, {o.address?.state} — {o.address?.pincode}<br />
+                          {o.address?.address}, {o.address?.city}, {o.address?.state} - {o.address?.pincode}<br />
                           {o.address?.mobile} · {o.address?.email}
                         </p>
                         <p className="mt-2 font-body text-xs font-light text-muted-foreground">
-                          Payment: {o.payment_method ?? '—'}{o.coupon ? ` · Coupon ${o.coupon}` : ''}
+                          Payment: {o.payment_method ?? '-'}{o.coupon ? ` · Coupon ${o.coupon}` : ''}
                         </p>
                       </div>
                     </div>

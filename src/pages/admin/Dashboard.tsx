@@ -7,7 +7,7 @@ import { formatINR } from '@/lib/utils'
 import { AdminCard, StatusBadge } from './ui'
 
 export default function Dashboard() {
-  useSeo('Admin — Dashboard', 'SUVADU admin dashboard.')
+  useSeo('Admin - Dashboard', 'SUVADU admin dashboard.')
   const { products } = useCatalog()
   const [stats, setStats] = useState({ orders: 0, newContacts: 0, pendingReviews: 0 })
   const [recent, setRecent] = useState<OrderRow[]>([])

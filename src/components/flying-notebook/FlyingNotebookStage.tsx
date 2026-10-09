@@ -3,8 +3,8 @@ import { registerStage, type StageConfig } from './stageRegistry'
 import { cn } from '@/lib/utils'
 
 /**
- * An empty slot the flying notebook flies to. It draws nothing itself — the notebook is
- * rendered on a canvas above the page — so size it like any other block and the
+ * An empty slot the flying notebook flies to. It draws nothing itself - the notebook is
+ * rendered on a canvas above the page - so size it like any other block and the
  * book will fit to it. Children render underneath the book: use them for a
  * stand-in that shows until the 3D chunk has loaded (or if WebGL is missing).
  */

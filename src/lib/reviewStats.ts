@@ -1,8 +1,8 @@
 // ── Product ratings, from real reviews ───────────────────────────────────────
 // A product's star rating is the mean of its APPROVED reviews, not the
-// products.rating / products.reviews columns — those still hold the launch
+// products.rating / products.reviews columns - those still hold the launch
 // placeholders (4.9 / 212 reviews), which is why a product page could advertise
-// a rating directly above "No reviews yet — be the first to share yours."
+// a rating directly above "No reviews yet - be the first to share yours."
 
 /** Approved-review count and mean for one product. */
 export interface ReviewStat {
@@ -20,7 +20,7 @@ export interface ReviewStatRow {
  * Fold approved review rows into per-product stats.
  *
  * Rows with no product_id are the site-wide testimonials shown on the home page
- * and in the collections rail — they belong to no product and are skipped.
+ * and in the collections rail - they belong to no product and are skipped.
  * Ratings that aren't finite numbers are skipped rather than poisoning a mean
  * with NaN.
  */

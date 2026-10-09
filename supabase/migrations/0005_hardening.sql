@@ -1,5 +1,5 @@
 -- ============================================================================
--- SUVADU Notebooks — Security hardening + missing storefront tables
+-- SUVADU Notebooks - Security hardening + missing storefront tables
 -- Run in the Supabase SQL Editor after 0001–0004.
 -- Safe to re-run (IF NOT EXISTS / CREATE OR REPLACE / DROP POLICY IF EXISTS).
 -- Relies on public.is_admin() from 0001_init.sql.

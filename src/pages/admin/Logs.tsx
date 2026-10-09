@@ -13,7 +13,7 @@ interface LogRow {
 }
 
 export default function AdminLogs() {
-  useSeo('Admin — Activity Log', 'SUVADU admin activity log.')
+  useSeo('Admin - Activity Log', 'SUVADU admin activity log.')
   const [logs, setLogs] = useState<LogRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -49,9 +49,9 @@ export default function AdminLogs() {
                 <tr key={l.id} className="border-b border-border/60 last:border-0 align-top">
                   <td className="py-2.5 pr-4 whitespace-nowrap text-muted-foreground">{new Date(l.created_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                   <td className="py-2.5 pr-4"><span className="rounded-full bg-lilac px-2.5 py-0.5 font-body text-xs font-medium text-royal">{l.action}</span></td>
-                  <td className="break-anywhere py-2.5 pr-4 font-mono text-xs text-plum/80">{l.entity ?? '—'}</td>
+                  <td className="break-anywhere py-2.5 pr-4 font-mono text-xs text-plum/80">{l.entity ?? '-'}</td>
                   {/* Bounded so one large JSON payload can't stretch the row */}
-                  <td className="break-anywhere max-w-[20rem] py-2.5 font-mono text-xs text-muted-foreground">{l.detail ? JSON.stringify(l.detail) : '—'}</td>
+                  <td className="break-anywhere max-w-[20rem] py-2.5 font-mono text-xs text-muted-foreground">{l.detail ? JSON.stringify(l.detail) : '-'}</td>
                 </tr>
               ))}
             </tbody>

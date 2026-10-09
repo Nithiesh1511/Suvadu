@@ -10,17 +10,17 @@ import './flying-notebook.css'
 // One 3D notebook on a canvas that covers the viewport (and lets every click
 // through). It has three ways of being on screen:
 //
-//   stage   — resting in a slot a page declared with <FlyingNotebookStage>: big, turning
+//   stage   - resting in a slot a page declared with <FlyingNotebookStage>: big, turning
 //             slowly, ready to be dragged. Where a stage asks for it, the book
 //             swings open and writes a message on its page.
-//   dock    — a small companion in the bottom-left corner while you browse, so
+//   dock    - a small companion in the bottom-left corner while you browse, so
 //             it never sits on top of the shop.
-//   summon  — tapped from the dock (or opened on a stage): it flies to the middle
+//   summon  - tapped from the dock (or opened on a stage): it flies to the middle
 //             of the screen, opens, and offers a few places to go.
 //
 // Between stages the book flies. That flight is *scrubbed by scroll position*,
 // not timed: it leaves a stage as you scroll away, settles into the dock, and
-// takes off again to meet the next stage — in either direction, at any speed.
+// takes off again to meet the next stage - in either direction, at any speed.
 
 const FOV = 26
 const HEADER_H = 72
@@ -35,8 +35,8 @@ const CLOSE_SECONDS = 1.15
 const WRITE_SECONDS = 2.7
 
 type Message = { lines: readonly [string, string]; sign: string }
-const BRAND_MESSAGE: Message = { lines: ['Make your mark.', 'Mark your Suvadu.'], sign: '— Suvadu.' }
-const HELLO_MESSAGE: Message = { lines: ['Hello, writer.', 'Where shall we begin?'], sign: '— Your Suvadu.' }
+const BRAND_MESSAGE: Message = { lines: ['Make your mark.', 'Mark your Suvadu.'], sign: '- Suvadu.' }
+const HELLO_MESSAGE: Message = { lines: ['Hello, writer.', 'Where shall we begin?'], sign: '- Your Suvadu.' }
 
 const LINKS = [
   { label: 'Shop collections', to: '/collections' },
@@ -58,7 +58,7 @@ interface Measured {
   docTop: number
   docBottom: number
   height: number
-  /** Book height when closed / when open — the open spread is wider, so it has
+  /** Book height when closed / when open - the open spread is wider, so it has
    *  to stand a little smaller to fit the same slot. */
   hClosed: number
   hOpen: number
@@ -76,10 +76,10 @@ interface Target {
   h: number
   rotY: number
   rotX: number
-  /** Extra whole turns added mid-flight — identical to 0 at both ends. */
+  /** Extra whole turns added mid-flight - identical to 0 at both ends. */
   spin: number
   open: boolean
-  /** 1 when the book is in the dock, 0 on a stage — fades the glass disc. */
+  /** 1 when the book is in the dock, 0 on a stage - fades the glass disc. */
   dock: number
   phase: Phase
   message: Message
@@ -163,7 +163,7 @@ export default function FlyingNotebook({ active }: { active: boolean }) {
       return
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 1.75))
-    // Written without conversion, as the prototype's r128 did — see notebookModel.
+    // Written without conversion, as the prototype's r128 did - see notebookModel.
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -199,7 +199,7 @@ export default function FlyingNotebook({ active }: { active: boolean }) {
     book.rotation.order = 'ZXY' // yaw, then pitch, then roll in screen space
     scene.add(book)
 
-    // A soft shadow below the book, and a lilac halo behind it — together they
+    // A soft shadow below the book, and a lilac halo behind it - together they
     // lift it off the page it is flying over.
     const blobTex = radialTexture([[0, 'rgba(44,26,62,0.55)'], [0.5, 'rgba(44,26,62,0.2)'], [1, 'rgba(44,26,62,0)']])
     const haloTex = radialTexture([[0, 'rgba(214,188,236,0.9)'], [0.45, 'rgba(190,150,230,0.32)'], [1, 'rgba(190,150,230,0)']])
@@ -339,10 +339,10 @@ export default function FlyingNotebook({ active }: { active: boolean }) {
 
     const restH = (s: Measured) => (s.cfg.open ? s.hOpen : s.hClosed)
     /** Scroll position at which the book lets go of a stage. Never before the
-     *  visitor has actually scrolled a little — a stage that starts life near the
+     *  visitor has actually scrolled a little - a stage that starts life near the
      *  bottom of a short screen would otherwise be mid-flight at scroll 0. */
     const leaveScroll = (s: Measured) => Math.max(s.docBottom - (s.cfg.leaveAt ?? 0.5) * vh, 80)
-    /** Scroll position at which the book is settled on a stage — once the book
+    /** Scroll position at which the book is settled on a stage - once the book
      *  itself, not just the stage's edge, is comfortably on screen. */
     const arriveScroll = (s: Measured) =>
       s.docTop - (s.cfg.arriveAt !== undefined ? s.cfg.arriveAt * vh : 0.94 * vh - restH(s) - 28)
@@ -416,8 +416,8 @@ export default function FlyingNotebook({ active }: { active: boolean }) {
         const manualHere = manual && manual.id === s.id ? manual.open : undefined
         const open = manualHere ?? !!s.cfg.open
         const closedRot = stageRot(s, t)
-        // Open, the spread settles to a gentle three-quarter lean — flat-on reads as
-        // a diagram, this reads as an object — and breathes a little.
+        // Open, the spread settles to a gentle three-quarter lean - flat-on reads as
+        // a diagram, this reads as an object - and breathes a little.
         const openRot = -0.17 + (reduce ? 0 : Math.sin(t * 0.8) * 0.04)
         return { x: p.x, y: p.y, h, rotY: lerp(closedRot, openRot, smoothstep(clamp(o / 0.45, 0, 1))), rotX: lerp(-0.06, -0.1, oe), spin: 0, open, dock: 0, phase, message: sMessage }
       }
@@ -757,7 +757,7 @@ export default function FlyingNotebook({ active }: { active: boolean }) {
       const nextLabel = mode === 'dock' ? 'Open the Suvadu notebook' : openNow ? 'Close the notebook' : 'Open the notebook'
       if (nextLabel !== lastLabel) { lastLabel = nextLabel; setLabel(nextLabel) }
       const spread = lerp(0.84, 1.52, smoothstep(o))
-      // The glass disc under the docked book — also the dock's tap target.
+      // The glass disc under the docked book - also the dock's tap target.
       const plateD = cur.h * PLATE
       setStyle(plate!, 'width', `${plateD.toFixed(1)}px`)
       setStyle(plate!, 'height', `${plateD.toFixed(1)}px`)
@@ -771,7 +771,7 @@ export default function FlyingNotebook({ active }: { active: boolean }) {
     }
     raf = requestAnimationFrame(frame)
 
-    // The cover is set in type — redraw it once the webfonts resolve.
+    // The cover is set in type - redraw it once the webfonts resolve.
     document.fonts?.load('600 96px Caveat').catch(() => undefined)
     document.fonts?.ready.then(() => model.redrawArt())
 
@@ -837,7 +837,7 @@ export default function FlyingNotebook({ active }: { active: boolean }) {
       >
         <span className="flying-notebook-tip" aria-hidden>
           <span className="flying-notebook-tip__dot" />
-          Tap me — I open
+          Tap me - I open
         </span>
       </button>
 

@@ -57,7 +57,7 @@ export default function Cart() {
         {/* Items */}
         <div className="space-y-5">
           {cart.map((item) => {
-            // Accessories have no product page — send them back to the shelf
+            // Accessories have no product page - send them back to the shelf
             // they came from rather than to a 404.
             const accessory = isAccessory(item.product.id)
             const to = accessory ? '/accessories' : `/products/${item.product.slug}`
