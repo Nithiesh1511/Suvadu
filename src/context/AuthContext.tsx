@@ -19,7 +19,7 @@ interface AuthState {
   profile: ProfileRow | null
   isAdmin: boolean
   loading: boolean
-  /** true when the profile fetch failed (network/RLS) — the session may still be valid. */
+  /** true when the profile fetch failed (network/RLS) - the session may still be valid. */
   profileError: boolean
   signUp: (input: { name: string; email: string; password: string; mobile?: string }) => Promise<SignResult>
   signIn: (email: string, password: string) => Promise<SignResult>
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-    // Distinguish "no profile yet" from "the fetch failed" — silently nulling the
+    // Distinguish "no profile yet" from "the fetch failed" - silently nulling the
     // profile on error would log an admin out of /admin and hide a real problem.
     if (error) { setProfileError(true); return }
     setProfileError(false)
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!data.session) {
       return { ok: true, needsConfirmation: true, message: 'Check your email to confirm your account, then sign in.' }
     }
-    return { ok: true, message: 'Account created — welcome to Suvadu!' }
+    return { ok: true, message: 'Account created - welcome to Suvadu!' }
   }, [])
 
   const signIn = useCallback<AuthState['signIn']>(async (email, password) => {
@@ -110,16 +110,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updatePassword = useCallback<AuthState['updatePassword']>(async (password) => {
     // The recovery link puts a real (short-lived) session in place, so this is a
-    // plain updateUser — no separate token to pass.
+    // plain updateUser - no separate token to pass.
     const { error } = await supabase.auth.updateUser({ password })
     if (error) return { ok: false, message: error.message }
-    return { ok: true, message: 'Password updated — you’re signed in.' }
+    return { ok: true, message: 'Password updated - you’re signed in.' }
   }, [])
 
   const resendConfirmation = useCallback<AuthState['resendConfirmation']>(async (email) => {
     const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() })
     if (error) return { ok: false, message: error.message }
-    return { ok: true, message: 'Confirmation email resent — check your inbox.' }
+    return { ok: true, message: 'Confirmation email resent - check your inbox.' }
   }, [])
 
   const updateProfile = useCallback<AuthState['updateProfile']>(

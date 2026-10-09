@@ -18,7 +18,7 @@ export default function SpecialCollections() {
       <PageHeader
         eyebrow="Made to be yours"
         title="Special Collections"
-        subtitle="Matching sets and fully personalised notebooks — add a name, your own words, a font and a colour."
+        subtitle="Matching sets and fully personalised notebooks - add a name, your own words, a font and a colour."
         crumbs={[{ label: 'Special Collections' }]}
       />
 
@@ -67,7 +67,7 @@ export default function SpecialCollections() {
             <ul className="mt-7 space-y-4">
               {[
                 ['Choose your base', 'Pick a size, cover colour and pattern you love.'],
-                ['Add your details', 'Type a name or short message and choose a font — preview it live.'],
+                ['Add your details', 'Type a name or short message and choose a font - preview it live.'],
                 ['We craft & ship it', 'Your notebook is made to order and shipped pan-India, gift-ready.'],
               ].map(([t, d], i) => (
                 <li key={t} {...CASCADE} className={cn(REVEAL, 'flex gap-4')}>
@@ -80,7 +80,7 @@ export default function SpecialCollections() {
               ))}
             </ul>
             {/* These point at the collections, not at one hardcoded product
-                slug — a slug that no longer has a row behind it lands the
+                slug - a slug that no longer has a row behind it lands the
                 shopper on a 404, which is exactly what used to happen here. */}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/special-collections/made-for-you" className="btn-primary">
@@ -89,7 +89,7 @@ export default function SpecialCollections() {
               <Link to="/special-collections/match-and-write" className="btn-secondary">Shop Matching Sets</Link>
             </div>
             <p className="mt-5 flex items-center gap-2 font-body text-xs font-light text-muted-foreground">
-              <Check width={15} className="text-royal" /> Custom sizes available — price on request.
+              <Check width={15} className="text-royal" /> Custom sizes available - price on request.
             </p>
           </div>
         </div>

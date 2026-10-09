@@ -1,5 +1,5 @@
 // ============================================================
-// SUVADU NOTEBOOKS — Catalogue data
+// SUVADU NOTEBOOKS - Catalogue data
 // Mirrors the Dev Brief: collections, sizes, pricing & colours.
 // In production this is served by the Shopify admin / backend.
 // ============================================================
@@ -53,7 +53,7 @@ export interface Product {
   stock?: number | null // null/undefined = not tracked; 0 = out of stock
 }
 
-// ---- Section 5: Colour Options — Minimal Aesthetic Collection ----
+// ---- Section 5: Colour Options - Minimal Aesthetic Collection ----
 export const COLOURS: ColourOption[] = [
   { name: 'Ivory White', hex: '#FFFFF0' },
   { name: 'Beige', hex: '#F5F0E8' },
@@ -73,7 +73,7 @@ export const COLLECTIONS: Collection[] = [
     slug: 'calm-collection',
     displayName: 'Calm Collection',
     internalName: 'Minimal Aesthetic',
-    description: 'Quiet, considered covers in soft neutrals — made for clear thinking.',
+    description: 'Quiet, considered covers in soft neutrals - made for clear thinking.',
     count: 5,
     accent: '#E6E6FA',
     pattern: 'plain',
@@ -100,7 +100,7 @@ export const COLLECTIONS: Collection[] = [
     slug: 'rhythm-series',
     displayName: 'Rhythm Series',
     internalName: 'Pattern Collection',
-    description: 'Geometric repetition with a beat — pattern lovers, this is yours.',
+    description: 'Geometric repetition with a beat - pattern lovers, this is yours.',
     count: 5,
     accent: '#C98B72',
     pattern: 'wave',
@@ -139,26 +139,26 @@ export const SPECIAL_COLLECTIONS: SpecialCollection[] = [
   {
     slug: 'match-and-write',
     displayName: 'Match & Write',
-    details: '5 matching sets — two notebooks, gift-ready packaging.',
+    details: '5 matching sets - two notebooks, gift-ready packaging.',
     type: 'Matching Sets',
   },
   {
     slug: 'made-for-you',
     displayName: 'Made For You',
     details: 'Your name, beautifully set on a premium cover.',
-    type: 'Personalized — Name',
+    type: 'Personalized - Name',
   },
   {
     slug: 'create-and-carry',
     displayName: 'Create & Carry',
-    details: 'Full custom cover — your text, font and colour.',
-    type: 'Personalized — Custom',
+    details: 'Full custom cover - your text, font and colour.',
+    type: 'Personalized - Custom',
   },
 ]
 
 // ---- Section 4.2: Pricing per product type ----
 const PRICING: Record<ProductType, Product['prices']> = {
-  basic: { A5: 299, A4: 399, Custom: null }, // Custom "Available" — price on request
+  basic: { A5: 299, A4: 399, Custom: null }, // Custom "Available" - price on request
   customized: { A5: 399, A4: 499, Custom: null },
   set: { A5: 599, A4: 799, Custom: null },
 }
@@ -230,7 +230,7 @@ export const MATCHING_SET_PRODUCT: Product = {
   collectionName: 'Match & Write',
   prices: PRICING.set,
   description:
-    'Two beautifully matched notebooks in gift-ready packaging. Perfect to keep one and gift one — or to separate work and wandering thoughts.',
+    'Two beautifully matched notebooks in gift-ready packaging. Perfect to keep one and gift one - or to separate work and wandering thoughts.',
   specs: ['Two matching notebooks', '100 GSM premium paper', 'Gift-ready box', '160 pages each', 'Coordinated cover art'],
   colour: { name: 'Blush Pink', hex: '#FF8DA1' },
   pattern: 'wave',
@@ -273,12 +273,12 @@ export function priceForPages(basePrice: number, pages: number): number {
 }
 
 export const SIZE_INFO: Record<SizeKey, { dims: string; note: string }> = {
-  A5: { dims: '148 × 210 mm', note: 'Standard size — all products' },
+  A5: { dims: '148 × 210 mm', note: 'Standard size - all products' },
   A4: { dims: '210 × 297 mm', note: 'Available on request' },
-  Custom: { dims: 'You decide', note: 'Customized Notebook only — price on request' },
+  Custom: { dims: 'You decide', note: 'Customized Notebook only - price on request' },
 }
 
-// ---- Section 8: Accessories — Bookmarks (4 designs, price TBD) ----
+// ---- Section 8: Accessories - Bookmarks (4 designs, price TBD) ----
 export interface Bookmark {
   id: string
   name: string
@@ -286,10 +286,10 @@ export interface Bookmark {
   pattern: Pattern
 }
 export const BOOKMARKS: Bookmark[] = [
-  { id: 'BM1', name: 'Bookmark — Design 1', colour: { name: 'Lavender', hex: '#E6E6FA' }, pattern: 'plain' },
-  { id: 'BM2', name: 'Bookmark — Design 2', colour: { name: 'Sage Green', hex: '#B2AC88' }, pattern: 'floral' },
-  { id: 'BM3', name: 'Bookmark — Design 3', colour: { name: 'Muted Terracotta', hex: '#C98B72' }, pattern: 'wave' },
-  { id: 'BM4', name: 'Bookmark — Design 4', colour: { name: 'Charcoal Black', hex: '#36454F' }, pattern: 'mono' },
+  { id: 'BM1', name: 'Bookmark - Design 1', colour: { name: 'Lavender', hex: '#E6E6FA' }, pattern: 'plain' },
+  { id: 'BM2', name: 'Bookmark - Design 2', colour: { name: 'Sage Green', hex: '#B2AC88' }, pattern: 'floral' },
+  { id: 'BM3', name: 'Bookmark - Design 3', colour: { name: 'Muted Terracotta', hex: '#C98B72' }, pattern: 'wave' },
+  { id: 'BM4', name: 'Bookmark - Design 4', colour: { name: 'Charcoal Black', hex: '#36454F' }, pattern: 'mono' },
 ]
 
 export const BOOKMARK_PRICE = 99
@@ -298,11 +298,11 @@ export const BOOKMARK_PRICE = 99
 // Bookmarks are a fixed range defined here, not rows in the `products` table.
 // Anything that reconciles a cart or a wishlist against the live catalogue has
 // to know about them, or it treats every accessory as a deleted product and
-// silently drops it. That is what `getAccessoryById` is for — one registry, so
+// silently drops it. That is what `getAccessoryById` is for - one registry, so
 // the cart, the wishlist and the payment function all agree on what exists.
 //
 // The prices here are mirrored server-side in
-// `supabase/functions/_shared/pricing.ts` — change one, change the other.
+// `supabase/functions/_shared/pricing.ts` - change one, change the other.
 export function bookmarkToProduct(b: Bookmark): Product {
   return {
     id: b.id,
@@ -312,7 +312,7 @@ export function bookmarkToProduct(b: Bookmark): Product {
     collectionSlug: 'accessories',
     collectionName: 'Accessories',
     prices: { A5: BOOKMARK_PRICE, A4: null, Custom: null },
-    description: 'A little companion for your notebook — printed on thick card with a soft-touch finish.',
+    description: 'A little companion for your notebook - printed on thick card with a soft-touch finish.',
     specs: ['Thick 300 GSM card', 'Soft-touch matte finish', '50 × 150 mm'],
     colour: b.colour,
     pattern: b.pattern,
@@ -330,7 +330,7 @@ export function getAccessoryById(id: string): Product | undefined {
   return ACCESSORY_BY_ID.get(id)
 }
 
-/** True for products that live in this file rather than the catalogue table —
+/** True for products that live in this file rather than the catalogue table -
  *  they have no product page, so nothing should link to one. */
 export function isAccessory(id: string): boolean {
   return ACCESSORY_BY_ID.has(id)
@@ -344,13 +344,13 @@ export interface Review {
   location: string
 }
 export const REVIEWS: Review[] = [
-  { name: 'Ananya R.', rating: 5, location: 'Bengaluru', text: 'The paper quality is unreal — no bleed-through with my fountain pen. The lilac cover is even prettier in person.' },
+  { name: 'Ananya R.', rating: 5, location: 'Bengaluru', text: 'The paper quality is unreal - no bleed-through with my fountain pen. The lilac cover is even prettier in person.' },
   { name: 'Karthik M.', rating: 5, location: 'Chennai', text: 'Ordered a personalised set for my partner. The name foil looked premium and packaging was gift-ready. Will reorder.' },
   { name: 'Sneha P.', rating: 4, location: 'Pune', text: 'Beautiful minimal design. Lay-flat binding makes journaling a joy. Shipping was quick across India.' },
   { name: 'Devika S.', rating: 5, location: 'Kochi', text: 'Suvadu nails the aesthetic. The Calm Collection sits perfectly on my desk and writing in it feels special.' },
 ]
 
-// ---- FAQ: Section 7.5 — 5 categories ----
+// ---- FAQ: Section 7.5 - 5 categories ----
 export interface FaqItem {
   q: string
   a: string
@@ -358,7 +358,7 @@ export interface FaqItem {
 export const FAQ: Record<string, FaqItem[]> = {
   Shipping: [
     { q: 'Where do you ship?', a: 'We ship pan-India. Most metros receive orders in 2–4 business days; other locations in 4–7 days.' },
-    { q: 'How much does shipping cost?', a: 'Shipping is free across India — the price you see is the price you pay, with no separate delivery charge at checkout.' },
+    { q: 'How much does shipping cost?', a: 'Shipping is free across India - the price you see is the price you pay, with no separate delivery charge at checkout.' },
     { q: 'Can I track my order?', a: 'Yes. Once shipped you’ll receive a tracking link by SMS and email, and you can track it under My Account → Order History.' },
   ],
   Customization: [
@@ -372,14 +372,14 @@ export const FAQ: Record<string, FaqItem[]> = {
     { q: 'How are refunds processed?', a: 'Approved refunds are credited to your original payment method within 5–7 business days.' },
   ],
   Payments: [
-    { q: 'Which payment methods do you accept?', a: 'We accept UPI, Debit Card, Credit Card and Net Banking via Razorpay — a PCI-compliant, secure gateway.' },
+    { q: 'Which payment methods do you accept?', a: 'We accept UPI, Debit Card, Credit Card and Net Banking via Razorpay - a PCI-compliant, secure gateway.' },
     { q: 'Is my payment secure?', a: 'Yes. Payments are processed over HTTPS through Razorpay. We never store your full card details.' },
     { q: 'Do you accept Cash on Delivery?', a: 'Currently we accept prepaid orders only to keep prices and quality consistent.' },
   ],
   Orders: [
     { q: 'Can I modify or cancel my order?', a: 'You can cancel before dispatch from My Account → Order History. Personalised orders can’t be modified once production starts.' },
     { q: 'Do I need an account to order?', a: 'You can browse and add to cart freely. An account is required to save a wishlist, customizations and view order history.' },
-    { q: 'I have a coupon — where do I apply it?', a: 'Enter your coupon in the Cart page’s “Apply Coupon” field. Valid codes apply the discount to your total instantly.' },
+    { q: 'I have a coupon - where do I apply it?', a: 'Enter your coupon in the Cart page’s “Apply Coupon” field. Valid codes apply the discount to your total instantly.' },
   ],
 }
 

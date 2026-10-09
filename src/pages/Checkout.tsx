@@ -75,7 +75,7 @@ export default function Checkout() {
 
     // Whose details are on the form? This component stays mounted across a
     // sign-out (the gate below is an early return, not an unmount), so when a
-    // different person signs in, everything the last one typed has to go —
+    // different person signs in, everything the last one typed has to go -
     // name and contact details included, or their order ships under the
     // previous shopper's name. Only on an actual change of identity, though:
     // wiping on first mount would undo the prefill from the profile.
@@ -100,12 +100,12 @@ export default function Checkout() {
       .then(({ data, error }) => {
         if (!active) return
         setSavedLoaded(true)
-        // A failure here just means no picker — the plain form still works.
+        // A failure here just means no picker - the plain form still works.
         if (error) return
         const rows = (data as SavedAddress[]) ?? []
         setSaved(rows)
         if (rows.length === 0) return
-        // Land on the first saved address rather than a blank form — but not
+        // Land on the first saved address rather than a blank form - but not
         // over anything the shopper started typing while this was in flight,
         // and only mark it selected when we actually applied it.
         if (addressTouched.current) return
@@ -161,7 +161,7 @@ export default function Checkout() {
 
   function set<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }))
-    // Typing over a saved address means this is a new one — otherwise the picker
+    // Typing over a saved address means this is a new one - otherwise the picker
     // keeps a card highlighted that no longer matches the form, and the "save
     // this address" offer stays hidden so the edit could never be kept.
     if (ADDRESS_FIELDS.includes(k as string)) {
@@ -227,7 +227,7 @@ export default function Checkout() {
     }
     if (!order) {
       setPlacing(false)
-      notify('Could not place order — please try again.')
+      notify('Could not place order - please try again.')
       return
     }
 
@@ -247,7 +247,7 @@ export default function Checkout() {
     }))
     const { error: itemsError } = await supabase.from('order_items').insert(items)
     if (itemsError) {
-      // Don't leave an order with no line items behind — roll it back and abort
+      // Don't leave an order with no line items behind - roll it back and abort
       // before charging anything.
       await supabase.from('orders').delete().eq('id', order.id)
       setPlacing(false)
@@ -268,7 +268,7 @@ export default function Checkout() {
       created = await createRazorpayOrder(order.id)
     } catch (e) {
       // Nothing was charged. If the server refused the price it also cleared
-      // the pending order, so a retry starts clean — see razorpay-create-order.
+      // the pending order, so a retry starts clean - see razorpay-create-order.
       setPlacing(false)
       notify((e as Error).message)
       return
@@ -299,10 +299,10 @@ export default function Checkout() {
           setPlacing(false)
           // Deliberately NOT deleted here. The gateway order already exists, and
           // with an async method (UPI collect) a payment can still land after
-          // the modal is closed — there is no webhook to tell us. Deleting would
+          // the modal is closed - there is no webhook to tell us. Deleting would
           // erase the record of a payment that then succeeds. The order stays
           // pending and Account explains what to do about it.
-          notify('Payment cancelled — your order is saved as pending.')
+          notify('Payment cancelled - your order is saved as pending.')
         },
       },
     })
@@ -373,7 +373,7 @@ export default function Checkout() {
 
   return (
     <div>
-      <PageHeader title="Checkout" subtitle="Almost there — just your details and payment." crumbs={[{ label: 'Cart', to: '/cart' }, { label: 'Checkout' }]} />
+      <PageHeader title="Checkout" subtitle="Almost there - just your details and payment." crumbs={[{ label: 'Cart', to: '/cart' }, { label: 'Checkout' }]} />
 
       <section className="container-suvadu grid gap-10 py-12 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-8">
@@ -402,7 +402,7 @@ export default function Checkout() {
                       )}
                     >
                       <span className="block font-medium text-plum">{a.label || 'Saved address'}</span>
-                      <span className="mt-1 block break-anywhere">{a.line}, {a.city}, {a.state} — {a.pincode}</span>
+                      <span className="mt-1 block break-anywhere">{a.line}, {a.city}, {a.state} - {a.pincode}</span>
                     </button>
                   ))}
                   <button
@@ -450,7 +450,7 @@ export default function Checkout() {
             ) : (
               <div className="mt-4 break-anywhere font-body text-sm font-light leading-relaxed text-plum/80">
                 <p className="font-medium text-plum">{form.name}</p>
-                <p>{form.address}, {form.city}, {form.state} — {form.pincode}</p>
+                <p>{form.address}, {form.city}, {form.state} - {form.pincode}</p>
                 <p>{form.mobile} · {form.email}</p>
               </div>
             )}
@@ -465,7 +465,7 @@ export default function Checkout() {
               <div>
                 <p className="font-body text-sm font-medium text-plum">Pay securely with Razorpay</p>
                 <p className="mt-0.5 font-body text-xs font-light text-muted-foreground">
-                  Choose UPI, Credit/Debit Card or Net Banking on the next step — the secure Razorpay window opens when you place your order.
+                  Choose UPI, Credit/Debit Card or Net Banking on the next step - the secure Razorpay window opens when you place your order.
                 </p>
               </div>
             </div>

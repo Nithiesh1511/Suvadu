@@ -1,7 +1,7 @@
 // ── Edge Function: razorpay-verify-payment ───────────────────────────────────
 // Verifies the Razorpay payment signature (HMAC-SHA256 of "order_id|payment_id"
 // with the key secret). Only on a valid signature do we mark the order paid.
-// This MUST run server-side — a client-side check is trivially forgeable.
+// This MUST run server-side - a client-side check is trivially forgeable.
 //
 // Required secret: RAZORPAY_KEY_SECRET
 // Auto-injected: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY

@@ -24,7 +24,7 @@ const empty = {
 export default function ProductForm() {
   const { id } = useParams()
   const isEdit = Boolean(id)
-  useSeo(isEdit ? 'Admin — Edit product' : 'Admin — Add product', 'Manage a SUVADU product.')
+  useSeo(isEdit ? 'Admin - Edit product' : 'Admin - Add product', 'Manage a SUVADU product.')
   const { collections, allProducts, addProduct, updateProduct } = useCatalog()
   const { notify } = useToast()
   const navigate = useNavigate()
@@ -126,15 +126,15 @@ export default function ProductForm() {
             <input className="field" type="number" min="1" value={form.priceA5} onChange={(e) => set('priceA5', e.target.value)} required />
           </AdminField>
 
-          <AdminField label="A4 price (₹) — optional">
+          <AdminField label="A4 price (₹) - optional">
             <input className="field" type="number" min="0" value={form.priceA4} onChange={(e) => set('priceA4', e.target.value)} placeholder="Leave blank if N/A" />
           </AdminField>
 
-          <AdminField label="Custom price (₹) — optional">
+          <AdminField label="Custom price (₹) - optional">
             <input className="field" type="number" min="0" value={form.priceCustom} onChange={(e) => set('priceCustom', e.target.value)} placeholder="Leave blank = priced on request" />
           </AdminField>
 
-          <AdminField label="Stock — optional">
+          <AdminField label="Stock - optional">
             <input className="field" type="number" min="0" step="1" value={form.stock} onChange={(e) => set('stock', e.target.value)} placeholder="Leave blank = not tracked" />
           </AdminField>
 
@@ -172,7 +172,7 @@ export default function ProductForm() {
           <div className="mt-4 text-center">
             <p className="font-display text-xl text-plum">{form.name || 'Product name'}</p>
             <p className="mt-1 font-body text-sm font-light text-muted-foreground">{collection?.displayName}</p>
-            <p className="mt-2 font-body text-base font-medium text-royal">₹{form.priceA5 || '—'}</p>
+            <p className="mt-2 font-body text-base font-medium text-royal">₹{form.priceA5 || '-'}</p>
           </div>
         </AdminCard>
       </aside>

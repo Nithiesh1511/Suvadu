@@ -4,7 +4,7 @@ import { useSeo } from '@/lib/seo'
 
 export default function NotFound() {
   // Covers the catch-all route. When NotFound is rendered *inside* another page
-  // (a missing product or collection) that page owns the title instead — child
+  // (a missing product or collection) that page owns the title instead - child
   // effects run before parent ones, so the parent would otherwise overwrite this.
   useSeo('Page not found', 'The link may be broken or the page may have moved.')
 
@@ -17,7 +17,7 @@ export default function NotFound() {
         <p className="eyebrow mt-10">Page not found</p>
         <h1 className="mt-3 font-display text-5xl text-plum">This page is a blank page.</h1>
         <p className="mt-4 max-w-md font-body text-base font-light text-muted-foreground">
-          The link may be broken or the page may have moved — but there are plenty of beautiful notebooks waiting to be written in.
+          The link may be broken or the page may have moved - but there are plenty of beautiful notebooks waiting to be written in.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link to="/" className="btn-primary btn-lg">Back to Home</Link>

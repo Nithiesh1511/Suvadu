@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ============================================================
-   SUVADU NOTEBOOKS — Design Tokens
+   SUVADU NOTEBOOKS - Design Tokens
    Brand: Royal Purple #613092 · Pale Lilac #F3E8FF · Deep Plum #2C1A3E
    Type:  DM Serif Display (display) · DM Sans (body/UI)
    ============================================================ */
@@ -13,7 +13,7 @@
   --color-lilac: #f3e8ff;
   --color-plum: #2c1a3e;
 
-  /* shadcn-style semantic tokens — space-separated RGB channels so
+  /* shadcn-style semantic tokens - space-separated RGB channels so
      Tailwind can apply opacity modifiers via rgb(var(--x) / <alpha-value>) */
   --background: 255 253 251;
   --foreground: 44 26 62;
@@ -27,7 +27,7 @@
   --ring: 97 48 146;
   --radius: 0.875rem;
 
-  /* Motion — durations, easing and cascade step, matching the reference
+  /* Motion - durations, easing and cascade step, matching the reference
      storefront (bluenova.in). See the MOTION section further down. */
   --duration-short: 0.1s;
   --duration-default: 0.2s;
@@ -61,7 +61,7 @@
     color: rgb(var(--foreground));
     font-family: var(--font-body);
     font-weight: var(--font-weight-light);
-    line-height: 1.7; /* breathing room — brief rule */
+    line-height: 1.7; /* breathing room - brief rule */
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -74,7 +74,7 @@
     color: var(--color-plum);
   }
 
-  /* Minimum mobile font size guard — never below 13px */
+  /* Minimum mobile font size guard - never below 13px */
   @media (max-width: 480px) {
     body { font-size: 15px; }
     small, .caption { font-size: 13px; }
@@ -96,7 +96,7 @@
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10;
   }
 
-  /* Buttons — DM Sans 500, uppercase, 0.06em tracking (brief rule).
+  /* Buttons - DM Sans 500, uppercase, 0.06em tracking (brief rule).
      min-height keeps every button at the 44px touch target on phones, and
      max-width stops a long label from pushing a narrow card sideways. */
   .btn {
@@ -160,7 +160,7 @@
     @apply rounded-2xl border border-border bg-card shadow-card;
   }
 
-  /* A hairline ornament leads every eyebrow — the first stroke of a sentence. */
+  /* A hairline ornament leads every eyebrow - the first stroke of a sentence. */
   .eyebrow {
     @apply inline-flex items-center gap-2.5 align-top font-body text-xs font-medium uppercase tracking-[0.22em] text-royal;
   }
@@ -212,15 +212,15 @@
 }
 
 /* ============================================================
-   MOTION — scroll reveal, cascade stagger, hover lift
+   MOTION - scroll reveal, cascade stagger, hover lift
    Ported from the reference storefront (bluenova.in), which runs
    Shopify Dawn's motion system: the same two keyframes, the same
    0.6s cubic-bezier(0, 0, .3, 1), the same 75ms cascade step.
 
    Every hide-until-revealed rule is scoped to .js-anim, which
    src/lib/motion.ts puts on <html> as the bundle evaluates. If
-   that module never runs — or the visitor asked for reduced
-   motion — the page renders plainly instead of leaving whole
+   that module never runs - or the visitor asked for reduced
+   motion - the page renders plainly instead of leaving whole
    sections stranded at opacity 0.
    ============================================================ */
 @keyframes sa-slide-in {
@@ -244,7 +244,7 @@
 }
 
 /* Revealed. The resting style is already the finished state and the keyframes
-   only fill `backwards` — which covers the cascade delay — so nothing is left
+   only fill `backwards` - which covers the cascade delay - so nothing is left
    behind once the run ends. A lingering `transform` would quietly turn every
    revealed section into a containing block for any fixed-position child. */
 .js-anim [data-sa-in].animate--fade-in {
@@ -260,7 +260,7 @@
 }
 
 /* Route change. The outgoing page is already unmounted by the time this runs,
-   so it's an entrance only — and opacity alone, because a transform here would
+   so it's an entrance only - and opacity alone, because a transform here would
    break the sticky header and any fixed overlay a page puts inside itself. */
 .js-anim .page-enter {
   animation: sa-fade-in var(--duration-long) var(--ease-out-slow) both;
@@ -298,7 +298,7 @@
 }
 
 /* ============================================================
-   Ambient background FX — drifting aurora orbs + twinkling
+   Ambient background FX - drifting aurora orbs + twinkling
    sparkles. Pure transform/opacity (GPU friendly), sits behind
    all content, and is fully disabled for reduced-motion users.
    ============================================================ */
@@ -370,11 +370,11 @@
 }
 
 /* ============================================================
-   THEME — "paper & ink"
+   THEME - "paper & ink"
    The brand's own materials, used as the design language: ruled
    paper with a margin line, ink strokes, stitched binding,
    scalloped page edges, and a sparkle for every spark of an idea.
-   Everything here is decoration — it carries no information and
+   Everything here is decoration - it carries no information and
    is hidden from assistive tech where it is markup.
    ============================================================ */
 
@@ -388,7 +388,7 @@ html { scrollbar-width: thin; scrollbar-color: #9a66c7 #f6f1fb; }
   border-radius: 999px;
 }
 
-/* Reading progress — a thin ink line across the very top of the page. */
+/* Reading progress - a thin ink line across the very top of the page. */
 .scroll-progress {
   position: fixed;
   inset: 0 0 auto 0;
@@ -423,7 +423,7 @@ html[data-flying-notebook='ready'] .flying-notebook-stage__fallback { opacity: 0
 
 /* ── Hero showcase: disc, orbit ring, floating chips ───────────────────────── */
 /* One circle, sized by the height of its box, so the disc and its ring stay round
-   whatever shape the showcase is — wide on desktop, squat on a phone. */
+   whatever shape the showcase is - wide on desktop, squat on a phone. */
 .hero-orb {
   position: absolute;
   top: 2%;
@@ -540,7 +540,7 @@ html:not(.js-anim) .ink-underline path { stroke-dashoffset: 0; }
 .strip-stitch::before { top: 5px; }
 .strip-stitch::after { bottom: 5px; }
 
-/* ── Scalloped band — page-edge top and bottom, cut with a mask so whatever is
+/* ── Scalloped band - page-edge top and bottom, cut with a mask so whatever is
       behind the page (the aurora) shows through the scallops ──────────────── */
 .band-wavy {
   --wave-h: 34px;
@@ -555,7 +555,7 @@ html:not(.js-anim) .ink-underline path { stroke-dashoffset: 0; }
 }
 @media (min-width: 768px) { .band-wavy { --wave-h: 52px; } }
 
-/* ── Story desk — the lilac stage the pinned notebook writes on ────────────── */
+/* ── Story desk - the lilac stage the pinned notebook writes on ────────────── */
 .desk {
   position: relative;
   overflow: hidden;

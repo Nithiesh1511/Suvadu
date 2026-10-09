@@ -9,7 +9,7 @@ const KNOWN_CATEGORIES = ['Shipping', 'Customization', 'Returns', 'Payments', 'O
 const EMPTY = { category: 'Shipping', question: '', answer: '' }
 
 export default function AdminFaqs() {
-  useSeo('Admin — FAQ', 'Manage SUVADU FAQ content.')
+  useSeo('Admin - FAQ', 'Manage SUVADU FAQ content.')
   const { notify } = useToast()
   const [faqs, setFaqs] = useState<FaqRow[]>([])
   const [loading, setLoading] = useState(true)

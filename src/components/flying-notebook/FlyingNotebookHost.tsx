@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
 // three.js is the heaviest thing on the site, so the flying notebook is a separate chunk
-// that is only fetched once the browser is idle — the page paints and becomes
+// that is only fetched once the browser is idle - the page paints and becomes
 // usable first, and the book arrives a moment later.
 const FlyingNotebook = lazy(() => import('./FlyingNotebook'))
 

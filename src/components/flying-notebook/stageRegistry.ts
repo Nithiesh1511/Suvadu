@@ -7,7 +7,7 @@
 export interface StageConfig {
   /** Swing the notebook open and write on the page while it rests here. */
   open?: boolean
-  /** Resting yaw (radians) while closed — a three-quarter view reads best. */
+  /** Resting yaw (radians) while closed - a three-quarter view reads best. */
   rotY?: number
   /** Share of the stage the closed book may fill. */
   fit?: number

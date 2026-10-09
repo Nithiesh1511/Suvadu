@@ -6,7 +6,7 @@ interface Props {
   /** Admin-uploaded cover image (data URL). When present it's shown instead of the generated cover. */
   image?: string
   alt?: string
-  // Fallback cover props (used when no image is supplied) — mirror NotebookCover.
+  // Fallback cover props (used when no image is supplied) - mirror NotebookCover.
   colour: string
   pattern: Pattern
   label?: string
@@ -19,7 +19,7 @@ interface Props {
 /**
  * Renders a product's cover: the admin-uploaded image when available, otherwise
  * the generated NotebookCover. Drop-in replacement for NotebookCover at product
- * call sites — pass the same cover props plus the product's optional `image`.
+ * call sites - pass the same cover props plus the product's optional `image`.
  */
 export default function ProductImage({ image, alt, className, rounded = true, ...cover }: Props) {
   if (image) {

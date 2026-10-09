@@ -11,7 +11,7 @@ type Filter = 'all' | ReviewRow['status']
 const FILTERS: Filter[] = ['all', 'pending', 'approved', 'rejected']
 
 export default function AdminReviews() {
-  useSeo('Admin — Reviews', 'Moderate SUVADU customer reviews.')
+  useSeo('Admin - Reviews', 'Moderate SUVADU customer reviews.')
   const { notify } = useToast()
   const [reviews, setReviews] = useState<ReviewRow[]>([])
   const [loading, setLoading] = useState(true)

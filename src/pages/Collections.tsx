@@ -63,7 +63,7 @@ export default function Collections() {
     return list
   }, [catalog, bestsellerOnly, category, sort, query])
 
-  // The whole page is driven by the catalogue — if it never arrived, say so
+  // The whole page is driven by the catalogue - if it never arrived, say so
   // rather than rendering an empty shop that looks deliberately empty.
   if (catalogError) {
     return (
@@ -217,7 +217,7 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       <span className="grid h-14 w-14 place-items-center rounded-full bg-lilac text-royal"><Search width={24} height={24} /></span>
       <h3 className="mt-5 font-display text-2xl text-plum">No products found</h3>
       <p className="mt-2 max-w-sm font-body text-sm font-light text-muted-foreground">
-        Try a different category or search term — your next notebook is in here somewhere.
+        Try a different category or search term - your next notebook is in here somewhere.
       </p>
       <button onClick={onReset} className="btn-secondary mt-6">Clear filters</button>
     </div>

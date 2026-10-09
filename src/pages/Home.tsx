@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <div>
-      {/* 1. HERO — the flying notebook's first stage */}
+      {/* 1. HERO - the flying notebook's first stage */}
       <section className="gradient-hero relative overflow-hidden">
         <div aria-hidden className="paper-rules pointer-events-none absolute inset-0" />
         <Spark4 className="twinkle pointer-events-none absolute left-[9%] top-[16%] h-4 w-4 text-royal-300" />
@@ -105,7 +105,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* marquee — a stitched strip */}
+      {/* marquee - a stitched strip */}
       <div className="strip-stitch overflow-hidden py-3.5 text-white">
         <div className="flex w-max animate-marquee gap-12 whitespace-nowrap font-display text-lg italic">
           {Array.from({ length: 2 }).map((_, k) => (
@@ -147,7 +147,7 @@ export default function Home() {
           reveal
           eyebrow="Curated for you"
           title="Featured Collections"
-          subtitle={`${collections.length || ''} ${collections.length === 1 ? 'world' : 'worlds'} to write in — each with its own voice.`.trim()}
+          subtitle={`${collections.length || ''} ${collections.length === 1 ? 'world' : 'worlds'} to write in - each with its own voice.`.trim()}
           link={{ to: '/collections', label: 'View all' }}
         />
         {catalogError ? (
@@ -203,7 +203,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* 3. BEST SELLERS — a scalloped page-edge band */}
+      {/* 3. BEST SELLERS - a scalloped page-edge band */}
       <section className="band-wavy relative bg-gradient-to-b from-lilac/80 via-lilac/50 to-lilac/80 py-24 sm:py-32">
         <div aria-hidden className="bg-grain pointer-events-none absolute inset-0 opacity-80" />
         <div className="container-suvadu relative">
@@ -225,7 +225,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. OUR STORY — the flying notebook's second stage: it lands here, opens, and writes. */}
+      {/* 4. OUR STORY - the flying notebook's second stage: it lands here, opens, and writes. */}
       <StorySection />
 
       {/* Value props */}
@@ -245,7 +245,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. CUSTOMER REVIEWS — drifting ribbon, full-bleed, no heading of its own */}
+      {/* 5. CUSTOMER REVIEWS - drifting ribbon, full-bleed, no heading of its own */}
       <section className="relative overflow-hidden py-16 sm:py-24">
         <div
           aria-hidden
@@ -289,7 +289,7 @@ export default function Home() {
   )
 }
 
-/** Shown where the flying notebook will land until the 3D chunk arrives — and for good if
+/** Shown where the flying notebook will land until the 3D chunk arrives - and for good if
  *  the browser has no WebGL. Fades out once the real notebook is drawing. */
 function StageFallback() {
   return (
@@ -303,12 +303,12 @@ function StageFallback() {
 
 const STORY_CHAPTERS = [
   { n: '01', t: 'Paper you’ll want to write on', d: '100 GSM premium paper and lay-flat binding, so every page stays open for whatever you’re thinking.' },
-  { n: '02', t: 'Covers with a soft touch', d: 'Minimal, aesthetic covers in a calm palette — considered enough to carry everywhere.' },
+  { n: '02', t: 'Covers with a soft touch', d: 'Minimal, aesthetic covers in a calm palette - considered enough to carry everywhere.' },
   { n: '03', t: 'Yours, down to the name', d: 'Add your own name, text, font and colour on a customised notebook, and make the first mark yourself.' },
 ]
 
 /** "Our story". On desktop the notebook is pinned to the middle of the screen,
- *  on a desk that sticks with it, while three chapters scroll past on the left —
+ *  on a desk that sticks with it, while three chapters scroll past on the left -
  *  so the book has time to land, open, and write out its message. On a phone the
  *  desk is simply a block between the intro and the chapters. */
 function StorySection() {
@@ -321,7 +321,7 @@ function StorySection() {
             A notebook is where <span className="italic text-ink">ideas</span> begin.
           </h2>
           <p className="mt-5 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
-            SUVADU began with a simple belief — that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
+            SUVADU began with a simple belief - that the things you write in should feel as considered as the things you write. We obsess over paper weight, cover texture and the quiet joy of a page that lies flat.
           </p>
           <p className="mt-3 max-w-xl font-body text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
             From minimal aesthetics to fully personalised covers, every Suvadu notebook is made to help you make your mark.
@@ -366,8 +366,8 @@ function StorySection() {
   )
 }
 
-/** The catalogue didn't load. Say so inline — the rest of the home page is
- *  static and still worth reading — and give the shopper a retry. */
+/** The catalogue didn't load. Say so inline - the rest of the home page is
+ *  static and still worth reading - and give the shopper a retry. */
 function CatalogRetryNotice() {
   const { refresh, loading } = useCatalog()
   return (
@@ -445,7 +445,7 @@ function HeroCovers() {
 }
 
 function NewsletterBanner() {
-  // Only promise the discount if the coupon behind it is actually live — the
+  // Only promise the discount if the coupon behind it is actually live - the
   // headline used to advertise 10% off unconditionally, and subscribing then
   // delivered nothing at all.
   const [offer, setOffer] = useState<WelcomeOffer | null>(null)
@@ -485,10 +485,10 @@ function NewsletterForm({ offer }: { offer: WelcomeOffer | null }) {
     setBusy(true)
     const { error } = await supabase.from('newsletter_subscribers').upsert({ email: value }, { onConflict: 'email' })
     setBusy(false)
-    if (error) { notify('Could not subscribe right now — please try again.'); return }
+    if (error) { notify('Could not subscribe right now - please try again.'); return }
     // There is no transactional email here, so the code is handed over on the
     // spot rather than promised and never sent.
-    notify(offer ? `Subscribed — your code is ${offer.code}` : 'Subscribed — welcome to Suvadu!')
+    notify(offer ? `Subscribed - your code is ${offer.code}` : 'Subscribed - welcome to Suvadu!')
     setClaimed(true)
     setEmail('')
   }

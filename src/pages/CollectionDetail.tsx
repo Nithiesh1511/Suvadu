@@ -24,7 +24,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
     ? SPECIAL_COLLECTIONS.find((c) => c.slug === slug)
     : collections.find((c) => c.slug === slug)
 
-  // Special collections are ordinary collections with their own landing page —
+  // Special collections are ordinary collections with their own landing page -
   // they list the products actually filed under them. Padding the list with
   // `catalog.slice(0, 4)` used to put Daily Ruled Notebook on the matching-sets
   // page, and a hardcoded stand-in product that duplicated a real row and
@@ -39,7 +39,7 @@ export default function CollectionDetail({ special }: { special?: boolean }) {
     return sorted
   }, [slug, sort, getProductsByCollection])
 
-  // SEO meta (brief §11) — unique per collection. As on the product page, this
+  // SEO meta (brief §11) - unique per collection. As on the product page, this
   // has to own the 404 title too, since <NotFound />'s own effect runs first.
   const metaDesc = meta ? ('details' in meta ? meta.details : meta.description) : undefined
   useSeo(meta?.displayName ?? (loading ? 'Collection' : 'Page not found'), metaDesc)

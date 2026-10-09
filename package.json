@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "SUVADU Notebooks — premium stationery storefront. Make your mark.",
+  "description": "SUVADU Notebooks - premium stationery storefront. Make your mark.",
   "scripts": {
     "dev": "vite",
     "tunnel": "powershell -ExecutionPolicy Bypass -File scripts/dev-tunnel.ps1",

@@ -27,7 +27,7 @@ export default function Accessories() {
       <PageHeader
         eyebrow="Accessories"
         title="Bookmarks"
-        subtitle="Little companions for your notebooks — four designs to keep your place in style."
+        subtitle="Little companions for your notebooks - four designs to keep your place in style."
         crumbs={[{ label: 'Accessories' }]}
       />
 

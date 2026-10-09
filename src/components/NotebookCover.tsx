@@ -12,7 +12,7 @@ interface Props {
 }
 
 /**
- * Generates an elegant notebook "cover" as inline SVG/CSS — no external image
+ * Generates an elegant notebook "cover" as inline SVG/CSS - no external image
  * assets required, so the storefront looks polished and consistent everywhere.
  * Mimics the role of the brief's product imagery / ImageWithFallback wrapper.
  */

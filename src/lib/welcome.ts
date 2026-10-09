@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 // ── The newsletter's welcome offer ───────────────────────────────────────────
 // The home page trades a discount for an email address. There is no transactional
 // email in this app, so the only way to keep that promise is to hand the code
-// over on the spot — and the only honest way to make the promise at all is to
+// over on the spot - and the only honest way to make the promise at all is to
 // check first that the coupon really is live.
 
 export const WELCOME_COUPON = 'SUVADU10'
@@ -21,7 +21,7 @@ export interface CouponRow {
   active?: boolean | null
 }
 
-/** A coupon row as an offer, or null if it can't actually be honoured —
+/** A coupon row as an offer, or null if it can't actually be honoured -
  *  missing, deactivated, expired, or a nonsense percentage. */
 export function toOffer(row: CouponRow | null, now: number = Date.now()): WelcomeOffer | null {
   if (!row) return null
@@ -34,7 +34,7 @@ export function toOffer(row: CouponRow | null, now: number = Date.now()): Welcom
   return { code: row.code, pct }
 }
 
-/** The welcome coupon, or null if it is missing, deactivated or expired —
+/** The welcome coupon, or null if it is missing, deactivated or expired -
  *  in which case the page must not advertise a discount. */
 export async function fetchWelcomeOffer(): Promise<WelcomeOffer | null> {
   const { data, error } = await supabase

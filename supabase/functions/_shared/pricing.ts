@@ -2,7 +2,7 @@
 // The order row's subtotal / discount / total are written by the browser, so
 // they are a claim, not a fact. Before Razorpay is asked to charge anything,
 // recompute what the order SHOULD cost from the line items, the live `products`
-// prices and the validated coupon — and refuse to charge if the two disagree.
+// prices and the validated coupon - and refuse to charge if the two disagree.
 //
 // The arithmetic here mirrors `src/context/StoreContext.tsx` (subtotal /
 // discount / total) and `priceForPages` in `src/data/products.ts` exactly,
@@ -20,7 +20,7 @@ export const PAGE_PRICE_FACTOR: Record<number, number> = {
 /** Mirrors DEFAULT_PAGES in src/data/products.ts. */
 export const DEFAULT_PAGES = 160
 
-/** Accessories are not rows in `products` — mirrors BOOKMARKS / BOOKMARK_PRICE
+/** Accessories are not rows in `products` - mirrors BOOKMARKS / BOOKMARK_PRICE
  *  in src/data/products.ts. Keyed by the same ids the client sends. */
 export const ACCESSORY_PRICES: Record<string, number> = {
   BM1: 99,

@@ -8,7 +8,7 @@ interface Crumb { label: string; to?: string }
 const ORIGIN = 'https://suvadu.example.com'
 
 export default function PageHeader({ title, subtitle, eyebrow, crumbs }: {
-  /** Omit on pages that render their own <h1> (e.g. a product page) — the
+  /** Omit on pages that render their own <h1> (e.g. a product page) - the
       header then collapses to a slim breadcrumb bar instead of reserving a
       hero-sized band around an empty heading. */
   title?: string
@@ -17,7 +17,7 @@ export default function PageHeader({ title, subtitle, eyebrow, crumbs }: {
   crumbs?: Crumb[]
 }) {
   const bare = !title && !subtitle && !eyebrow
-  // BreadcrumbList structured data (brief §11) — built from the same crumbs.
+  // BreadcrumbList structured data (brief §11) - built from the same crumbs.
   const breadcrumbLd = crumbs && crumbs.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -32,7 +32,7 @@ export default function PageHeader({ title, subtitle, eyebrow, crumbs }: {
   return (
     <section className="gradient-hero relative overflow-hidden border-b border-border">
       {breadcrumbLd && <JsonLd data={breadcrumbLd} />}
-      {/* Ruled paper, a pair of rings and a sparkle — the same hand as the home hero.
+      {/* Ruled paper, a pair of rings and a sparkle - the same hand as the home hero.
           Skipped on the slim breadcrumb-only variant, which has no room for them. */}
       {!bare && (
         <>

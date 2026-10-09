@@ -64,7 +64,7 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
   const [active, setActive] = useState<Tab>(tab)
   useEffect(() => setActive(tab), [tab])
 
-  // Wait for the session/profile bootstrap before deciding — otherwise a signed-in
+  // Wait for the session/profile bootstrap before deciding - otherwise a signed-in
   // user briefly sees the Sign In form flash on every load.
   if (authLoading) {
     return (
@@ -76,7 +76,7 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
       </div>
     )
   }
-  // Session exists but the profile fetch failed — surface it instead of showing
+  // Session exists but the profile fetch failed - surface it instead of showing
   // the Sign In form (which would wrongly imply the user is logged out).
   if (session && profileError) {
     return (
@@ -91,7 +91,7 @@ export default function Account({ tab = 'profile' }: { tab?: Tab }) {
   }
   if (!user) return <AuthGate notify={notify} />
 
-  // Accessories aren't in the catalogue table — resolve them from the static
+  // Accessories aren't in the catalogue table - resolve them from the static
   // registry too, so the badge in the header and this list can't disagree.
   const wished: Product[] = wishlist
     .map((id) => ALL_PRODUCTS.find((p) => p.id === id) ?? getAccessoryById(id))
@@ -164,7 +164,7 @@ function AuthGate({ notify }: { notify: (m: string) => void }) {
     // Client-side guards for clearer feedback than the raw API error.
     if (!isEmail(form.email)) { setError('Please enter a valid email address.'); return }
     if (mode === 'register') {
-      if (!form.name.trim()) { setError('Please enter your name — it’s what we’ll put on your order.'); return }
+      if (!form.name.trim()) { setError('Please enter your name - it’s what we’ll put on your order.'); return }
       if (form.mobile && !isMobile(form.mobile)) { setError('Please enter a valid 10-digit mobile number.'); return }
       if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
     }
@@ -179,7 +179,7 @@ function AuthGate({ notify }: { notify: (m: string) => void }) {
     if (!res.ok) { setError(res.message); return }
     notify(res.message)
     // On sign-up with email confirmation enabled (or after a reset email) there's
-    // no session yet — bounce back to the login tab.
+    // no session yet - bounce back to the login tab.
     if (res.needsConfirmation || mode === 'reset') setMode('login')
   }
 
@@ -292,7 +292,7 @@ function OrdersPanel() {
     if (!session) { setLoading(false); return }
     // Explicitly scope to the signed-in user. RLS also grants admins read access
     // to ALL orders, so without this filter an admin's own "My Orders" would list
-    // every customer's orders — filter here regardless of RLS.
+    // every customer's orders - filter here regardless of RLS.
     supabase
       .from('orders')
       .select('id, order_number, status, total, created_at, razorpay_order_id, order_items(product_id, product_name, product_slug, size, qty, unit_price, pages, customization)')
@@ -314,7 +314,7 @@ function OrdersPanel() {
    *  connection, closed tab) also sits at 'pending' with the money captured.
    *  Deleting one of those would destroy the shopper's only record of a payment
    *  that really happened. So this is offered only when razorpay_order_id is
-   *  null — the modal was never opened, so nothing can have been charged.
+   *  null - the modal was never opened, so nothing can have been charged.
    *  Requires the owner DELETE policy from migration 0007. */
   async function discardUnstarted(o: OrderRecord) {
     if (o.razorpay_order_id) return
@@ -325,7 +325,7 @@ function OrdersPanel() {
       .eq('status', 'pending')
       .is('razorpay_order_id', null)
     if (error || !count) {
-      notify('Couldn’t remove that order — please contact us and we’ll clear it.')
+      notify('Couldn’t remove that order - please contact us and we’ll clear it.')
       return
     }
     setOrders((p) => p.filter((x) => x.id !== o.id))
@@ -490,7 +490,7 @@ function AddressesPanel({ notify }: { notify: (m: string) => void }) {
           <div key={a.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border p-4 sm:p-5">
             <div className="min-w-0">
               <span className="badge-soft">{a.label || 'Address'}</span>
-              <p className="mt-2 break-anywhere font-body text-sm font-light text-plum/80">{a.line}, {a.city}, {a.state} — {a.pincode}</p>
+              <p className="mt-2 break-anywhere font-body text-sm font-light text-plum/80">{a.line}, {a.city}, {a.state} - {a.pincode}</p>
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <button onClick={() => openEdit(a)} aria-label="Edit address" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-lilac hover:text-royal"><Pen width={15} /></button>
@@ -614,7 +614,7 @@ function WishlistPanel({ items, onRemove, onAdd }: { items: Product[]; onRemove:
     <Card title="Wishlist">
       <div className="grid gap-4 sm:grid-cols-2">
         {items.map((p) => {
-          // Accessories have no product page — linking to one lands on a 404.
+          // Accessories have no product page - linking to one lands on a 404.
           const to = isAccessory(p.id) ? '/accessories' : `/products/${p.slug}`
           return (
           <div key={p.id} className="flex gap-4 rounded-2xl border border-border p-4">

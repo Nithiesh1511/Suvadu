@@ -4,7 +4,7 @@
 //
 // The number is deliberately kept out of every rendered link. Callers use
 // openWhatsApp() from a click handler, so the wa.me URL is only ever built in
-// memory — it never lands in an href, which means it can't be read from the
+// memory - it never lands in an href, which means it can't be read from the
 // hover status bar, "copy link address", the DOM, or an HTML scraper.
 // Splitting the digits also defeats a plain-text search of the JS bundle.
 //
@@ -14,7 +14,7 @@ const PHONE_PARTS = ['91', '81223', '39518'] // +91 81223 39518
 
 export const CONTACT_EMAIL = 'suvadu.notebooks@gmail.com'
 
-/** wa.me deep link. Intentionally NOT exported — exporting it invites putting
+/** wa.me deep link. Intentionally NOT exported - exporting it invites putting
  *  the number back into an href, which is the thing we're avoiding. */
 function whatsappLink(message?: string): string {
   const url = `https://wa.me/${PHONE_PARTS.join('')}`

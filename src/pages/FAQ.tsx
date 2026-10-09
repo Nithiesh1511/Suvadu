@@ -32,7 +32,7 @@ export default function FAQ() {
       <PageHeader
         eyebrow="Help centre"
         title="Frequently Asked Questions"
-        subtitle="Everything about shipping, customization, returns, payments and orders — in one place."
+        subtitle="Everything about shipping, customization, returns, payments and orders - in one place."
         crumbs={[{ label: 'FAQ' }]}
       />
 

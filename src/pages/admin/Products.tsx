@@ -9,7 +9,7 @@ import { Plus, Trash, Pen } from '@/components/Icons'
 import { AdminCard } from './ui'
 
 export default function AdminProducts() {
-  useSeo('Admin — Products', 'Manage SUVADU products.')
+  useSeo('Admin - Products', 'Manage SUVADU products.')
   const { products, deleteProduct } = useCatalog()
   const { notify } = useToast()
   const [q, setQ] = useState('')
@@ -24,7 +24,7 @@ export default function AdminProducts() {
 
   async function remove(id: string, name: string) {
     const ok = await deleteProduct(id)
-    notify(ok ? `Removed “${name}”` : 'Delete failed — check admin access.')
+    notify(ok ? `Removed “${name}”` : 'Delete failed - check admin access.')
   }
 
   return (

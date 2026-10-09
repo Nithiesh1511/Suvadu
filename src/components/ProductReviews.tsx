@@ -47,7 +47,7 @@ export default function ProductReviews({ productId }: { productId: string }) {
           {loading ? (
             <p className="mt-4 font-body text-sm font-light text-muted-foreground">Loading…</p>
           ) : reviews.length === 0 ? (
-            <p className="mt-4 font-body text-sm font-light text-muted-foreground">No reviews yet — be the first to share yours.</p>
+            <p className="mt-4 font-body text-sm font-light text-muted-foreground">No reviews yet - be the first to share yours.</p>
           ) : (
             <div className="mt-6 space-y-4">
               {reviews.map((r) => (

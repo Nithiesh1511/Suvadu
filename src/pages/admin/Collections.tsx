@@ -14,7 +14,7 @@ const EMPTY: CollectionInput = { displayName: '', internalName: '', description:
 // travels with every catalogue fetch. Cap the picked file, then downscale and
 // re-encode before saving so what actually lands in the database stays small.
 const MAX_IMAGE_MB = 5
-const MAX_EDGE = 900 // px — plenty for the Home card and the admin thumbnail
+const MAX_EDGE = 900 // px - plenty for the Home card and the admin thumbnail
 const JPEG_QUALITY = 0.82
 
 /** Reads a picked file, downscales it to fit MAX_EDGE, and returns a base64
@@ -48,7 +48,7 @@ function toCompressedDataUrl(file: File): Promise<string> {
 }
 
 export default function AdminCollections() {
-  useSeo('Admin — Collections', 'Manage SUVADU collections.')
+  useSeo('Admin - Collections', 'Manage SUVADU collections.')
   const { collections, addCollection, updateCollection } = useCatalog()
   const { notify } = useToast()
   const [editing, setEditing] = useState<string | null>(null) // null=closed, 'new', or slug
@@ -78,17 +78,17 @@ export default function AdminCollections() {
     if (!file) return
     if (!file.type.startsWith('image/')) { notify('Please choose an image file.'); clearFileInput(); return }
     if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
-      notify(`That image is too large — please keep it under ${MAX_IMAGE_MB}MB.`)
+      notify(`That image is too large - please keep it under ${MAX_IMAGE_MB}MB.`)
       clearFileInput()
       return
     }
-    // The base64 string is what gets written to the row, so compress here — the
+    // The base64 string is what gets written to the row, so compress here - the
     // preview below and the saved value are then exactly the same data URL.
     try {
       const dataUrl = await toCompressedDataUrl(file)
       setForm((f) => ({ ...f, image: dataUrl }))
     } catch {
-      notify('Could not read that image — please try another file.')
+      notify('Could not read that image - please try another file.')
       clearFileInput()
     }
   }
@@ -154,7 +154,7 @@ export default function AdminCollections() {
             </select>
           </AdminField>
 
-          <AdminField label="Collection image — optional" className="sm:col-span-2">
+          <AdminField label="Collection image - optional" className="sm:col-span-2">
             <div className="flex flex-wrap items-center gap-4">
               <div className="h-24 w-[72px] shrink-0 overflow-hidden rounded-xl border border-border bg-white">
                 {form.image ? (
